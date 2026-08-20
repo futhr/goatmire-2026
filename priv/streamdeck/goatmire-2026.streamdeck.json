@@ -1,0 +1,65 @@
+{
+  "description": "Stream Deck Mini layout for the Goatmire 2026 on-stage demo. Six keys: slide nav + four MP4 fallbacks for Scenarios 1-4. Import via the Stream Deck app (Profile -> Import).",
+  "device": "Stream Deck Mini",
+  "rows": 2,
+  "cols": 3,
+  "actions": [
+    {
+      "row": 0,
+      "col": 0,
+      "title": "Prev slide",
+      "icon": "arrow-left",
+      "trigger": "keyboard",
+      "keys": [
+        "PageUp"
+      ]
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "title": "Next slide",
+      "icon": "arrow-right",
+      "trigger": "keyboard",
+      "keys": [
+        "PageDown"
+      ]
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "title": "Sc1 MP4",
+      "icon": "play",
+      "trigger": "command",
+      "command": "mpv --fs --no-audio priv/obs/scenario-1.mp4"
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "title": "Sc2 MP4",
+      "icon": "play",
+      "trigger": "command",
+      "command": "mpv --fs --no-audio priv/obs/scenario-2.mp4"
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "title": "Sc3 MP4",
+      "icon": "play",
+      "trigger": "command",
+      "command": "mpv --fs --no-audio priv/obs/scenario-3.mp4"
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "title": "Sc4 MP4",
+      "icon": "play",
+      "trigger": "command",
+      "command": "mpv --fs --no-audio priv/obs/scenario-4.mp4"
+    }
+  ],
+  "notes": [
+    "MP4 files in priv/obs/ are produced during rehearsal Phase 3 (OBS Studio recording).",
+    "The fallbacks are recordings. If one is played on stage, say so out loud before it starts \u2014 a recording presented as a live run is a lie about the demo, and this deck makes that mistake one keypress away.",
+    "Stream Deck firmware expects PNG icons; the Stream Deck app substitutes glyphs from the title text when an icon is missing."
+  ]
+}

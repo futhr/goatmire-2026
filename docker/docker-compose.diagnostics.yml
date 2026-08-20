@@ -1,0 +1,59 @@
+# Stage profile: Phoenix, ExMaude, BeamLens, Codex, and Ollama stay on the
+# laptop host. Containers provide only the MQTT wire, simulated devices, and
+# raw Prometheus/Grafana corroboration.
+name: goatmire-diagnostics
+
+services:
+  broker:
+    image: eclipse-mosquitto:2.1.2-alpine
+    ports: ["127.0.0.1:1883:1883"]
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -W 3 -q 0 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  simulator:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: simulator
+    depends_on:
+      broker:
+        condition: service_healthy
+    mem_limit: 384m
+    cpus: 2.0
+
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./prometheus-host-engine.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus-rules.yml:/etc/prometheus/goatmire-rules.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports: ["127.0.0.1:9090:9090"]
+    mem_limit: 512m
+
+  grafana:
+    image: grafana/grafana:13.2.0
+    depends_on: [prometheus]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: Main Org.
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_LOGIN_COOKIE_NAME: goatmire_grafana_session
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/goatmire.json
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3001:3000"]
+    mem_limit: 384m

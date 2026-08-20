@@ -1,0 +1,126 @@
+#   docker compose -f docker/docker-compose.yml up --build -d --scale simulator=2
+#   docker compose -f docker/docker-compose.yml up --scale simulator=8
+
+name: goatmire
+
+services:
+  broker:
+    image: eclipse-mosquitto:2.1.2-alpine
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -W 3 -q 0 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  engine:
+    # Maude 3.5.1 has no official Linux arm64 binary. Pin the two BEAM
+    # images to Linux x86_64 so Apple Silicon Docker Desktop runs the same
+    # verified Maude artifact as CI and x86_64 rehearsal machines.
+    platform: linux/amd64
+    hostname: engine
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: engine
+    depends_on:
+      broker:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:9568:9568"
+    mem_limit: 1g
+    cpus: 4.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4000/api/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  simulator:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: simulator
+    depends_on:
+      broker:
+        condition: service_healthy
+    mem_limit: 384m
+    cpus: 2.0
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:9568/metrics | grep -Fxq 'goatmire_fleet_devices 100'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    depends_on:
+      engine:
+        condition: service_healthy
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus-rules.yml:/etc/prometheus/goatmire-rules.yml:ro
+    mem_limit: 512m
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:9090/-/healthy >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  grafana:
+    image: grafana/grafana:13.2.0
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: Main Org.
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      # Ignore stale cookies from other Grafana installations on localhost.
+      GF_AUTH_LOGIN_COOKIE_NAME: goatmire_grafana_session
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/goatmire.json
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    mem_limit: 384m
+    ports:
+      - "127.0.0.1:3001:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  livebook:
+    image: ghcr.io/livebook-dev/livebook:0.19.9
+    depends_on:
+      engine:
+        condition: service_healthy
+    environment:
+      LIVEBOOK_TOKEN_ENABLED: "false"
+      LIVEBOOK_IP: 0.0.0.0
+      LIVEBOOK_DEFAULT_RUNTIME: attached:goatmire@engine:goatmire-cookie
+    volumes:
+      - ../notebooks:/data/notebooks/tutorials:ro
+      - ../priv/livebooks:/data/notebooks/scenarios:ro
+    mem_limit: 512m
+    ports:
+      - "127.0.0.1:8080:8080"

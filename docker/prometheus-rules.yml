@@ -1,0 +1,88 @@
+groups:
+  - name: goatmire-dashboard
+    interval: 5s
+    rules:
+      - record: goatmire:engine_alerts_per_second:rate1m
+        expr: sum by (property) (rate(goatmire_engine_alerts_total[1m])) or on() vector(0)
+
+      - record: goatmire:engine_events_per_second:rate1m
+        expr: sum(rate(goatmire_engine_events_total[1m])) or vector(0)
+
+      - record: goatmire:verify_duration_p95_us:rate5m
+        expr: histogram_quantile(0.95, sum by (le, status) (rate(goatmire_verify_duration_bucket[5m]))) or on() vector(0)
+
+      - record: goatmire:verify_duration_p50_us:rate5m
+        expr: histogram_quantile(0.50, sum by (le, status) (rate(goatmire_verify_duration_bucket[5m]))) or on() vector(0)
+
+      - record: goatmire:engine_withheld_rules:current
+        expr: max(goatmire_engine_withheld_rules) or vector(0)
+
+      - record: goatmire:engine_throttled_total:current
+        expr: sum(goatmire_engine_throttled_total) or vector(0)
+
+      - record: goatmire:verify_unverified_per_second:rate5m
+        expr: sum(rate(goatmire_verify_total{status="unverified"}[5m])) or vector(0)
+
+      - record: goatmire:monitoring_targets_up:current
+        expr: sum(up{job=~"goatmire-.+"}) or vector(0)
+
+  - name: goatmire-alerts
+    interval: 5s
+    rules:
+      - alert: GoatmireEngineTargetDown
+        expr: up{job="goatmire-engine"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          component: engine
+        annotations:
+          summary: The Goatmire engine metrics target is unreachable
+          description: Prometheus has failed to scrape {{ $labels.instance }} for 15 seconds.
+
+      - alert: GoatmireSimulatorTargetDown
+        expr: up{job="goatmire-simulator"} == 0
+        for: 15s
+        labels:
+          severity: warning
+          component: simulator
+        annotations:
+          summary: A Goatmire simulator metrics target is unreachable
+          description: Prometheus has failed to scrape {{ $labels.instance }} for 15 seconds.
+
+      - alert: GoatmireNoSimulatorTargets
+        expr: absent(up{job="goatmire-simulator"})
+        for: 30s
+        labels:
+          severity: critical
+          component: simulator
+        annotations:
+          summary: Prometheus has discovered no Goatmire simulators
+          description: The simulator DNS discovery result has been empty for 30 seconds.
+
+      - alert: GoatmireAlertStorm
+        expr: goatmire:engine_alerts_per_second:rate1m > 25
+        for: 15s
+        labels:
+          severity: critical
+          component: engine
+        annotations:
+          summary: Goatmire is producing alerts at storm rate
+          description: The one-minute action rate has exceeded 25 alerts per second for 15 seconds.
+
+      - alert: GoatmireCommandsThrottled
+        expr: increase(goatmire_engine_throttled_total[1m]) > 0
+        labels:
+          severity: warning
+          component: engine
+        annotations:
+          summary: The engine actuation bound is dropping commands
+          description: At least one command was throttled during the last minute.
+
+      - alert: GoatmireVerificationUnverified
+        expr: increase(goatmire_verify_total{status="unverified"}[5m]) > 0
+        labels:
+          severity: warning
+          component: verifier
+        annotations:
+          summary: A verification could not complete
+          description: At least one verification returned unverified during the last five minutes.

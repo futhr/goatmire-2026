@@ -1,0 +1,198 @@
+{
+  "uid": "goatmire-gate",
+  "title": "Goatmire — deployment gate & fleet",
+  "tags": ["goatmire", "ex_maude"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Alerts per second",
+      "description": "Operator-visible automation actions. The gap between gate-off and gate-on runs is the whole argument of the talk.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#e2474d" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "goatmire:engine_alerts_per_second:rate1m",
+          "legendFormat": "{{property}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Events ingested per second",
+      "description": "Device readings crossing the transport.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#3e64ff" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "goatmire:engine_events_per_second:rate1m",
+          "legendFormat": "events",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Verification cost (µs)",
+      "description": "Wall clock for one deployment-gate reduction, by outcome. This is the number to quote when someone asks what the gate costs.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#3e64ff" },
+          "custom": { "lineWidth": 2, "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "p50.*" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#b2c1ff" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "goatmire:verify_duration_p95_us:rate5m",
+          "legendFormat": "p95 {{status}}",
+          "refId": "A"
+        },
+        {
+          "expr": "goatmire:verify_duration_p50_us:rate5m",
+          "legendFormat": "p50 {{status}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Rules withheld by the gate",
+      "description": "Rules the verifier refused in the most recent deployment.",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#3e64ff" } },
+        "overrides": []
+      },
+      "targets": [{ "expr": "goatmire:engine_withheld_rules:current", "refId": "A" }]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Commands throttled",
+      "description": "Actuations dropped by the per-Thing bound. A rising line here means rules are fighting.",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#445668" } },
+        "overrides": []
+      },
+      "targets": [{ "expr": "goatmire:engine_throttled_total:current", "refId": "A" }]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Unverified reductions",
+      "description": "Verifications that could not run. Never treat this line as clean — that is the point of tracking it separately.",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#445668" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "lineStyle": { "fill": "dash", "dash": [6, 4] }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "goatmire:verify_unverified_per_second:rate5m",
+          "legendFormat": "unverified",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Simulator BEAM processes",
+      "description": "Per-node process count. Each simulated device is one GenServer and one timer.",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#91a4b7" },
+          "custom": { "lineWidth": 2, "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*engine.*" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#3e64ff" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*simulator.*" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#77b876" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "vm_system_counts_process_count",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Monitoring targets up",
+      "description": "Engine and simulator endpoints currently scraped by Prometheus.",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 24 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#e2474d", "value": null },
+              { "color": "#ffa83f", "value": 1 },
+              { "color": "#4aa148", "value": 2 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "goatmire:monitoring_targets_up:current",
+          "legendFormat": "targets",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
