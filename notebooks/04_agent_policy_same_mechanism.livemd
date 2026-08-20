@@ -1,0 +1,101 @@
+# 4 · Different policy, same mechanism
+
+An LLM can propose structured policy. It should not be the final judge of the policy it just proposed.
+
+Here we validate a small agent policy with deterministic equations. The model is different from the IoT model; the engineering path is the same:
+
+> validated data → encoder → Maude term → detector → typed result → gate
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## A high-impact call without approval
+
+```elixir
+policy = [
+  %{
+    id: "autodose-controller",
+    agent_id: {"acme", "controller"},
+    trigger: {:always},
+    invocations: [
+      {:invoke_tool, "dose", %{}, "high_impact", :eu}
+    ]
+  }
+]
+
+{:ok, conflicts} = ExMaude.AI.detect_conflicts(policy, jurisdictions: [:eu])
+Enum.map(conflicts, &Map.take(&1, [:type, :rule1, :rule2, :reason]))
+```
+
+This is not sentiment analysis or a confidence score. The policy contains a high-impact invocation with no explicit approval constructor in front of it, so the detector returns `:approval_gate_bypass`.
+
+## Make the control explicit
+
+```elixir
+[controller] = policy
+
+gated = [
+  %{controller |
+    invocations: [
+      {:require_approval, "dosing_high_delta"},
+      {:invoke_tool, "dose", %{}, "high_impact", :eu}
+    ]
+  }
+]
+
+{:ok, gated_conflicts} = ExMaude.AI.detect_conflicts(gated, jurisdictions: [:eu])
+gated_conflicts
+```
+
+An empty list means none of this detector's seven categories matched. It does not mean the agent, tool implementation, dose calculation, or deployment is safe in every respect.
+
+## Change one axis: jurisdiction
+
+```elixir
+outside = [
+  %{
+    id: "research-assistant",
+    agent_id: {"acme", "researcher"},
+    trigger: {:always},
+    invocations: [
+      {:invoke_tool, "search", %{}, "internet_access", :us}
+    ]
+  }
+]
+
+{:ok, sovereignty} =
+  ExMaude.AI.detect_conflicts(outside, jurisdictions: [:eu, :ch])
+
+Enum.map(sovereignty, & &1[:type])
+```
+
+The seven implemented categories are tool-call conflict, capability shadowing, pack/tool composition mismatch, sovereignty violation, authority escalation, approval-gate bypass, and agent-loop cascade. Claims outside that list need a different model.
+
+## Inspect the actual translation
+
+```elixir
+{:ok, encoded} = ExMaude.AI.Encoder.encode_rules(gated)
+jurisdictions = ExMaude.AI.Encoder.encode_jurisdiction_set([:eu])
+
+"reduce in AI-CONFLICT-DETECTOR : " <>
+  "detectAllConflicts(#{encoded}, #{jurisdictions}) ."
+```
+
+Generate this command from the library encoder. Never hand-copy a convincing looking Maude fixture into documentation; encoder drift would make the demo prove something other than the policy the audience just read.

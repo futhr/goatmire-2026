@@ -1,0 +1,120 @@
+# Scenario 5 — The model, by hand
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("../..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## What this notebook is for
+
+Nothing moves here. No fleet, no broker, no network, no language model. One agent policy, one call, one typed answer.
+
+It is the slowest beat in the talk on purpose: with nothing else on screen, the audience can read the term and the typed conflict that rejects it. It is also the fallback — if everything else on stage falls over, this still runs.
+
+```elixir
+Goatmire.Verifier.health()
+```
+
+## A policy with a hole in it
+
+An agent that performs a high-impact action, with no approval gate in front of it.
+
+```elixir
+unsafe = [
+  %{
+    id: "autodose-controller",
+    agent_id: {"acme", "controller"},
+    trigger: {:always},
+    invocations: [{:invoke_tool, "dose", %{}, "high_impact", :eu}]
+  }
+]
+```
+
+Four fields — plain data, like an Elixir struct. Three more (`capability_grants`, `authority_required`, `priority`) are optional and defaulted. `{:invoke_tool, name, args, capability, jurisdiction}` is a tuple the detector pattern-matches on — nothing is parsed out of prose.
+
+```elixir
+{:ok, conflicts} = ExMaude.AI.detect_conflicts(unsafe, jurisdictions: [:eu])
+Enum.map(conflicts, &{&1[:type], &1[:rule1], &1[:reason]})
+```
+
+`:approval_gate_bypass`. Not a score, not a judge, not a confidence interval — a typed conflict with a reason string, produced by equational reduction.
+
+## Add the gate
+
+```elixir
+gated = [
+  %{
+    id: "autodose-controller",
+    agent_id: {"acme", "controller"},
+    trigger: {:always},
+    invocations: [
+      {:require_approval, "dosing_high_delta"},
+      {:invoke_tool, "dose", %{}, "high_impact", :eu}
+    ]
+  }
+]
+
+{:ok, none} = ExMaude.AI.detect_conflicts(gated, jurisdictions: [:eu])
+none
+```
+
+Empty. Precisely: this detector found none of its seven modelled conflict types. That is deterministic evidence, not an LLM judgment, and not a claim of complete policy safety.
+
+## A different failure — sovereignty
+
+```elixir
+outside = [
+  %{
+    id: "research-assistant",
+    agent_id: {"acme", "researcher"},
+    trigger: {:always},
+    invocations: [{:invoke_tool, "search", %{}, "internet_access", :us}]
+  }
+]
+
+{:ok, sovereignty} = ExMaude.AI.detect_conflicts(outside, jurisdictions: [:eu, :ch])
+Enum.map(sovereignty, & &1[:type])
+```
+
+"This data may not leave the EU" is not a policy document here. It is a closed sort enumeration, and an invocation routed outside the allowed set is a term the equations reject.
+
+## The drift check
+
+The stage run asserts its own expected outcomes, so a library change that quietly alters a verdict is caught in rehearsal rather than in front of an audience.
+
+```elixir
+Goatmire.VerificationDemo.run()
+```
+
+If that returns `{:error, {:unexpected_verification_results, _}}`, do not present this beat until you understand why. A demo whose expectations have silently moved is a demo making a claim nobody has checked.
+
+## The raw command
+
+This is the command ExMaude sends — assembled from the real encoder's output, not hand-maintained here.
+
+```elixir
+alias ExMaude.AI.Encoder
+
+{:ok, encoded} = Encoder.encode_rules(gated)
+jurisdictions = Encoder.encode_jurisdiction_set([:eu])
+
+"reduce in AI-CONFLICT-DETECTOR : " <>
+  "detectAllConflicts(#{encoded}, #{jurisdictions}) ."
+```
+
+Same machinery you watched inspect robot rules, now inspecting an AI agent policy. Different template, identical mechanism: sorts, operators, equations.

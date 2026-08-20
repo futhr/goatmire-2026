@@ -1,0 +1,86 @@
+# Scenario 1 — Two rules, one property
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("../..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## What this notebook is for
+
+The dashboard shows the verdict. This shows the *term*.
+
+Everything here runs locally: no broker, no fleet, no network. The only external dependency is a Maude interpreter on `PATH` (or `:maude_path`). If there isn't one, every reduction below returns `:unverified` — which is the correct answer, not a broken notebook.
+
+```elixir
+Goatmire.Verifier.health()
+```
+
+## The two rules
+
+Both rules reproduce the SOTERIA O3/O4 interaction shape. They receive the same `contact=open` event and write opposing values to the same switch.
+
+These are repository-owned rule IDs and a controlled reproduction. They are not copied applications, a household incident, or evidence that Maude historically prevented the published violation.
+
+```elixir
+rules = Goatmire.Rules.research_state_conflict_pair()
+```
+
+Read them as data. This map is not a description of a rule that exists somewhere else — it *is* the rule. `ExMaude.IoT` reduces this, and `Goatmire.Engine.RuleEval` executes this.
+
+## Reduce
+
+```elixir
+{:ok, verdict} = Goatmire.Verifier.verify(rules)
+verdict
+```
+
+Three fields worth reading:
+
+* `status` — `:clean`, `:conflicts`, or `:unverified`. Never two of these collapsed into one.
+* `duration_us` — measured, this run, this machine.
+* `scope` — what a clean result would and would not have meant.
+
+```elixir
+Enum.map(verdict.conflicts, &{&1[:type], &1[:rule1], &1[:rule2], &1[:reason]})
+```
+
+## What the gate does with that
+
+A conflict names two rules. The gate withholds **both** — it does not guess which author was right.
+
+```elixir
+Goatmire.Verifier.split_on_verdict(rules, verdict)
+```
+
+## Fix it and re-reduce
+
+After a human resolves the intent, make the second rule update a distinct indicator property instead of opposing the switch state.
+
+```elixir
+[turn_on, turn_off] = rules
+
+fixed = [
+  turn_on,
+  %{turn_off | actions: [{:set_prop, "smart-switch-1", "indicator", "off"}]}
+]
+
+{:ok, fixed_verdict} = Goatmire.Verifier.verify(fixed)
+{fixed_verdict.status, fixed_verdict.duration_us}
+```
+
+`:clean` here means no conflict of the four types the bundled model encodes was found. It does not mean the rules are safe. That distinction is the whole reason the scope sentence travels with the verdict.

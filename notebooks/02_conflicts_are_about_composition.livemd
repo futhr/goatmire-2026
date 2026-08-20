@@ -1,0 +1,104 @@
+# 2 · Conflicts are about composition
+
+Most automation incidents are not caused by a ridiculous rule. They are caused by two reasonable rules, owned by different teams, meeting for the first time in production.
+
+This notebook starts with a direct write conflict, then follows a cascade. No fleet is needed: we are checking the rule set before activation.
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+
+alias Goatmire.{Rules, Verifier}
+```
+
+## Two good intentions, one actuator
+
+```elixir
+rules = Rules.state_conflict_pair()
+
+Enum.map(rules, fn rule ->
+  %{id: rule.id, when: rule.trigger, then: rule.actions}
+end)
+```
+
+The battery rule wants `dock-7`; the day-shift rule wants `dock-19`. Both write the same property on the same Thing. Priority does not answer which intent is correct, so the gate should surface the disagreement instead of silently choosing a winner.
+
+```elixir
+{:ok, verdict} = Verifier.verify(rules, scenario: :tutorial_direct_conflict)
+
+%{
+  status: verdict.status,
+  duration_us: verdict.duration_us,
+  conflicts: Enum.map(verdict.conflicts, &Map.take(&1, [:type, :rule1, :rule2, :reason]))
+}
+```
+
+`duration_us` is a measurement on this machine, for this exact input. It is not a portable performance promise.
+
+## Four categories, not every hazard
+
+The bundled IoT model checks four categories:
+
+1. state conflict;
+2. environment conflict;
+3. state cascade;
+4. state-environment cascade.
+
+That list is the boundary. It does not model mechanical clearance, firmware timing, authorization, sensor calibration, or every physical interaction in a warehouse.
+
+## Fix the intent, then reduce again
+
+Suppose the day-shift rule should select a parking zone, not overwrite the active destination.
+
+```elixir
+[battery_route, shift_safety] = rules
+
+revised = [
+  battery_route,
+  %{shift_safety | actions: [{:set_prop, "agv-42", "parking_zone", "zone-3"}]}
+]
+
+{:ok, revised_verdict} = Verifier.verify(revised, scenario: :tutorial_revised)
+{revised_verdict.status, revised_verdict.scope}
+```
+
+The useful sentence is: “the current detector found none of its four modelled conflict types.” Avoid the wider—and unsupported—sentence “these rules are safe.”
+
+## Now follow a cascade
+
+```elixir
+cascade = Rules.cascade_chain()
+
+Enum.map(cascade, fn rule ->
+  {rule.id, rule.trigger, rule.actions}
+end)
+```
+
+Cooling opens a vent; an open state raises suspicion; suspicion locks a door; a locked state disables HVAC. Each local rule can pass a code review. The composition is where the loop appears.
+
+```elixir
+{:ok, cascade_verdict} = Verifier.verify(cascade, scenario: :tutorial_cascade)
+
+Enum.map(cascade_verdict.conflicts, fn conflict ->
+  {conflict[:type], conflict[:rule1], conflict[:rule2]}
+end)
+```
+
+## Engineering prompt
+
+Would you resolve the cascade by changing a trigger, changing an action, or introducing an explicit operating mode? There is no universal answer. Formal checking finds the interaction; domain owners still decide the intended behaviour.

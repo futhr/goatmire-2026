@@ -1,0 +1,83 @@
+# Scenario 3 — The verifier is not a yes-man
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("../..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## What this notebook is for
+
+A conflict detector that flags everything is a conflict detector nobody keeps. The clean set exists to prove the gate can say nothing is wrong, and to be precise about what that sentence covers.
+
+```elixir
+Goatmire.Verifier.health()
+```
+
+## Five unrelated rules
+
+Five Things, five properties. No rule writes a property another rule triggers on, and no two rules share a Thing.
+
+```elixir
+rules = Goatmire.Rules.clean_set()
+Enum.map(rules, &{&1.id, &1.thing_id})
+```
+
+```elixir
+{:ok, verdict} = Goatmire.Verifier.verify(rules)
+{verdict.status, verdict.conflicts, verdict.duration_us}
+```
+
+## Say what that means, and only that
+
+```elixir
+verdict.scope
+```
+
+None of the four conflict types encoded in the bundled model matched. That is a narrower statement than "these rules are safe", and the narrow one is the one worth making — a tool that claims more than it checked is trusted right up until the moment it matters.
+
+## Now break it on purpose
+
+Add a sixth rule that writes a property one of the five triggers on, and the cascade check has something to find.
+
+```elixir
+cascading = rules ++ [
+  %{
+    id: "beacon-drives-torque-alarm",
+    thing_id: "conveyor-3",
+    trigger: {:prop_eq, "beacon", "amber"},
+    actions: [{:set_prop, "conveyor-3", "torque_nm", 200}],
+    priority: 1
+  }
+]
+
+{:ok, broken} = Goatmire.Verifier.verify(cascading)
+{broken.status, Enum.map(broken.conflicts, & &1[:type])}
+```
+
+## The five-rule loop from the horror-story slide
+
+Temperature rises → HVAC cools → vent opens → security suspects intrusion → doors lock → locked doors disable HVAC → temperature rises.
+
+Each rule is sane on its own. Nobody designed the cycle.
+
+```elixir
+{:ok, %{verdict: cascade_verdict}} = Goatmire.ScenarioRunner.cascade_example()
+{cascade_verdict.status, Enum.map(cascade_verdict.conflicts, &{&1[:type], &1[:rule1], &1[:rule2]})}
+```
+
+This is the shape a pairwise eyeball review misses, because every individual pair looks reasonable and the problem is in the composition.

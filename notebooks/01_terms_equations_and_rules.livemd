@@ -1,0 +1,107 @@
+# 1 · Terms, equations, and rules
+
+An IoT rule usually arrives as friendly JSON or a form submission. The useful move is to stop thinking of it as text and start thinking of it as a **term**: validated, finite data with an explicit shape.
+
+By the end of this notebook you will be able to explain the difference between `reduce` and `search`, run a real reduction, and say exactly what the result does—and does not—establish.
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+
+Goatmire.Verifier.health()
+```
+
+If the answer is `{:error, reason}`, keep reading. In a deployment gate that means `:unverified`; it never means “probably fine.”
+
+## Start with a tiny equation
+
+Maude has sorts (types), operators (constructors and functions), equations (deterministic simplification), and rewrite rules (possible transitions).
+
+```elixir
+switch = """
+fmod SWITCH is
+  sort State .
+  ops on off : -> State [ctor] .
+  op toggle : State -> State .
+
+  eq toggle(on) = off .
+  eq toggle(off) = on .
+endfm
+"""
+
+ExMaude.load_module(switch)
+```
+
+```elixir
+ExMaude.reduce("SWITCH", "toggle(toggle(on))")
+```
+
+`reduce` applies equations until the term reaches a normal form. For an Elixir developer, this feels like repeatedly applying complete pattern-matching function clauses.
+
+`[ctor]` marks `on` and `off` as constructors — plain data, like atoms. `toggle` has no `[ctor]`; it is a function the equations define.
+
+## A transition is a different claim
+
+Equations say two expressions are equal. A rewrite rule says a system may move from one state to another.
+
+Equations live in a functional module, `fmod … endfm`. Rewrite rules need a system module, `mod … endm` — a different keyword because it makes a different kind of claim.
+
+```elixir
+cell = """
+mod CELL is
+  sort State .
+  ops idle charging ready : -> State [ctor] .
+
+  rl [plug-in] : idle => charging .
+  rl [charged] : charging => ready .
+endm
+"""
+
+ExMaude.load_module(cell)
+```
+
+```elixir
+ExMaude.search("CELL", "idle", "ready")
+```
+
+A returned solution is a concrete reachable state in this model. Failure to find one inside a chosen bound is not automatically an unbounded liveness proof. Search bounds, state representation, and omitted transitions are part of the claim.
+
+## The IoT translation boundary
+
+Here is a real rule from the talk's warehouse corpus:
+
+```elixir
+[rule | _] = Goatmire.Rules.state_conflict_pair()
+rule
+```
+
+Read it like an operator's sentence:
+
+> When `agv-42` has less than 20% battery, set its destination to `dock-7`.
+
+The map is validated data. ExMaude's encoder turns it into a Maude term. The runtime evaluator consumes the same map. That shared representation is more important than the syntax: verification over a mistranslated copy would prove the wrong model precisely.
+
+## Check your understanding
+
+Change `toggle(toggle(on))` to `toggle(off)`. Then add a transition from `ready` back to `idle` and search for `idle` from `ready`.
+
+Before moving on, finish this sentence in your own words:
+
+> A reduction proves … about … assuming …
+
+The honest answer should mention the encoded term and the selected equations.

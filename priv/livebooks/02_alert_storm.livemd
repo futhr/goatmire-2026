@@ -1,0 +1,102 @@
+# Scenario 2 — The same shift change, twice
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("../..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## What this notebook is for
+
+To measure the storm rather than describe it, and to make the measurement something you can rerun with different numbers.
+
+This one boots real device processes. Keep the fleet small here — the stage demo uses 200, but 40 is plenty to see the shape and it keeps the notebook responsive.
+
+```elixir
+alias Goatmire.{Engine, Fleet, Rules, Verifier}
+alias Goatmire.Scenario.Storm
+
+Goatmire.Verifier.health()
+```
+
+## The corpus
+
+Two rules per AGV — a battery reroute and a day-shift Zone-7 reroute — plus five unrelated rules on other Things. The five are the ones a human should still be paged about.
+
+```elixir
+fleet_size = 40
+corpus = Rules.fleet(fleet_size) ++ Rules.clean_set()
+length(corpus)
+```
+
+## What the gate sees before anything runs
+
+```elixir
+{:ok, verdict, stats} = Verifier.verify_partitioned(corpus)
+
+%{
+  status: verdict.status,
+  conflicts: length(verdict.conflicts),
+  duration_us: verdict.duration_us,
+  partitions: stats.partitions,
+  pairs_skipped: stats.pairs_skipped
+}
+```
+
+`pairs_skipped` is the structural pre-filter earning its place: rules with no interaction edge — no shared Thing, no shared write target, no writer-to-trigger property — never meet inside a reduction. The number is computed, not asserted.
+
+## Run it twice
+
+Identical fleet, identical staged shift change. The only variable is which rules the gate let deploy.
+
+```elixir
+{:ok, observed} =
+  Storm.run(mode: :observe, fleet_size: fleet_size, duration_seconds: 15, tick_ms: 250)
+
+Map.take(observed, [:alerts, :events, :throttled, :rules_deployed])
+```
+
+```elixir
+{:ok, enforced} =
+  Storm.run(mode: :enforce, fleet_size: fleet_size, duration_seconds: 15, tick_ms: 250)
+
+Map.take(enforced, [:alerts, :events, :throttled, :rules_deployed, :rules_withheld])
+```
+
+```elixir
+%{
+  observed_alerts: observed.alerts,
+  enforced_alerts: enforced.alerts,
+  ratio: if(enforced.alerts > 0, do: Float.round(observed.alerts / enforced.alerts, 1))
+}
+```
+
+## Reading these numbers honestly
+
+They are this machine's output at this fleet size and tick rate, in this run. Not a benchmark of anything, and not an incident report.
+
+What *is* defensible is the comparison, because everything except the deployed rule set was held constant. The ratio is the finding; the digits belong to the run that produced them.
+
+The observe-mode alerts are real actuation commands crossing the transport to device processes, which change their destination, report back, and re-trigger both rules. The oscillation is mechanical, not scripted — and the `throttled` counter is the per-Thing actuation bound doing its job: the storm degrades noisily instead of melting the node.
+
+## Clean up
+
+```elixir
+Fleet.stop_all()
+Engine.undeploy()
+Engine.reset()
+```

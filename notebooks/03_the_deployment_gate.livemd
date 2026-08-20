@@ -1,0 +1,96 @@
+# 3 · The deployment gate
+
+A verifier becomes operationally useful when it sits between “submit” and “active,” not when it runs as a report after the rules have already fought.
+
+This notebook turns three possible verdicts into a conservative deployment decision and shows why large corpora need sound partitioning.
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+
+alias Goatmire.{Rules, Verifier}
+```
+
+## Three verdicts, never two
+
+```elixir
+for rules <- [Rules.clean_set(), Rules.state_conflict_pair()] do
+  {:ok, verdict} = Verifier.verify(rules, scenario: :tutorial_gate)
+  {verdict.status, verdict.rule_count, verdict.duration_us}
+end
+```
+
+The third result, `:unverified`, covers a missing interpreter, timeout, encoder rejection, or another failure to obtain a verdict. An availability error is not safety evidence.
+
+The gate policy in this repository is:
+
+| Verdict | Activation decision |
+|---|---|
+| `:clean` | admit the candidate set |
+| `:conflicts` | withhold every rule named by a conflict |
+| `:unverified` | fail closed; admit nothing |
+
+```elixir
+{:ok, conflict_verdict} = Verifier.verify(Rules.state_conflict_pair())
+Verifier.split_on_verdict(Rules.state_conflict_pair(), conflict_verdict)
+```
+
+Withholding both rules is deliberate. The detector knows the rules disagree; it does not know which team owns the correct intent.
+
+## Scale without dropping interactions
+
+A whole-corpus reduction is not just slow. Past a realistic size it times out — and a timeout is `:unverified`, not `:clean`. Grouping only by `thing_id`, however, is unsound because cascades can cross Things. This project builds connected components over three interaction edges: rules bound to the same Thing, rules that write the same action target, and writer-to-reader property edges.
+
+```elixir
+corpus = Rules.fleet(40)
+partitions = Rules.partition(corpus)
+
+%{
+  rules: length(corpus),
+  partitions: length(partitions),
+  largest_partition: partitions |> Enum.map(&length/1) |> Enum.max()
+}
+```
+
+```elixir
+{:ok, verdict, stats} =
+  Verifier.verify_partitioned(corpus, scenario: :tutorial_partitioned)
+
+%{
+  status: verdict.status,
+  conflicts: length(verdict.conflicts),
+  duration_us: verdict.duration_us,
+  partitions: stats.partitions,
+  pairs_skipped: stats.pairs_skipped
+}
+```
+
+The numbers are useful because they are generated now. Record the rule corpus, host, interpreter version, pool settings, cold/warm state, and distribution before turning any one run into a benchmark claim.
+
+## Audit checklist
+
+For a real deployment gate, retain:
+
+* validated input;
+* encoder and model revision;
+* selected Maude module and interpreter version;
+* typed verdict and duration;
+* activation decision;
+* timeout/error details without leaking sensitive command text.
+
+That creates a reproducible engineering artifact. It does not, by itself, establish regulatory compliance.

@@ -1,0 +1,107 @@
+# Scenario 4 — Generate, verify, revise, verify
+
+```elixir
+unless Code.ensure_loaded?(Goatmire.Verifier) do
+  Mix.start()
+  Mix.env(:prod)
+  Mix.install(
+    [{:goatmire, path: Path.expand("../..", __DIR__)}],
+    config: [
+      goatmire: [
+        role: :notebook,
+        transport: Goatmire.Transport.Local,
+        metrics_enabled: false,
+        vda5050_enabled: false
+      ]
+    ],
+    config_path: :goatmire,
+    lockfile: :goatmire
+  )
+end
+```
+
+## What this notebook is for
+
+To slow down the loop the CLI runs in ten seconds, so each step is inspectable.
+
+The endpoint and model are checked into `config/config.exs`. This notebook does not carry or substitute recorded responses. If the model is unavailable, keep the failure visible and continue with the deterministic policy notebook.
+
+```elixir
+alias Goatmire.AI.RuleGenerator
+
+%{
+  base_url: Goatmire.Config.llm_base_url(),
+  model: Goatmire.Config.llm_model!()
+}
+```
+
+## The decoder, first
+
+The interesting part is not the prompt. It is what happens to the reply.
+
+A model returns text. The verifier needs typed terms. Everything a model can get wrong about a rule has to be caught here or it becomes a rule.
+
+```elixir
+raw = ~s({"rules":[{"id":"reassign","agent":"fleet-ops",
+  "trigger":{"type":"prop_gt","property":"task_drift_ratio","value":2},
+  "invocations":[{"type":"invoke_tool","name":"dispatch_robot","args":{},
+    "capability":"high_impact","jurisdiction":"atlantis"}],
+  "capability_grants":[],"authority_required":0,"priority":1}]})
+
+{:ok, decoded} = RuleGenerator.decode_rules(raw)
+decoded
+```
+
+Note the jurisdiction. The model invented `"atlantis"`; the decoder mapped it to `:unknown` rather than minting a new atom.
+
+That is deliberate and it matters more than it looks. An unrecognised value must not become a value that quietly satisfies a check — and in a language where atoms are not garbage-collected, letting a model name them is also a way to run out of memory.
+
+## Run the loop
+
+```elixir
+prompt =
+  "If a robot's task takes more than twice its expected duration, reassign it " <>
+  "to the nearest available robot. Only proceed with the reassignment if ops approves."
+
+# Run only after `mix goatmire.health` reports the model endpoint reachable.
+# A failure is a real result; do not replace it with a canned completion.
+{:ok, transcript} = RuleGenerator.run(prompt, max_attempts: 2)
+
+Enum.map(transcript.passes, fn pass ->
+  %{
+    attempt: pass.attempt,
+    status: pass.status,
+    rules: length(pass.rules),
+    conflicts: Enum.map(pass.conflicts, & &1[:type]),
+    duration_us: pass.duration_us
+  }
+end)
+```
+
+## Pass 1 — what was wrong
+
+```elixir
+first = List.first(transcript.passes)
+{first.rules, first.conflicts}
+```
+
+The characteristic failure is not gibberish. It is a rule set that reads correct: the model was told to gate high-impact actions behind an approval, and it wrote that intent somewhere other than into the rule. You would merge it.
+
+## Pass 2 — what changed
+
+```elixir
+last = List.last(transcript.passes)
+{last.status, last.rules}
+```
+
+```elixir
+transcript.final_status
+```
+
+## What this did and did not establish
+
+If the final status is `:clean`, it established one thing: **this rule set** contains no conflict of the seven types `ExMaude.AI` models.
+
+It established nothing about the model, nothing about the next rule set it writes, and nothing about the properties the detector does not encode.
+
+Generation is non-deterministic, so the second pass can also fail — and on stage that is a legitimate outcome to show rather than retry past. The gate held either way; that is the only claim being made.

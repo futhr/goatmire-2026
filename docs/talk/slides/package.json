@@ -1,0 +1,22 @@
+{
+  "name": "goatmire-2026-slides",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "audit": "npm audit --omit=dev",
+    "build:html": "marp --no-stdin deck.md --theme theme.css --html --output dist/goatmire-2026.html",
+    "build:pdf": "marp --no-stdin deck.md --theme theme.css --pdf --pdf-notes --pdf-outlines --output dist/goatmire-2026.pdf",
+    "build:pptx": "marp --no-stdin deck.md --theme theme.css --pptx --output dist/goatmire-2026.pptx",
+    "build:notes": "marp --no-stdin deck.md --theme theme.css --notes --output dist/goatmire-2026-notes.txt",
+    "build:images": "marp --no-stdin deck.md --theme theme.css --images png --image-scale 1 --output dist/goatmire-2026.png",
+    "build": "npm run clean && mkdir -p dist && npm run build:html && npm run build:pdf && npm run build:pptx && npm run build:notes && npm run build:images"
+  },
+  "devDependencies": {
+    "@marp-team/marp-cli": "4.5.0"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "0.9.11",
+    "puppeteer-core": "25.8.0"
+  }
+}
