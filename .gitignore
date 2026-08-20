@@ -1,0 +1,39 @@
+/_build/
+/cover/
+/deps/
+/doc/
+/tmp/
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/*.secret.exs
+.elixir_ls/
+.envrc.local
+
+# Demo fallback recordings — large binaries, regenerated each rehearsal
+priv/obs/*.mp4
+priv/obs/*.mkv
+priv/obs/*.cast
+
+# Slide deck binary exports — source is in docs/talk/slides/
+docs/talk/slides/*.pdf
+docs/talk/slides/*.pptx
+docs/talk/slides/dist/
+node_modules/
+
+# macOS noise
+.DS_Store
+
+# Local agent files
+/.agents/
+/.codex/
+
+# Local research, audit output, and transcript-derived notes
+/docs/local/
+
+# Built and digested web assets — sources live in assets/ and priv/static
+/priv/static/assets/
+/priv/static/cache_manifest.json
+/priv/static/*.gz
+/priv/static/robots-*.txt
