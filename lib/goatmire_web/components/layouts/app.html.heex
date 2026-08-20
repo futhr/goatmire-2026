@@ -1,0 +1,19 @@
+<main id="main-content" tabindex="-1">
+  <div
+    :if={message = Phoenix.Flash.get(@flash, :info)}
+    class="flash info"
+    role="status"
+    aria-live="polite"
+  >
+    {message}
+  </div>
+  <div
+    :if={message = Phoenix.Flash.get(@flash, :error)}
+    class="flash error"
+    role="alert"
+    aria-live="assertive"
+  >
+    {message}
+  </div>
+  {@inner_content}
+</main>
