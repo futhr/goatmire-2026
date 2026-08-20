@@ -1,0 +1,95 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  MIX_ENV: test
+
+jobs:
+  canonical-gate:
+    name: canonical quality gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        id: beam
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          otp-version: "28"
+          elixir-version: "1.19.4"
+
+      - name: Set up Node.js for the slide artifact
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "26.7.0"
+          cache: npm
+          cache-dependency-path: docs/talk/slides/package-lock.json
+
+      - name: Restore Mix and PLT cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+
+      - name: Install locked dependencies
+        run: mix deps.get --check-locked
+
+      - name: Install the pinned Maude interpreter
+        run: mix maude.install --version 3.5.1
+
+      - name: Run the canonical repository gate
+        run: mix check --no-retry
+
+      - name: Publish coverage to Coveralls
+        run: mix coveralls.github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dashboard-e2e:
+    name: dashboard E2E (Chrome)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          otp-version: "28"
+          elixir-version: "1.19.4"
+
+      - name: Restore Mix cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: e2e-mix-${{ runner.os }}-${{ hashFiles('mix.lock') }}
+
+      - name: Install locked dependencies
+        run: mix deps.get --check-locked
+
+      - name: Install ChromeDriver matching the runner Chrome
+        run: scripts/install-chromedriver.sh
+
+      - name: Exercise the connected responsive dashboards
+        run: mix test.e2e

@@ -1,0 +1,12 @@
+[
+  exit: :low,
+  # This repository is a local or isolated-network rehearsal rig. TLS belongs
+  # at the deployment edge if that boundary changes; docker/README.md makes
+  # clear that this is not a production topology.
+  ignore: ["Config.HTTPS"],
+  private: true,
+  # Honour `sobelow_skip` annotations; each carries its safety justification
+  # at the call site (MDEx/Makeup escape their input before we render raw).
+  skip: true,
+  strict: true
+]
