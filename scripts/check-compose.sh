@@ -7,4 +7,3 @@ set -eu
 exec </dev/null
 
 docker compose -f docker/docker-compose.diagnostics.yml config --quiet
-docker compose -f docker/docker-compose.yml config --quiet

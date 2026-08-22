@@ -305,7 +305,7 @@ defmodule Goatmire.Diagnostics.Analysis do
     do: "Next: restore Maude and rerun verification; until then the result stays unverified."
 
   defp next_check_for("inspect_raw_metrics"),
-    do: "Next: read the named fields in Prometheus before forming a cause claim."
+    do: "Next: read the named fields on the Metrics pane before forming a cause claim."
 
   defp confidence_atom("high"), do: :high
   defp confidence_atom("medium"), do: :medium

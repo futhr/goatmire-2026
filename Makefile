@@ -1,11 +1,11 @@
 # Diagnostics use an existing ChatGPT-plan login through Codex, then the fixed
 # local Ollama fallback in config/config.exs.
 
-.PHONY: setup deps compile test test-property test-e2e test-stress test-llm \
+.PHONY: setup deps compile test test-property test-e2e test-stress test-soak test-llm \
         check quality clean install-hooks iex remote \
         bench-eval bench-partition bench-verifier \
         health server scenario storm ai benchmark diagnostics-demo diagnostics-down \
-        swarm-up swarm-down swarm-scale slides slides-clean rehearse-solo
+        simulators rehearse-solo talk preflight learn
 
 setup:
 	@mix setup
@@ -62,39 +62,17 @@ diagnostics-demo:
 diagnostics-down:
 	@docker compose -f docker/docker-compose.diagnostics.yml down
 
-swarm-up:
-	@docker compose -f docker/docker-compose.yml up --build -d --scale simulator=2
-
-# make swarm-scale N=8
-swarm-scale:
-	@docker compose -f docker/docker-compose.yml up -d --scale simulator=$(or $(N),4)
-
-swarm-down:
-	@docker compose -f docker/docker-compose.yml down -v
-
-slides:
-	@cd docs/talk/slides && npm ci && npm run build
-
-slides-clean:
-	@cd docs/talk/slides && npm run clean
-
-stage:
-	@test -f docs/talk/slides/dist/goatmire-2026.html || (echo "run 'make slides' first" && exit 1)
-	@open -na "Google Chrome" --args --new-window \
-		"file://$(PWD)/docs/talk/slides/dist/goatmire-2026.html" \
-		"http://localhost:4000/rules/new" \
-		"http://localhost:4000/warehouse" \
-		"http://localhost:4000/diagnostics" \
-		"http://localhost:4000/verify" \
-		"http://localhost:3001"
-
-stage-tmux:
-	@command -v tmuxp >/dev/null || (echo "install tmuxp: brew install tmuxp" && exit 1)
-	@tmuxp load priv/tmux/goatmire.tmuxp.yaml
+# make simulators N=8 — container simulator replicas over the real broker.
+simulators:
+	@docker compose -f docker/docker-compose.diagnostics.yml up -d --scale simulator=$(or $(N),2)
 
 rehearse-solo:
-	@echo "==> Phase 1 solo rehearsal — read docs/talk/script.md aloud against a stopwatch."
-	@open docs/talk/script.md || xdg-open docs/talk/script.md || cat docs/talk/script.md
+	@echo "==> Phase 1 solo rehearsal — read docs/talk/manuscript.md aloud against a stopwatch."
+	@open docs/talk/manuscript.md || xdg-open docs/talk/manuscript.md || cat docs/talk/manuscript.md
+
+# The memorization cut: anchors, beats, exits, and the 25-line spine.
+learn:
+	@open docs/talk/memorize.md || xdg-open docs/talk/memorize.md || cat docs/talk/memorize.md
 
 deps:
 	@mix deps.get
@@ -116,6 +94,24 @@ test-e2e:
 # Deliberately manual: heavier concurrency and a real loopback Ollama model.
 test-stress:
 	@mix test.stress
+
+# Talk-length wear test; SOAK_ITERATIONS=60 for a longer run.
+test-soak:
+	@mix test.soak
+
+# The merged presenter is the stage rig: one fullscreen tab, deck left,
+# live panel right.
+talk:
+	@open -na "Google Chrome" --args --new-window --start-fullscreen \
+		"http://localhost:4000/talk"
+
+# Talk-day gate: clean compile, the regular suite, then chaos and starvation
+# against the real tree, then provider health.
+preflight:
+	@mix compile --warnings-as-errors
+	@mix test
+	@mix test.stress
+	@mix goatmire.health
 
 test-llm:
 	@mix test.llm

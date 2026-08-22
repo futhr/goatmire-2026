@@ -17,9 +17,6 @@
     {:ex_doc, command: "mix docs --warnings-as-errors"},
     {:release, "mix release --overwrite", env: %{"MIX_ENV" => "prod"}},
     {:compose, "scripts/check-compose.sh"},
-    {:slides_install, "npm --prefix docs/talk/slides ci"},
-    {:slides_audit, "npm --prefix docs/talk/slides audit", deps: [:slides_install]},
-    {:slides, "npm --prefix docs/talk/slides run build", deps: [:slides_install, :slides_audit]},
     {:gettext, false},
     {:npm_test, false}
   ]

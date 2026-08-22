@@ -9,7 +9,7 @@ defmodule Goatmire.Fleet do
       Goatmire.Fleet.attach_real("agv-01", stale_after_ms: 15_000)
 
   Simulated devices are a GenServer and a timer each. Beyond one node's
-  capacity, run more: each container in `docker/docker-compose.yml` boots its
+  capacity, run more: each container in `docker/docker-compose.diagnostics.yml` boots its
   own fleet against the shared broker. The simulator profile derives a
   distinct `thing_id` range from each replica hostname.
   """

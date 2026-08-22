@@ -4,7 +4,7 @@ defmodule Goatmire.LocalCluster do
 
   The laptop-scale version of the Docker swarm. These are peer nodes sharing
   one kernel and one network stack — they show the fleet partitions, not that
-  it survives a datacentre. For that, use `docker/docker-compose.yml` with a
+  it survives a datacentre. For that, use the container simulators in `docker/docker-compose.diagnostics.yml` with a
   broker between the nodes.
   """
 
