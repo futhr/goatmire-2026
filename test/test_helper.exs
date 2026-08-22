@@ -10,7 +10,7 @@ maude_available? =
   end
 
 exclusions =
-  [:e2e, :integration, :llm, :manual, :stress] ++
+  [:e2e, :integration, :llm, :manual, :soak, :stress] ++
     if(maude_available?, do: [], else: [:maude])
 
 if maude_available? do

@@ -33,7 +33,8 @@ defmodule Goatmire.MixProject do
         "test.e2e": :test,
         "test.llm": :test,
         "test.property": :test,
-        "test.stress": :test
+        "test.stress": :test,
+        "test.soak": :test
       ]
     ]
   end
@@ -116,6 +117,7 @@ defmodule Goatmire.MixProject do
       "test.llm": ["test --only llm test/llm"],
       "test.property": ["test test/property"],
       "test.stress": ["test --only stress test/stress"],
+      "test.soak": ["test --only soak test/stress"],
       quality: ["check"]
     ]
   end
