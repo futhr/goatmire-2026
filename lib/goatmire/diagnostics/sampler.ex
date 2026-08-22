@@ -41,6 +41,17 @@ defmodule Goatmire.Diagnostics.Sampler do
     GenServer.call(__MODULE__, {:snapshot, window_seconds})
   end
 
+  @doc """
+  Returns bounded per-second series for the metrics pane, oldest first.
+
+  Same ring buffer the diagnostic snapshot reads, so charts and the BeamLens
+  chat cite identical evidence.
+  """
+  @spec series(10..300) :: map()
+  def series(window_seconds \\ 300) when window_seconds in 10..300 do
+    GenServer.call(__MODULE__, {:series, window_seconds})
+  end
+
   @doc "Forwards an attached telemetry event to the owning sampler process."
   @spec handle_telemetry([atom()], map(), map(), pid()) :: tuple()
   def handle_telemetry(event, measurements, metadata, pid) do
@@ -90,6 +101,32 @@ defmodule Goatmire.Diagnostics.Sampler do
       current: current,
       window: summarize(points),
       recent_events: state.recent_events
+    }
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:series, window_seconds}, _, state) do
+    points = state.history |> Enum.take(window_seconds) |> Enum.reverse()
+
+    reply = %{
+      captured_at: DateTime.utc_now() |> DateTime.to_iso8601(),
+      window_seconds: window_seconds,
+      sample_count: length(points),
+      current: List.last(points) || %{},
+      series: %{
+        events: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :events]) || 0)),
+        alerts: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :alerts]) || 0)),
+        throttled: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :throttled]) || 0)),
+        withheld: series_of(points, &get_in(&1, [:engine, :withheld])),
+        maude_in_use: series_of(points, &Map.get(&1.maude.pool, :in_use, 0)),
+        maude_checkout_us: series_of(points, & &1.maude.checkout_last_us),
+        fleet: series_of(points, & &1.fleet.devices),
+        run_queue: series_of(points, & &1.beam.run_queue),
+        process_count: series_of(points, & &1.beam.process_count),
+        memory_mb: series_of(points, &div(&1.beam.memory_bytes || 0, 1_048_576)),
+        scheduler_pct: series_of(points, & &1.beam.scheduler_utilization_percent)
+      }
     }
 
     {:reply, reply, state}
@@ -316,6 +353,8 @@ defmodule Goatmire.Diagnostics.Sampler do
   defp compact(nil), do: nil
   defp compact(value) when is_atom(value) or is_binary(value) or is_number(value), do: value
   defp compact(value), do: inspect(value)
+
+  defp series_of(points, fun), do: Enum.map(points, &(fun.(&1) || 0))
 
   defp bounded_prepend(list, item, limit), do: Enum.take([item | list], limit)
   defp zero_engine_counters, do: %{events: 0, alerts: 0, throttled: 0}
