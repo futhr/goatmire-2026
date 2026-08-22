@@ -384,7 +384,7 @@ uncertain.
 <div>
   <p>LIVE · 01</p>
   <h1>Catch the conflict before the rule exists</h1>
-  <p>localhost:4000/rules/new</p>
+  <p>localhost:4000/rules</p>
 </div>
 
 <!--

@@ -1,6 +1,6 @@
-# Talk Narrative — Goatmire 2026
+# Talk narrative — Goatmire 2026
 
-Title: **Zero Alert Storms: Formal Verification for IoT Automation** Format: 30 minutes plus Q&A Implementation: this public, simulation-only repository
+Title: **Zero Alert Storms: Formal Verification for IoT Automation** · Format: 30 minutes plus Q&A · Implementation: this public, simulation-only repository
 
 The talk is a narrow demonstration of a deployment-gate pattern. It is not a production case study, a physical-IoT showcase, or a claim that one formal model proves a whole automation platform safe.
 
@@ -12,14 +12,14 @@ When independently reasonable automation rules interact, a deterministic formal 
 
 ## What the audience actually sees
 
-- a supervised, simulated fleet and a synthetic shift-change load;
-- a rule pair reproduced from SOTERIA's published O3/O4 conflict shape;
-- Maude returning `clean`, `conflicts`, or `unverified`;
-- observe mode recording a conflict without blocking deployment;
-- enforce mode withholding the conflicting rules under the same staged load;
-- BeamLens answering a natural-language diagnostic question from a bounded, read-only telemetry snapshot;
-- a visible provider boundary: Codex using included ChatGPT-plan usage when available, with a fixed local Ollama model as fallback;
-- Grafana or Prometheus only as raw-metric corroboration.
+- a supervised, simulated fleet and a synthetic shift-change load
+- a rule pair reproduced from SOTERIA's published O3/O4 conflict shape
+- Maude returning `clean`, `conflicts`, or `unverified`
+- observe mode recording a conflict without blocking deployment
+- enforce mode withholding the conflicting rules under the same staged load
+- BeamLens answering a natural-language diagnostic question from a bounded, read-only telemetry snapshot
+- a visible provider boundary: Codex using included ChatGPT-plan usage when available, with a fixed local Ollama model as fallback
+- the in-app Metrics pane as raw-series corroboration.
 
 No physical device is used on stage. MQTT, VDA 5050, Modbus, HTTP ingress, and declared-device modules remain off-stage adapter examples. They do not support a hardware claim and are not evidence for the demo result.
 
@@ -29,7 +29,7 @@ Do not invent or imply a personal outage. Start with a demonstrated failure shap
 
 > In SOTERIA's multi-app evaluation, two apps identified as O3 and O4 respond to the same contact-sensor-open event by setting a switch to conflicting values. Each automation can look reasonable by itself; the unsafe or surprising behavior appears in their composition.
 
-The repository encodes a controlled reproduction of that pair with its own rule IDs. It does not copy the applications, reproduce a harmed household, or show that Maude historically prevented the published violation.
+The repository encodes a controlled reproduction of that pair with its own rule IDs. It does not copy the applications, claim any real home was harmed, or show that Maude historically prevented the published violation.
 
 This is a stronger and more honest “IoT horror story” angle: peer-reviewed work establishes that cross-app interactions are a real problem, while the demo limits itself to reproducing an exact conflict pattern it can inspect.
 
@@ -53,7 +53,7 @@ The formal and diagnostic paths have different jobs:
 | Telemetry sampler | expose a bounded structured snapshot | complete historical evidence |
 | BeamLens | select read-only diagnostic callbacks and structure an answer | an actuator or deployment interface |
 | Codex / Ollama | explain observations and suggest what a human should inspect | the formal decision maker |
-| Grafana / Prometheus | show raw source fields | the primary diagnostic experience |
+| Metrics pane / exporter | show raw source series | the primary diagnostic experience |
 
 The stage line is:
 
@@ -83,11 +83,11 @@ Open with the SOTERIA-derived contact-open pair. Show why reviewing each rule al
 
 ### Act 2 — A narrow formal gate (about 9 minutes)
 
-Explain Maude through familiar Elixir ideas: sorts as domain types, operators as constructors, and equations or rewrite rules as executable semantics. Show the shared rule representation, trinary verdict, witness, and the three conservative partition edges: same Thing, same action target, and writer-to-trigger property. Avoid universal latency or scale claims.
+Explain Maude through familiar Elixir ideas: sorts as domain types, operators as constructors, and equations or rewrite rules as executable semantics. Show the shared rule representation, the three-verdict result, witness, and the three conservative partition edges: same Thing, same action target, and writer-to-trigger property. Avoid universal latency or scale claims.
 
 ### Act 3 — Observe, enforce, then ask the system (about 10 minutes)
 
-Run the same staged shift change — same fleet size, tick rate, and shift parameters — once in observe mode and once in enforce mode. Read counters from the screen. Then ask BeamLens why alerts rose, which formal verdict accompanies the run, and what to inspect next. Point to its cited fields, observation/inference split, grounding, and active provider. Use one raw Grafana field only if corroboration helps.
+Run the same staged shift change — same fleet size, tick rate, and shift parameters — once in observe mode and once in enforce mode. Read counters from the screen. Then ask BeamLens why alerts rose, which formal verdict accompanies the run, and what to inspect next. Point to its cited fields, observation/inference split, grounding, and active provider. Use one raw Metrics-pane series only if corroboration helps.
 
 ### Act 4 — Generalize without widening the proof (about 4 minutes)
 
@@ -101,11 +101,11 @@ Reserve this for provider fallback, browser movement, and the final scope senten
 
 Never repeat the old `~500 µs` claim or a universal scale number. The benchmark artifact must carry:
 
-- git commit and dirty state;
-- runtime and interpreter context;
-- rule count and partition count;
-- pairs considered and skipped;
-- verdict;
+- git commit and dirty state
+- runtime and interpreter context
+- rule count and partition count
+- pairs considered and skipped
+- verdict
 - median and p95 across warmed runs.
 
 Acceptable stage language:
@@ -130,7 +130,7 @@ Acceptable stage language:
 ## Demo failure hierarchy
 
 1. If Codex is unavailable, show the visible reason and let Ollama answer.
-2. If both models are unavailable, read the structured snapshot and optionally open Grafana. The formal claim is unaffected.
+2. If both models are unavailable, read the structured snapshot and the Metrics pane. The formal claim is unaffected.
 3. If Maude is unavailable, demonstrate `unverified` and fail-closed behavior. Do not substitute an LLM opinion.
 4. If the support containers fail, use local transport and the host simulator.
 

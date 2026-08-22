@@ -1,5 +1,7 @@
 # Slideshow tooling verdict
 
+> Superseded 2026-08-22: the stage rig is now the merged presenter at `/talk` (see [`../../runbooks/stage-rig.md`](../../runbooks/stage-rig.md)). The deck source and exports below are a frozen archive; this file records the decision as it was made.
+
 ## Decision
 
 Use **Marp 4.5.x** as the repository-native slide source and exporter. Keep a PDF and PPTX beside the source as stage-day fallbacks. Use Livebook for the executable tutorials and demos, not as the presentation shell.

@@ -66,17 +66,17 @@ This audit studies how Elixir and Goatmire speakers open, signpost, demonstrate,
 
 ## Quantitative pass
 
-Rates are occurrences per thousand spoken tokens. `Audience` counts `you`, `we`, and `let's`. `Direction` counts a fixed transition vocabulary. `Demo cues` counts look/watch/notice/visible-result phrases. `Claim limits` counts explicit scope language. The script parser excludes headings, stage directions, metadata, and the hard-cut map.
+Rates are occurrences per thousand spoken tokens. `Audience` counts `you`, `we`, and `let's`. `Direction` counts a fixed transition vocabulary. `Demo cues` counts look/watch/notice/visible-result phrases. `Claim limits` counts explicit scope language. The manuscript parser excludes headings, stage directions, metadata, and the hard-cut map.
 
 | Corpus | Items | Hours | Spoken tokens | Audience | Direction | Demo cues | Qualification | Claim limits |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Goatmire | 32 | 16.1 | 148,085 | 36.40 | 9.57 | 1.62 | 6.12 | 2.37 |
 | ElixirConf | 12 | 8.8 | 93,090 | 40.71 | 9.84 | 2.20 | 6.75 | 2.48 |
-| Current stage script | 1 | — | 2,331 | 20.59 | 12.44 | 3.00 | 0.86 | 9.44 |
+| Current stage manuscript | 1 | — | 2,331 | 20.59 | 12.44 | 3.00 | 0.86 | 9.44 |
 
-The script row is a snapshot; rerun `scripts/analyze-conference-captions.rb` after any script edit so the table matches the text being rehearsed.
+The manuscript row is a snapshot; rerun `scripts/analyze-conference-captions.rb` after any manuscript edit so the table matches the text being rehearsed.
 
-The script deliberately uses less conversational filler and more scope language than the corpus. Its direction and demo cue rates are at or above the comparison range. Audience/shared-action language rose from 4.39 in the first draft to 20.59 without imitating filler.
+The manuscript deliberately uses less conversational filler and more scope language than the corpus. Its direction and demo cue rates are at or above the comparison range. Audience/shared-action language rose from 4.39 in the first draft to 20.59 without imitating filler.
 
 ## Patterns adopted
 
@@ -87,7 +87,7 @@ The script deliberately uses less conversational filler and more scope language 
 5. Use shared directional language (`we`, `you`, `now`, `let's`, `watch`) to move the room through technical transitions.
 6. Put resources before the takeaways and let the narrow formal-method claim, not a URL or disclaimer, be the final sound.
 
-These patterns produced the current 25-slide, 2,331-token script with explicit hard cuts and 2:30 of contingency.
+These patterns produced the current 25-slide, 2,331-token manuscript with explicit hard cuts and 2:30 of contingency.
 
 ## What remains
 

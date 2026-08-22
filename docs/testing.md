@@ -31,9 +31,10 @@ Screenshots from failed runs are written to `tmp/wallaby/` and are ignored by Gi
 
 ```bash
 mix test.stress
+mix test.soak            # talk-length wear test; SOAK_ITERATIONS=60 for longer
 ```
 
-This explicit lane currently drives 20,000 concurrent transport events, churns a 1,000-device supervised fleet while taking bounded snapshots, and pressures the four-worker Maude pool with 48 reductions at 16-way caller concurrency. It is excluded from the default suite so routine edits do not consume a shared machine's load budget.
+The stress lane drives 20,000 concurrent transport events, churns a 1,000-device supervised fleet while taking bounded snapshots, and pressures the four-worker Maude pool with 48 reductions at 16-way caller concurrency. It also injects real failures: the supervision chaos tests crash-loop demo components until their branch exhausts its restart budget and assert the endpoint and presenter clock survive with state intact, and the starvation tests saturate the pool with 96 reductions at 48-way concurrency and assert every outcome is still a verdict, never a hang. The soak lane repeats event storms, fleet churn, verifications, and slide navigation and asserts memory and process counts stay flat. Both are excluded from the default suite so routine edits do not consume a shared machine's load budget.
 
 ## Real local-model tests
 

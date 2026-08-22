@@ -61,16 +61,17 @@ of speech, 6 minutes of live interaction, and 2 minutes of recovery margin.
 4. **Evidence** — three IoT demos and one policy demo.
 5. **Transfer** — where the method fits, what it omits, and the closing rule.
 
-Live-demo slides are intentionally sparse. They are visual bookmarks while the
-speaker moves to the dashboard or Livebook, and clean recovery points if a
-fallback recording is needed.
+Live-demo slides are intentionally sparse. In the merged presenter the live
+pane opens beside them, so the card only anchors the beat — and it is a clean
+recovery point if a fallback recording is needed.
 
 ## Source files and exports
 
 - [`deck.md`](./deck.md) — Marp Markdown, presenter cues, and source notes.
 - [`theme.css`](./theme.css) — the deck's complete custom theme.
-- [`script.md`](../script.md) — the rehearsable spoken version.
+- [`manuscript.md`](../manuscript.md) — the rehearsable spoken version.
 - [`tooling.md`](./tooling.md) — the no-Diggymon build decision and runbook.
 
-The deck must be rehearsed from exported PDF/PPTX, not only from a development
-browser. Every export is opened without a network connection before stage day.
+This design system also drives the merged presenter at `/talk`, which is the
+stage surface — the Marp deck and its exports are a frozen archive
+(see [`tooling.md`](./tooling.md)).

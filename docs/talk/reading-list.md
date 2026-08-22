@@ -1,4 +1,4 @@
-# Speaker Research and Reading List
+# Speaker research and reading list
 
 Read the primary sources before rehearsing the “published conflict pattern” language. The purpose is not to borrow authority for a broader claim; it is to say precisely what the literature observed and what this demo reproduces.
 

@@ -1,4 +1,4 @@
-# Public Talk Copy
+# Public talk copy
 
 ## Action required
 

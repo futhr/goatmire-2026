@@ -11,7 +11,7 @@ CAPTION_DIR = ARGV.fetch(0) do
   warn "usage: ruby scripts/analyze-conference-captions.rb CAPTION_DIR [SCRIPT] [CORPUS]"
   exit 64
 end
-SCRIPT_PATH = ARGV.fetch(1, "docs/talk/script.md")
+SCRIPT_PATH = ARGV.fetch(1, "docs/talk/manuscript.md")
 CORPUS_PATH = ARGV.fetch(2, "docs/talk/delivery-audit.md")
 
 MARKERS = {

@@ -4,29 +4,30 @@ This is the technical study guide behind “Zero Alert Storms: Formal Verificati
 
 ## 1. The useful mental model
 
-Maude models a domain with:
+Why would an Elixir developer care about a term rewriter from the formal-methods world? Because Maude can *decide* things about your automation rules that tests can only *sample* — and it turns out you already know most of its ideas under different names.
 
-- **sorts**: types;
-- **operators**: constructors and functions;
-- **equations**: deterministic simplification;
-- **rewrite rules**: possible state transitions.
+Maude describes a system with four pieces, and each one has an Elixir cousin.
 
-Two commands matter most here:
+A **sort** is a type — think `@type state :: :on | :off`. An **operator** builds or transforms terms, like constructors and functions. An **equation** simplifies a term the way pattern-matched function clauses do: keep applying until nothing changes. A **rewrite rule** is different — it says “from this state, that state can happen next.” A transition, not a computation.
+
+You only need two commands:
 
 ```text
 reduce in MODULE : term .
 search [1] in MODULE : initial =>* pattern .
 ```
 
-`reduce` normalizes a term with equations. `search` explores transitions described by rewrite rules. These operations support different claims:
+`reduce` runs the equations until the term settles. Deterministic, like calling a pure function. `search` walks the rewrite rules looking for a reachable state — like exploring a state machine for a bad configuration.
 
-- A detector implemented as complete equations over validated finite input can decide the conflict predicates encoded by that detector.
-- A search result is a concrete reachable witness.
-- No witness inside a depth bound is not an unbounded safety or liveness proof. ExMaude reports clean bounded safety/liveness searches as `:unverified`.
+They answer different questions, and this distinction carries the whole talk. `reduce` *decides*: given these rules, conflict or no conflict — and it can genuinely decide, yes or no, because the detector's equations cover every case of a finite, validated input. Same reason an exhaustive `case` over a closed enum can't miss a branch. `search` *finds witnesses*: an actual path to the bad state.
 
-The model boundary matters. “No modeled conflict found” does not mean “the system is safe in every respect.”
+And when a bounded search comes back empty, that means it gave up before finding trouble. That's “we don't know,” never “it's safe.” ExMaude reports it as `:unverified`.
+
+One more boundary to keep in your head the whole way through: “no modeled conflict found” does not mean “the system is safe in every respect.” It means the conflicts this model knows about aren't in the rules you handed it.
 
 ## 2. Small Maude example
+
+Here's a complete Maude module. Read it before the explanation:
 
 ```maude
 fmod SWITCH is
@@ -39,19 +40,21 @@ fmod SWITCH is
 endfm
 ```
 
-Then:
+One sort (`State`), two constructors (`on`, `off`), one function (`toggle`), and two equations that say what `toggle` does. Then:
 
 ```text
 reduce in SWITCH : toggle(toggle(on)) .
 ```
 
-returns `on`. This is close to repeatedly applying Elixir pattern-matching function clauses until the term reaches a normal form.
+returns `on`. The interpreter applied the equations until the term couldn't simplify further — exactly like Elixir applying pattern-matching function clauses until it has a final value.
 
-Rewrite rules use `rl` or `crl` and express transitions rather than equalities. Search can explore their possible interleavings. That is useful for state machines and cascade witnesses, but its cost and conclusion depend on the model, branching factor, search form, and depth.
+Rewrite rules use `rl` or `crl` and express transitions rather than equalities. Search explores their possible interleavings, which is useful for state machines and cascade witnesses — but its cost and its conclusion depend on the model, the branching factor, the search form, and the depth you gave it.
 
 ## 3. What ExMaude is
 
-ExMaude is an Elixir library that supervises Maude subprocesses and exposes:
+First question a senior asks: is this a NIF? What owns the process?
+
+ExMaude is an Elixir library that supervises Maude subprocesses — the interpreter runs outside the BEAM, and your supervision tree owns the workers the same way it owns a database pool. The public surface:
 
 ```elixir
 ExMaude.reduce(module, term, opts \\ [])
@@ -63,7 +66,7 @@ ExMaude.execute(command, opts \\ [])
 ExMaude.version()
 ```
 
-It starts no pool automatically. A consumer owns the pool in its supervision tree:
+It starts no pool automatically — the consumer puts one in its own tree:
 
 ```elixir
 children = [
@@ -75,13 +78,13 @@ children = [
 ]
 ```
 
-That one-worker configuration is the smallest useful consumer example. This talk application currently starts four workers so the dashboard and rehearsal tools can issue independent reductions without checkout contention.
+That one-worker configuration is the smallest useful consumer example. This talk application starts four workers so the dashboard and rehearsal tools can issue independent reductions without waiting on each other.
 
-ExMaude supports named pools. Pool identity, loaded modules, and preloads are scoped so independent consumers do not contaminate one another's Maude sessions.
+Pools are named, and each pool keeps its own loaded modules and preloads. Two independent consumers can't contaminate each other's Maude sessions.
 
 ## 4. Installing Maude
 
-ExMaude 0.4 is an MIT-licensed Hex package. It does **not** bundle the GPL-licensed Maude interpreter.
+What are you actually installing, license-wise? ExMaude 0.4 is an MIT-licensed Hex package. The Maude interpreter itself is GPL-licensed and is **not** bundled — you install it separately.
 
 ```elixir
 {:ex_maude, "~> 0.4"}
@@ -98,54 +101,58 @@ Alternatively, keep a compatible `maude` on `PATH` or configure:
 config :ex_maude, maude_path: "/absolute/path/to/maude"
 ```
 
-The ExMaude Git checkout contains development binaries for selected hosts, but that is not the Hex-package contract. Always display `ExMaude.version/0` from the actual rehearsal machine rather than promising a version in the script.
+The ExMaude Git checkout contains development binaries for selected hosts, but that is not the Hex-package contract. On stage, show `ExMaude.version/0` from the actual rehearsal machine instead of promising a version in the script.
 
 ## 5. Backends
 
-The public backend choices are:
+Which backend is fastest? Wrong first question — pick by blast radius, then measure.
 
-- **Port**: default; a separate Maude process over plain pipes. PTY mode is opt-in.
-- **C-Node**: a separate C bridge process communicating over Erlang Distribution.
-- **NIF**: a Rustler extension that manages a Maude subprocess. The Maude child remains separate, but native code is loaded into the BEAM and therefore has a larger failure blast radius.
+- **Port**: the default. A separate Maude process over plain pipes. PTY mode is opt-in. If Maude dies, the BEAM doesn't notice beyond a restarted worker.
+- **C-Node**: a separate C bridge process speaking Erlang Distribution.
+- **NIF**: a Rustler extension that manages a Maude subprocess. The Maude child is still a separate process, but native code now lives inside the BEAM — a crash there can take the whole VM.
 
-There is no justified universal latency ranking in this repo. Choose with a reproducible workload and operational requirements. Source-building the NIF is explicit:
+There is no justified universal latency ranking in this repo. Choose with a reproducible workload and the operational requirements you actually have. Source-building the NIF is explicit:
 
 ```bash
 EX_MAUDE_BUILD=1 mix deps.compile ex_maude
 ```
 
-A local ignored NIF artifact must not force Rustler into a path-based consumer.
+A local ignored NIF artifact must not force Rustler onto a path-based consumer.
 
 ## 6. IoT conflict model
 
-`ExMaude.IoT.detect_conflicts/2` targets `priv/maude/iot-rules.maude`, currently 531 lines. The schema is inspired by the conflict categories discussed by AutoIoT, but it is a smaller custom model, not an implementation of that full system.
+What can it actually catch? Four things, and it's honest about the list.
 
-The high-level detector returns four modeled categories:
+`ExMaude.IoT.detect_conflicts/2` targets `priv/maude/iot-rules.maude`, currently 531 lines. The schema is inspired by the conflict categories discussed by AutoIoT, but it is a smaller custom model — not an implementation of that full system.
 
-1. state conflict;
-2. environment conflict;
-3. state cascade;
-4. state-environment cascade.
+The four modeled categories:
 
-An empty list means those definitions found no conflict in the validated encoded rules. It does not cover every physical hazard, temporal requirement, runtime authorization decision, or deployment condition.
+1. **State conflict** — two rules write incompatible values to the same device property. The O3/O4 case.
+2. **Environment conflict** — two actions push a shared environmental property in opposite directions.
+3. **State cascade** — one rule's action satisfies another rule's trigger. A chain reaction.
+4. **State–environment cascade** — the same chain, crossing between device state and the environment.
 
-ExMaude also exposes bounded IoT safety and liveness helpers. Counterexamples are meaningful witnesses. Exhausting the configured bound without one returns `:unverified`; it is not relabelled `:safe` or `:live`.
+An empty list means one thing: these four conflicts aren't in the validated rules you handed it. It says nothing about physical hazards, timing requirements, runtime authorization, or deployment conditions — the model doesn't encode those, so the detector can't see them.
+
+ExMaude also exposes bounded IoT safety and liveness helpers. A counterexample is a meaningful witness. Exhausting the bound without one returns `:unverified` — the search gave up before finding trouble, and that is never relabelled `:safe` or `:live`.
 
 ## 7. AI policy conflict model
 
+Can it check agent policies too? Yes — same mechanism, different model.
+
 `ExMaude.AI.detect_conflicts/2` targets `priv/maude/ai-rules.maude`, currently 756 lines. It implements exactly seven conflict types:
 
-1. `:tool_call_conflict`;
-2. `:capability_shadowing`;
-3. `:pack_tool_composition_mismatch`;
-4. `:sovereignty_violation`;
-5. `:authority_escalation`;
-6. `:approval_gate_bypass`;
-7. `:agent_loop_cascade`.
+1. `:tool_call_conflict`
+2. `:capability_shadowing`
+3. `:pack_tool_composition_mismatch`
+4. `:sovereignty_violation`
+5. `:authority_escalation`
+6. `:approval_gate_bypass`
+7. `:agent_loop_cascade`
 
-There is no `ExMaude.AI.verify_property/2`. Budget-cascade, cost-ceiling-infeasibility, and provider-routing-infeasibility are not public detector results and must not appear as implemented talk features.
+Exactly seven matters more than an impressive label. There is no `ExMaude.AI.verify_property/2`. Budget-cascade, cost-ceiling-infeasibility, and provider-routing-infeasibility are not public detector results and must not appear as implemented talk features. If a property isn't in the list, this detector did not check it.
 
-Example:
+Here's the shape of a policy and what the detector says about it:
 
 ```elixir
 policy = [
@@ -166,7 +173,7 @@ Enum.map(conflicts, & &1.type)
 # => [:approval_gate_bypass]
 ```
 
-Adding an explicit approval constructor before the high-impact invocation makes that particular detector clean:
+The policy reaches a high-impact tool with no approval step in the chain, so the detector flags it. Add the approval constructor before the invocation and that particular finding goes away:
 
 ```elixir
 invocations: [
@@ -175,9 +182,11 @@ invocations: [
 ]
 ```
 
-The supported conclusion is not “the policy is safe.” It is “the current detector did not find any of its seven modeled conflicts.”
+The supported conclusion after that fix is not “the policy is safe.” It is: the detector found none of its seven modeled conflicts. Narrow, and defensible.
 
 ## 8. Generate, do not imitate, the Maude command
+
+How do you know the Maude term actually matches your Elixir data? By never hand-writing it.
 
 The talk's Scenario 5 uses the real encoder:
 
@@ -192,9 +201,9 @@ command =
 {:ok, output} = ExMaude.execute(command)
 ```
 
-This avoids a common documentation failure: a hand-written “raw command” that drifts away from the encoder's actual constructors.
+This avoids a common documentation failure: a hand-written “raw command” that slowly drifts away from what the encoder really produces.
 
-The trust boundary is:
+The trust boundary is a chain, and it's longer than the Maude command in the middle:
 
 ```text
 validated Elixir data
@@ -205,27 +214,29 @@ validated Elixir data
   → caller's activation policy
 ```
 
-Every arrow deserves tests. Formal reasoning over a mistranslated input proves the wrong model precisely.
+Every arrow deserves tests. Formal reasoning over a mistranslated input proves the wrong model — precisely.
 
 ## 9. How the demo consumes the results
 
-`Goatmire.Verifier` separates three outcomes and never merges them:
+What happens when Maude is down mid-deploy? That's the question this section answers, and the answer is the talk's spine.
 
-- `:conflicts` — a concrete typed conflict, with the rule ids;
-- `:clean` — no conflict of the types this detector models;
+`Goatmire.Verifier` keeps three outcomes apart and never merges them:
+
+- `:conflicts` — a concrete typed conflict, with the rule ids.
+- `:clean` — no conflict of the types this detector models.
 - `:unverified` — the detector could not run at all.
 
-Skips, unavailable backends, encoder rejections, and clean bounded searches all land in `:unverified`. None of them becomes a success claim.
+Skips, unavailable backends, encoder rejections, and clean bounded searches all land in `:unverified`. None of them becomes a success claim. A bad answer, a good answer, and no answer are three different things.
 
-`split_on_verdict/2` fails closed: an unverified rule set admits nothing. It also withholds *both* rules named in a conflict rather than guessing which author was right.
+`split_on_verdict/2` fails closed: an unverified rule set admits nothing. And when a conflict names two rules, it withholds *both* of them rather than guessing which author was right.
 
-The activation layer owns fail-open/fail-closed policy in general — a library availability error is not evidence that input is safe, and this demo takes the conservative side of that choice explicitly rather than by default.
+Fail-open versus fail-closed is the activation layer's decision to own, not the library's. A library availability error is not evidence that input is safe — this demo takes the conservative side of that choice explicitly rather than by default.
 
 ## 10. The five demos
 
 Everything runs from this repository. Scenarios 1, 3 and 5 need only the interpreter. Scenario 2 additionally boots the fleet and the engine. Scenario 4 additionally needs the configured language model to be reachable; otherwise skip it and continue with deterministic Scenario 5.
 
-The entire stage fleet is simulated, and the storm counters are this machine's measured output—not customer incidents and not physical-fleet evidence.
+The entire stage fleet is simulated, and the storm counters are this machine's measured output — not customer incidents and not physical-fleet evidence.
 
 Scenario 5 is the one that depends on nothing but the interpreter:
 
@@ -235,30 +246,34 @@ Goatmire.VerificationDemo.run()
 
 It asserts three exact outcomes:
 
-- missing approval → `[:approval_gate_bypass]`;
-- explicit approval → `[]`;
-- US invocation under EU/CH allowance → `[:sovereignty_violation]`.
+- missing approval → `[:approval_gate_bypass]`
+- explicit approval → `[]`
+- US invocation under EU/CH allowance → `[:sovereignty_violation]`
 
 The application starts a four-worker ExMaude pool, and tests reject any drift in these results — a library change that quietly alters a verdict is caught in rehearsal rather than on stage.
 
 ## 11. Performance claims
 
-Do not memorize `500 µs`, `600 ms`, an 80% pre-filter ratio, or a scale number. None is a portable property of Maude or ExMaude.
+How fast is it? Refuse to answer that from memory.
+
+Do not memorize `500 µs`, `600 ms`, an 80% pre-filter ratio, or a scale number. None is a portable property of Maude or ExMaude. On stage, read the displayed measurement from the final rehearsal build.
 
 A defensible benchmark records:
 
-- repository revisions;
-- Maude and OTP versions;
-- backend and pool settings;
-- host OS/architecture;
-- exact rule corpus and search bounds;
-- cold versus warm execution;
-- sample count and reported distribution;
-- timeouts and errors.
+- repository revisions
+- Maude and OTP versions
+- backend and pool settings
+- host OS/architecture
+- exact rule corpus and search bounds
+- cold versus warm execution
+- sample count and reported distribution
+- timeouts and errors
 
-The stage script should read the displayed measurement from the final rehearsal build. A timeout remains an error or `:unverified`.
+A timeout remains an error or `:unverified` — it never becomes a data point for the happy path.
 
 ## 12. Security and operational boundaries
+
+What would you have to care about before running this anywhere near production?
 
 - Validate identifiers and predicates before encoding them.
 - Never create atoms from untrusted strings.
@@ -266,32 +281,32 @@ The stage script should read the displayed measurement from the final rehearsal 
 - Keep command text out of telemetry unless explicitly enabled and safe.
 - Treat module sources and file paths as trusted administrative input.
 - Bound pool size, checkout time, command time, and search depth.
-- Restart workers after timeout because their interpreter state is uncertain.
+- Restart workers after a timeout — their interpreter state is uncertain.
 - Keep independently named pools isolated.
 - Record model revision, interpreter version, validated input, and result when building an audit artifact.
-- Do not claim that such an artifact satisfies a regulation without a separate documented control mapping.
+- Do not claim such an artifact satisfies a regulation without a separate documented control mapping.
 
 ## 13. Honest Q&A answers
 
 **Does ExMaude prove my application correct?**
 
-No. It evaluates properties of the encoded model. Encoder correctness, omitted properties, runtime behavior, and the deployment environment remain outside that result.
+No. It evaluates properties of the encoded model. Encoder correctness, omitted properties, runtime behavior, and the deployment environment stay outside that result.
 
 **What does an empty conflict list mean?**
 
-No conflict represented by that detector was found for that input.
+That this detector found none of the conflicts it models, in this input. Nothing more.
 
 **What does a bounded search prove?**
 
-A returned counterexample is reachable in the model. No counterexample within the bound is reported as unverified, not as an unbounded proof.
+A returned counterexample is reachable in the model — that's real. An empty result within the bound means the search gave up before finding trouble, and it's reported as unverified, not as a proof.
 
 **Can it verify an LLM?**
 
-No. It can inspect validated structured output produced by an LLM.
+No. It can inspect validated structured output that an LLM produced. The model authors; the detector judges.
 
 **Does it run on constrained edge hardware?**
 
-This talk does not demonstrate that. Maude and the simulated fleet run on the demo laptop and support containers. Validate a compatible interpreter and benchmark before making any edge-host claim.
+This talk doesn't demonstrate that. Maude and the simulated fleet run on the demo laptop and support containers. Validate a compatible interpreter and benchmark before making any edge-host claim.
 
 **Is anyone running this in production?**
 
