@@ -7,7 +7,7 @@ defmodule GoatmireWeb do
 
   @doc "Static asset roots admitted by the endpoint."
   @spec static_paths() :: [String.t()]
-  def static_paths, do: ~w(vendor fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(assets vendor fonts images favicon.ico robots.txt)
 
   @doc "Quoted imports and configuration shared by the router."
   @spec router() :: Macro.t()

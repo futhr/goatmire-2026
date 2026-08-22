@@ -32,8 +32,11 @@ node_modules/
 # Local research, audit output, and transcript-derived notes
 /docs/local/
 
-# Built and digested web assets — sources live in assets/ and priv/static
-/priv/static/assets/
+# Digested build output is ignored; the hand-written stylesheets are tracked.
+/priv/static/assets/*
+!/priv/static/assets/dashboard.css
+!/priv/static/assets/presenter.css
+!/priv/static/assets/presenter-slides.css
 /priv/static/cache_manifest.json
 /priv/static/*.gz
 /priv/static/robots-*.txt
