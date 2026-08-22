@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title>{assigns[:page_title] || "Goatmire 2026 — Talk"}</.live_title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href={~p"/assets/dashboard.css"} />
+    <link rel="stylesheet" href={~p"/assets/presenter-slides.css"} />
+    <link rel="stylesheet" href={~p"/assets/presenter.css"} />
+    <script defer src={~p"/vendor/phoenix_html.js"}>
+    </script>
+    <script defer src={~p"/vendor/phoenix.min.js"}>
+    </script>
+    <script defer src={~p"/vendor/phoenix_live_view.min.js"}>
+    </script>
+    <script type="module" src={~p"/vendor/app.js"}>
+    </script>
+  </head>
+  <body class="presenter-body">
+    {@inner_content}
+  </body>
+</html>

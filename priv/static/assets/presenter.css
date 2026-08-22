@@ -1,0 +1,187 @@
+/* Presenter chrome: the 60/40 grid, floating control bar, and pane tabs.
+   Slide typography lives in presenter-slides.css; dashboard components keep
+   their own stylesheet so embedded panes render unchanged. */
+.presenter-body { overflow: hidden; }
+.presenter { height: 100dvh; display: flex; flex-direction: column; }
+.presenter.idle { cursor: none; }
+.presenter-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  transition: grid-template-columns 0.35s ease;
+}
+.presenter-grid.deck-full { grid-template-columns: 1fr 0fr; }
+.presenter-grid.live-full { grid-template-columns: 0fr 1fr; }
+.deck-pane {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  /* Ambient wash from the Livebook blue/gray tokens, drifting slowly. */
+  background:
+    radial-gradient(60% 55% at 12% 8%, var(--blue-soft) 0%, transparent 62%),
+    radial-gradient(52% 48% at 90% 88%, #d8e0ff 0%, transparent 65%),
+    radial-gradient(45% 42% at 78% 12%, var(--surface-muted) 0%, transparent 60%),
+    var(--bg);
+  background-size: 170% 170%;
+  animation: deck-drift 45s ease-in-out infinite alternate;
+}
+.deck-slide {
+  height: 100%;
+  animation: slide-enter 0.35s ease;
+}
+.deck-pane .slide { height: 100%; }
+@keyframes deck-drift {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+@keyframes slide-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck-pane { animation: none; }
+  .deck-slide { animation: none; }
+}
+.live-pane {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--overlay);
+  background: var(--bg);
+}
+.presenter-grid.live-full .live-pane { border-left: 0; }
+.live-pane-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.6rem 1.8rem 8rem;
+}
+.hidden-pane { display: none; }
+.live-tabs {
+  position: fixed;
+  bottom: 5rem;
+  left: 30%;
+  transform: translateX(-50%);
+  z-index: 59;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.25rem 0.3rem;
+  border-radius: 999px;
+  background: var(--blue);
+  box-shadow: 0 8px 24px rgb(46 64 255 / 0.3);
+  transition: opacity 0.35s ease, left 0.35s ease;
+  animation: dock-rise 0.25s ease;
+}
+.presenter.deck-full .live-tabs,
+.presenter.live-full .live-tabs { left: 50%; }
+.presenter.idle .live-tabs { opacity: 0; pointer-events: none; }
+.live-tabs > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(255 255 255 / 0.75);
+}
+.live-tabs > button:hover { background: rgb(255 255 255 / 0.16); color: #ffffff; }
+.live-tabs > button.active { background: #ffffff; color: var(--blue); }
+.live-tabs > button.active:hover { background: #ffffff; }
+.live-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-right: 0.15rem;
+  padding-right: 0.25rem;
+  border-right: 1px solid rgb(255 255 255 / 0.3);
+}
+.chrome-clock { display: inline-flex; align-items: center; gap: 0.35rem; cursor: default; }
+.live-steps-label {
+  padding-right: 0.35rem;
+  color: #ffffff;
+  opacity: 0.75;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+}
+.live-steps button {
+  min-height: 28px;
+  min-width: 0;
+  padding: 0.1rem 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.live-steps button:hover { background: rgb(255 255 255 / 0.16); }
+.live-steps button.done { opacity: 0.6; }
+.live-steps button.done:hover { background: transparent; }
+.live-steps button.todo { opacity: 0.55; }
+.live-steps button[disabled] { cursor: default; }
+@keyframes dock-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.code-card .highlight pre { margin: 0.9rem 0 0; }
+.code-card-source { margin-top: 0.6rem; font-family: var(--mono); font-size: 0.72rem; color: var(--subtext); }
+.presenter-chrome {
+  position: fixed;
+  bottom: 1.1rem;
+  left: 30%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--overlay);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgb(28 42 58 / 0.12);
+  transition: opacity 0.35s ease, left 0.35s ease, bottom 0.35s ease;
+}
+.presenter.deck-full .presenter-chrome,
+.presenter.live-full .presenter-chrome { left: 50%; }
+.presenter.idle .presenter-chrome { opacity: 0; pointer-events: none; }
+.presenter-chrome button {
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--subtext);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.presenter-chrome button:hover { background: var(--surface-muted); color: var(--heading); }
+.chrome-slide {
+  padding: 0 0.2rem;
+  color: var(--heading);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.chrome-chip {
+  padding: 0 0.35rem;
+  color: var(--subtext);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.chrome-chip.mono { font-family: var(--mono); }
+.chrome-chip.over { color: #b45309; font-weight: 600; }
+.chrome-chip.warn { color: #b45309; cursor: help; }
+.chrome-sep { width: 1px; height: 20px; background: var(--overlay); }
+.chrome-play { color: var(--blue); font-weight: 600; }

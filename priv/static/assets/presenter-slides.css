@@ -1,0 +1,485 @@
+.slide {
+  --sl-bg: #f8fafc;
+  --sl-surface: #ffffff;
+  --sl-surface-muted: #f0f5f9;
+  --sl-border: #e1e8f0;
+  --sl-text: #304254;
+  --sl-heading: #1c2a3a;
+  --sl-subtext: #61758a;
+  --sl-blue: #3e64ff;
+  --sl-blue-soft: #ecf0ff;
+  --sl-blue-faint: #d8e0ff;
+  --sl-green: #1d891a;
+  --sl-green-soft: #e9f4e9;
+  --sl-red: #db1920;
+  --sl-red-soft: #fce8e9;
+  --sl-warning-bg: #fef08a;
+  --sl-code-bg: #fafafa;
+  --sl-code-border: #dfdfe0;
+  --sl-code-text: #383a41;
+  --sl-mono: "JetBrains Mono", "Droid Sans Mono", monospace;
+  --sl-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  container-type: inline-size;
+  display: flow-root;
+  width: 100%;
+  height: 100%;
+  padding: 4.6% 5.6% 4.4%;
+  overflow: hidden;
+  /* Transparent so the deck pane's ambient gradient shows through;
+     demo slides keep their own solid blue. */
+  background: transparent;
+  color: var(--sl-text);
+  font-family: var(--sl-sans);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.slide h1,
+.slide h2,
+.slide p {
+  margin-top: 0;
+}
+
+.slide h1 {
+  margin-bottom: 2.2cqw;
+  color: var(--sl-heading);
+  font-size: clamp(1.4rem, 3.9cqw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.slide h2 {
+  margin-bottom: 0;
+  color: var(--sl-heading);
+  font-size: clamp(1.05rem, 2.66cqw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.slide p {
+  margin-bottom: 1.6cqw;
+  font-size: clamp(0.85rem, 1.95cqw, 1.8rem);
+  line-height: 1.34;
+}
+
+.slide strong {
+  color: var(--sl-heading);
+  font-weight: 600;
+}
+
+.slide code {
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  background: var(--sl-surface-muted);
+  color: var(--sl-heading);
+  font-family: var(--sl-mono);
+  font-size: 0.85em;
+}
+
+.slide pre {
+  margin: 1.4cqw 0 0;
+  padding: 1.9cqw 2cqw;
+  overflow-x: auto;
+  border: 1px solid var(--sl-code-border);
+  border-radius: clamp(0.5rem, 1.1cqw, 1rem);
+  background: var(--sl-code-bg);
+  color: var(--sl-code-text);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.75rem, 1.64cqw, 1.5rem);
+  line-height: 1.47;
+}
+
+.slide pre code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.slide blockquote {
+  margin: 2.2cqw 0 0;
+  padding: 0 0 0 1.9cqw;
+  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-blue);
+  color: var(--sl-text);
+  font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
+  line-height: 1.3;
+}
+
+.slide table {
+  width: 100%;
+  margin-top: 2.2cqw;
+  border-collapse: collapse;
+  background: transparent;
+  font-size: clamp(0.95rem, 2.2cqw, 2rem);
+}
+
+.slide th,
+.slide td {
+  padding: 1.5cqw 1.6cqw 1.5cqw 0;
+  border-bottom: 1px solid var(--sl-border);
+  text-align: left;
+}
+
+.slide tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.slide td:last-child {
+  color: var(--sl-heading);
+  font-weight: 600;
+}
+
+.slide th {
+  padding-top: 0;
+  border-bottom: 2px solid var(--sl-blue-faint);
+  color: var(--sl-subtext);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.65rem, 1.25cqw, 1.15rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sl-eyebrow {
+  position: absolute;
+  top: 4.6%;
+  left: 5.6%;
+  color: var(--sl-blue);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.85rem, 1.8cqw, 1.6rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.slide { position: relative; }
+
+.slide--demo .sl-eyebrow {
+  color: rgb(255 255 255 / 0.75);
+}
+
+.sl-lede {
+  max-width: 70cqw;
+  color: var(--sl-subtext);
+  font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
+  line-height: 1.35;
+}
+
+/* Supporting text on content slides wears the quote treatment: blue bar,
+   body ink. The title slide keeps its plain subtitle. */
+.slide--default .sl-lede,
+.slide--statement .sl-lede {
+  padding-left: 1.9cqw;
+  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-blue);
+  color: var(--sl-text);
+  line-height: 1.3;
+}
+
+.sl-author {
+  margin-top: 1.9cqw;
+  color: var(--sl-heading);
+  font-weight: 600;
+}
+
+.sl-small {
+  color: var(--sl-subtext);
+  font-size: clamp(0.7rem, 1.4cqw, 1.3rem);
+}
+
+.sl-mono {
+  font-family: var(--sl-mono);
+}
+
+.sl-mt {
+  margin-top: 2.3cqw;
+}
+
+.sl-huge {
+  margin-top: 4.7cqw;
+  color: var(--sl-heading);
+  font-family: var(--sl-mono);
+  font-size: clamp(3rem, 8.75cqw, 8.5rem);
+  font-weight: 400;
+  letter-spacing: -0.075em;
+}
+
+.sl-statement {
+  max-width: 81cqw;
+  margin-top: 5.5cqw;
+  color: var(--sl-heading);
+  font-size: clamp(1.5rem, 3.6cqw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+.sl-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.9cqw;
+}
+
+.sl-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.6cqw;
+}
+
+.sl-four {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25cqw;
+}
+
+.sl-panel {
+  min-width: 0;
+  padding: 1.9cqw;
+  border: 1px solid var(--sl-border);
+  border-radius: clamp(0.5rem, 1.1cqw, 1rem);
+  background: var(--sl-surface);
+  box-shadow: 0 8px 28px rgba(28, 42, 58, 0.035);
+}
+
+.sl-panel h2 {
+  margin-bottom: 0.95cqw;
+}
+
+.sl-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.sl-panel--clean {
+  border-color: transparent;
+  background: var(--sl-green-soft);
+  color: var(--sl-green);
+}
+
+.sl-panel--clean h2 {
+  color: inherit;
+}
+
+.sl-panel--center {
+  display: grid;
+  place-items: center;
+  color: var(--sl-heading);
+  font-weight: 600;
+  text-align: center;
+}
+
+.sl-label {
+  color: var(--sl-subtext);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.6rem, 1.1cqw, 1rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sl-value {
+  margin-top: 0.65cqw;
+  color: var(--sl-heading);
+  font-size: clamp(1rem, 2.34cqw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.sl-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.95cqw;
+  margin-top: 3.4cqw;
+}
+
+.sl-flow .sl-node {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 9.5cqw;
+  padding: 1.4cqw;
+  border: 1px solid var(--sl-border);
+  border-radius: clamp(0.5rem, 1.1cqw, 1rem);
+  background: var(--sl-surface);
+  color: var(--sl-heading);
+  font-size: clamp(0.75rem, 1.72cqw, 1.6rem);
+  font-weight: 600;
+  text-align: center;
+}
+
+.sl-flow .sl-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--sl-blue);
+  font-size: clamp(1rem, 2.2cqw, 2rem);
+}
+
+.sl-branch-source {
+  display: grid;
+  place-items: center;
+  max-width: 44cqw;
+  min-height: 7.5cqw;
+  margin: 1.6cqw auto 0;
+  padding: 1.4cqw;
+  border: 1px solid var(--sl-border);
+  border-radius: clamp(0.5rem, 1.1cqw, 1rem);
+  background: var(--sl-surface);
+  color: var(--sl-heading);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.85rem, 1.8cqw, 1.65rem);
+  text-align: center;
+}
+
+.sl-branch-arrow {
+  display: flex;
+  justify-content: space-between;
+  max-width: 34cqw;
+  margin: 0.4cqw auto;
+  color: var(--sl-blue);
+  font-size: clamp(1rem, 2.2cqw, 2rem);
+}
+
+.sl-verdict {
+  min-height: 17cqw;
+  padding: 2cqw;
+  border-radius: clamp(0.6rem, 1.25cqw, 1.15rem);
+}
+
+.sl-verdict strong {
+  display: block;
+  margin-bottom: 1.4cqw;
+  color: inherit;
+  font-family: var(--sl-mono);
+  font-size: clamp(0.95rem, 2cqw, 1.85rem);
+  font-weight: 400;
+}
+
+.sl-verdict span {
+  display: block;
+  font-size: clamp(0.8rem, 1.72cqw, 1.6rem);
+  line-height: 1.34;
+}
+
+.sl-verdict--clean {
+  background: var(--sl-green-soft);
+  color: var(--sl-green);
+}
+
+.sl-verdict--conflicts {
+  background: var(--sl-red-soft);
+  color: var(--sl-red);
+}
+
+.sl-verdict--unverified {
+  background: var(--sl-warning-bg);
+  color: var(--sl-heading);
+}
+
+.slide--title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide--title h1 {
+  max-width: 76cqw;
+  margin-bottom: 2.3cqw;
+  font-size: clamp(1.8rem, 5.3cqw, 5rem);
+}
+
+.slide--title .sl-lede {
+  max-width: 64cqw;
+}
+
+.slide--demo {
+  display: grid;
+  place-items: center;
+  background: var(--sl-blue);
+  color: #ffffff;
+  text-align: center;
+}
+
+.slide--demo h1 {
+  max-width: 70cqw;
+  margin: 0 auto 2.2cqw;
+  color: #ffffff;
+  font-size: clamp(1.7rem, 5cqw, 4.7rem);
+}
+
+.sl-live-label,
+.sl-live-caption {
+  color: var(--sl-blue-faint);
+  font-family: var(--sl-mono);
+  font-size: clamp(0.7rem, 1.56cqw, 1.45rem);
+}
+
+.sl-live-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sl-live-caption {
+  margin-bottom: 0;
+}
+
+.slide--closing {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.slide--closing blockquote {
+  max-width: 76cqw;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  color: var(--sl-heading);
+  font-size: clamp(1.6rem, 4cqw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.045em;
+}
+
+.slide--closing .sl-small {
+  margin: 3.4cqw 0 0;
+}
+
+/* Default and statement slides: eyebrow pinned absolute at the top, all
+   other content vertically centered. Title, demo, and closing slides center
+   themselves. */
+.slide--default,
+.slide--statement {
+  display: flex;
+  flex-direction: column;
+  /* `safe` falls back to top-aligned when content overflows, and the extra
+     top padding reserves the eyebrow band so tall slides never cover it. */
+  justify-content: safe center;
+  padding-top: 11%;
+}
+
+.sl-two,
+.sl-three,
+.sl-four,
+.sl-flow {
+  margin-bottom: 2.6cqw;
+}
+
+@container (max-width: 640px) {
+  .sl-two,
+  .sl-three,
+  .sl-four {
+    grid-template-columns: 1fr;
+  }
+
+  .sl-flow {
+    flex-direction: column;
+  }
+
+  .sl-flow .sl-node {
+    min-height: auto;
+  }
+
+  .sl-flow .sl-arrow {
+    transform: rotate(90deg);
+  }
+}

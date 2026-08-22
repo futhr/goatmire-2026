@@ -30,9 +30,20 @@ defmodule GoatmireWeb.Router do
 
     live "/", WarehouseLive, :index
     live "/warehouse", WarehouseLive, :index
-    live "/rules/new", RuleLive, :new
+    live "/rules", RuleLive, :new
     live "/verify", VerifyLive, :index
     live "/diagnostics", DiagnosticsLive, :index
+    live "/metrics", MetricsLive, :index
+  end
+
+  # Fullscreen presenter: deck left, live panel right. Its own root layout —
+  # no topbar, slide chrome instead.
+  scope "/", GoatmireWeb do
+    pipe_through :browser
+
+    live_session :talk, root_layout: {GoatmireWeb.Layouts, :presenter_root} do
+      live "/talk", PresenterLive, :index
+    end
   end
 
   # Full BeamLens operator/coordinator inspector. This must live outside the
