@@ -2,24 +2,24 @@ defmodule Goatmire.Application do
   @moduledoc false
   use Application
 
-  alias Goatmire.{Config, Fleet, Transport}
+  alias Goatmire.{Config, Fleet}
 
   @impl true
   def start(_, _) do
+    # Two branches under the root: talk-critical (clock, endpoint) and the
+    # demo domain. A demo crash-loop burns Goatmire.Demo.Supervisor's restart
+    # budget, never the deck's.
     children =
       [
         {Phoenix.PubSub, name: Goatmire.PubSub},
         {Task.Supervisor, name: Goatmire.TaskSupervisor},
-        {Finch, name: Goatmire.Finch},
-        Transport.impl()
-      ] ++
-        Fleet.children() ++
-        engine_children() ++
-        diagnostics_children() ++
-        metrics_children() ++
-        web_children()
+        {Finch, name: Goatmire.Finch}
+      ] ++ talk_children() ++ [Goatmire.Demo.Supervisor] ++ web_children()
 
-    opts = [strategy: :one_for_one, name: Goatmire.Supervisor]
+    # Burst-tolerant: a demo-branch meltdown restarts as fast as it can fail
+    # without exhausting the root, while a permanent crash-loop still stops
+    # the node rather than looping forever.
+    opts = [strategy: :one_for_one, name: Goatmire.Supervisor, max_restarts: 20, max_seconds: 5]
 
     with {:ok, pid} <- Supervisor.start_link(children, opts) do
       attach_declared_devices()
@@ -53,18 +53,11 @@ defmodule Goatmire.Application do
     end
   end
 
-  defp engine_children do
+  defp talk_children do
     case Config.role() do
-      :simulator ->
-        []
-
-      _ ->
-        [ex_maude_child_spec(), Goatmire.Engine] ++ vda5050_children()
+      :engine -> [Goatmire.Talk.Supervisor]
+      _ -> []
     end
-  end
-
-  defp vda5050_children do
-    if Config.vda5050_enabled?(), do: [Goatmire.Protocol.VDA5050.Bridge], else: []
   end
 
   defp web_children do
@@ -72,47 +65,5 @@ defmodule Goatmire.Application do
       :engine -> [GoatmireWeb.Endpoint]
       _ -> []
     end
-  end
-
-  defp diagnostics_children do
-    case Config.role() do
-      :engine ->
-        client_registry = Config.diagnostics_client_registry()
-
-        [
-          Goatmire.Diagnostics.Sampler,
-          {Goatmire.Diagnostics.BeamlensSupervisor, client_registry: client_registry},
-          {BeamlensWeb, client_registry: client_registry}
-        ]
-
-      _ ->
-        []
-    end
-  end
-
-  defp metrics_children do
-    if Config.metrics_enabled?(), do: [Goatmire.Metrics], else: []
-  end
-
-  # Preload into every worker at start. Otherwise the first reduction broadcasts
-  # a load into workers that may be busy, and concurrent verifications race.
-  defp preload_maude_templates do
-    Application.put_env(:ex_maude, :preload_modules, [
-      ExMaude.iot_rules_path(),
-      ExMaude.ai_rules_path()
-    ])
-  end
-
-  defp ex_maude_child_spec do
-    preload_maude_templates()
-
-    :erlang.apply(ExMaude.Pool, :child_spec, [[pool_size: 4, pool_max_overflow: 0]])
-    |> normalize_child_spec()
-  end
-
-  defp normalize_child_spec(%{} = child_spec), do: child_spec
-
-  defp normalize_child_spec({id, start, restart, shutdown, type, modules}) do
-    %{id: id, start: start, restart: restart, shutdown: shutdown, type: type, modules: modules}
   end
 end
