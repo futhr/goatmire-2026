@@ -11,11 +11,22 @@ defmodule GoatmireWeb.VerifyLive do
 
   @impl true
   def mount(_, _, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
+    end
+
     {:ok,
      socket
      |> assign(page_title: "Verify")
      |> assign(results: %{}, running: nil, policy: nil, maude: maude_health())}
   end
+
+  @impl true
+  def handle_info({:talk_play, :verify, :run_policy}, socket) do
+    handle_event("run_policy", %{}, socket)
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("run", %{"set" => set}, socket) do
@@ -107,9 +118,19 @@ defmodule GoatmireWeb.VerifyLive do
         <h2 style="margin-top:0">{title}</h2>
         <p class="note" style="color:var(--subtext)">{blurb}</p>
 
-        <button id={"verify-#{key}"} phx-click="run" phx-value-set={key} disabled={@running == key}>
-          {if @running == key, do: "reducing…", else: "reduce"}
-        </button>
+        <.run_button
+          id={"verify-#{key}"}
+          phx-click="run"
+          phx-value-set={key}
+          disabled={@running == key}
+          label={
+            cond do
+              @running == key -> "reducing…"
+              @results[key] -> "reduce again"
+              true -> "reduce"
+            end
+          }
+        />
 
         <div :if={@results[key]} style="margin-top:0.9rem">
           <.verdict_detail verdict={@results[key].verdict} />
@@ -130,7 +151,11 @@ defmodule GoatmireWeb.VerifyLive do
           invocation outside the allowed jurisdiction.
         </p>
 
-        <button id="verify-policy" phx-click="run_policy">reduce</button>
+        <.run_button
+          id="verify-policy"
+          phx-click="run_policy"
+          label={if @policy, do: "reduce again", else: "reduce"}
+        />
 
         <div :if={@policy} style="margin-top:0.9rem">
           <.term_block term={@policy} />

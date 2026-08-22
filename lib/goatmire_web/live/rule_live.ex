@@ -12,6 +12,10 @@ defmodule GoatmireWeb.RuleLive do
 
   @impl true
   def mount(_, _, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
+    end
+
     {:ok,
      socket
      |> assign(page_title: "New rule")
@@ -19,6 +23,18 @@ defmodule GoatmireWeb.RuleLive do
      |> assign(verdict: nil, submitted_rule: nil, deployed: false)
      |> assign_deployed_rules()}
   end
+
+  @impl true
+  def handle_info({:talk_play, :rules, step}, socket)
+      when step in [:seed_deployed, :load_example] do
+    handle_event(Atom.to_string(step), %{}, socket)
+  end
+
+  def handle_info({:talk_play, :rules, :check}, socket) do
+    handle_event("check", %{"rule" => socket.assigns.form.params}, socket)
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("validate", %{"rule" => params}, socket) do
@@ -103,9 +119,22 @@ defmodule GoatmireWeb.RuleLive do
     end
   end
 
+  # Fleet rules share templates ("agv-12-low-battery-route" is the same rule
+  # as "agv-7-low-battery-route" bound to another Thing), so the deployed set
+  # reads as a handful of counted templates instead of one chip per device.
   defp assign_deployed_rules(socket) do
     rules = Engine.deployed_rules()
-    assign(socket, deployed_rules: rules, deployed_ids: Enum.map(rules, & &1.id))
+
+    groups =
+      rules
+      |> Enum.frequencies_by(&String.replace_prefix(&1.id, "#{&1.thing_id}-", ""))
+      |> Enum.sort_by(fn {label, count} -> {-count, label} end)
+
+    assign(socket,
+      deployed_rules: rules,
+      deployed_count: length(rules),
+      deployed_groups: groups
+    )
   end
 
   defp default_params do
@@ -220,13 +249,8 @@ defmodule GoatmireWeb.RuleLive do
           <input id="thing-id" type="text" name="rule[thing_id]" value={@form[:thing_id].value} />
 
           <label>trigger</label>
-          <div class="row">
-            <select
-              id="trigger-op"
-              aria-label="Trigger operator"
-              name="rule[trigger_op]"
-              style="width:auto"
-            >
+          <div class="rule-fields">
+            <select id="trigger-op" aria-label="Trigger operator" name="rule[trigger_op]">
               <option
                 :for={op <- ~w(prop_lt prop_lte prop_eq prop_gte prop_gt always)}
                 value={op}
@@ -241,7 +265,6 @@ defmodule GoatmireWeb.RuleLive do
               type="text"
               name="rule[trigger_property]"
               value={@form[:trigger_property].value}
-              style="width:auto;flex:1"
             />
             <input
               id="trigger-value"
@@ -249,19 +272,17 @@ defmodule GoatmireWeb.RuleLive do
               type="text"
               name="rule[trigger_value]"
               value={@form[:trigger_value].value}
-              style="width:6rem"
             />
           </div>
 
           <label>action — set property</label>
-          <div class="row">
+          <div class="rule-fields">
             <input
               id="action-property"
               aria-label="Action property"
               type="text"
               name="rule[action_property]"
               value={@form[:action_property].value}
-              style="width:auto;flex:1"
             />
             <input
               id="action-value"
@@ -269,14 +290,17 @@ defmodule GoatmireWeb.RuleLive do
               type="text"
               name="rule[action_value]"
               value={@form[:action_value].value}
-              style="width:auto;flex:1"
             />
           </div>
 
-          <div class="row" style="margin-top:1rem">
+          <div class="rule-actions" style="margin-top:1rem">
             <button id="check-rule" type="submit">Check &amp; create</button>
-            <button id="deploy-rule-a" type="button" class="ghost" phx-click="seed_deployed">Deploy rule A</button>
-            <button id="load-rule-b" type="button" class="ghost" phx-click="load_example">Load rule B</button>
+            <button id="deploy-rule-a" type="button" class="ghost" phx-click="seed_deployed">
+              Deploy rule A
+            </button>
+            <button id="load-rule-b" type="button" class="ghost" phx-click="load_example">
+              Load rule B
+            </button>
           </div>
         </.form>
       </div>
@@ -303,12 +327,20 @@ defmodule GoatmireWeb.RuleLive do
       </div>
     </div>
 
-    <h2>Currently deployed</h2>
+    <h2>
+      Currently deployed
+      <span :if={@deployed_count > 0} class="note">· {@deployed_count} rule(s)</span>
+    </h2>
     <div class="card">
-      <p :if={@deployed_ids == []} class="note" style="color:var(--subtext)">Nothing deployed.</p>
-      <ul :if={@deployed_ids != []}>
-        <li :for={id <- @deployed_ids}>{id}</li>
-      </ul>
+      <p :if={@deployed_groups == []} class="note" style="color:var(--subtext)">
+        Nothing deployed.
+      </p>
+      <div :if={@deployed_groups != []} class="chip-list">
+        <span :for={{label, count} <- @deployed_groups} class="chip">
+          <code>{label}</code>
+          <span :if={count > 1} class="chip-count">×{count}</span>
+        </span>
+      </div>
     </div>
     """
   end

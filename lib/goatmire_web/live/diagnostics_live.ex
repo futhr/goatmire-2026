@@ -18,6 +18,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
   def mount(_, _, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Provider.topic())
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
       Process.send_after(self(), :refresh_snapshot, 1_000)
     end
 
@@ -108,6 +109,10 @@ defmodule GoatmireWeb.DiagnosticsLive do
   def handle_info(:refresh_snapshot, socket) do
     Process.send_after(self(), :refresh_snapshot, 1_000)
     {:noreply, assign(socket, :snapshot, Snapshot.read(:one_minute))}
+  end
+
+  def handle_info({:talk_play, :diagnostics, :diagnose}, socket) do
+    handle_event("diagnose", %{"diagnostics" => %{"prompt" => socket.assigns.prompt}}, socket)
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
@@ -396,7 +401,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
             ]
           }
           type="button"
-          class="ghost"
+          class="ghost stage-prompt"
           style="width:100%;margin-bottom:0.6rem;text-align:left"
           phx-click="set_prompt"
           phx-value-prompt={prompt}

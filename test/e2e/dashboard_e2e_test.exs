@@ -80,7 +80,7 @@ defmodule GoatmireWeb.DashboardE2ETest do
     session =
       session
       |> resize_window(390, 844)
-      |> visit("/rules/new")
+      |> visit("/rules")
       |> assert_has(css("[data-phx-main].phx-connected"))
       |> click(css("#deploy-rule-a"))
       |> assert_has(css(".flash", text: "Deployed the reproduced"))
@@ -108,7 +108,7 @@ defmodule GoatmireWeb.DashboardE2ETest do
   feature "dashboard surfaces fit desktop, tablet and mobile viewports", %{session: session} do
     pages = [
       {"/warehouse", "#warehouse-dashboard", 1},
-      {"/rules/new", "#rule-dashboard", 2},
+      {"/rules", "#rule-dashboard", 2},
       {"/verify", "#verify-dashboard", 2},
       {"/diagnostics", "#diagnostic-dashboard", 1}
     ]

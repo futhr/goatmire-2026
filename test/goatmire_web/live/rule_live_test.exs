@@ -21,8 +21,30 @@ defmodule GoatmireWeb.RuleLiveTest do
     %{conn: build_conn()}
   end
 
+  test "deployed fleet rules group into counted template chips", %{conn: conn} do
+    rules =
+      for n <- 1..3 do
+        %{
+          id: "agv-#{n}-low-battery-route",
+          thing_id: "agv-#{n}",
+          trigger: {:prop_lt, "battery", 20},
+          actions: [{:set_prop, "agv-#{n}", "destination", "dock-7"}],
+          priority: 1
+        }
+      end
+
+    {:ok, _} = Engine.deploy(rules, mode: :enforce, scenario: :chip_test)
+
+    {:ok, _, html} = live(conn, "/rules")
+
+    assert html =~ "3 rule(s)"
+    assert html =~ "low-battery-route"
+    assert html =~ "×3"
+    refute html =~ "agv-1-low-battery-route"
+  end
+
   test "renders the form with the research-derived contact rule prefilled", %{conn: conn} do
-    {:ok, _, html} = live(conn, "/rules/new")
+    {:ok, _, html} = live(conn, "/rules")
 
     assert html =~ "Create a rule"
     assert html =~ "soteria-o3-contact-open-turn-on"
@@ -32,7 +54,7 @@ defmodule GoatmireWeb.RuleLiveTest do
 
   test "a clean check offers a deploy button", %{conn: conn} do
     StubVerifier.set(:clean)
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html =
       live
@@ -56,7 +78,7 @@ defmodule GoatmireWeb.RuleLiveTest do
        ]}
     )
 
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html =
       live
@@ -70,7 +92,7 @@ defmodule GoatmireWeb.RuleLiveTest do
 
   test "an unverified check is never presented as a pass", %{conn: conn} do
     StubVerifier.set(:unverified)
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html =
       live
@@ -84,7 +106,7 @@ defmodule GoatmireWeb.RuleLiveTest do
   end
 
   test "the loaded example is the reproduced O4 rule from the corpus", %{conn: conn} do
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html =
       live
@@ -98,7 +120,7 @@ defmodule GoatmireWeb.RuleLiveTest do
 
   test "the seeded O3 term remains in the actual candidate set", %{conn: conn} do
     StubVerifier.set(:clean)
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html =
       live
@@ -112,7 +134,7 @@ defmodule GoatmireWeb.RuleLiveTest do
   @tag :maude
   test "the rehearsed O3/O4 button path returns the research-derived witness", %{conn: conn} do
     Application.put_env(:goatmire, :verifier, Verifier)
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     live
     |> element("button", "Deploy rule A")
@@ -133,7 +155,7 @@ defmodule GoatmireWeb.RuleLiveTest do
   end
 
   test "a tampered trigger operator is a form error, not a LiveView crash", %{conn: conn} do
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
     params = Map.put(valid_params(), "trigger_op", "not-an-operator")
 
     html = render_submit(live, "check", %{"rule" => params})
@@ -143,7 +165,7 @@ defmodule GoatmireWeb.RuleLiveTest do
   end
 
   test "a forged deploy event cannot bypass the clean-verdict state", %{conn: conn} do
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     html = render_click(live, "deploy", %{})
 
@@ -154,7 +176,7 @@ defmodule GoatmireWeb.RuleLiveTest do
 
   test "deployment rechecks against rules added after the form verdict", %{conn: conn} do
     StubVerifier.set(:clean)
-    {:ok, live, _} = live(conn, "/rules/new")
+    {:ok, live, _} = live(conn, "/rules")
 
     live
     |> form("#rule-form", rule: valid_params())

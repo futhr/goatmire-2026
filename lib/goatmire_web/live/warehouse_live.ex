@@ -19,6 +19,7 @@ defmodule GoatmireWeb.WarehouseLive do
   def mount(_, _, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Storm.topic())
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
       :timer.send_interval(@refresh_ms, self(), :refresh)
     end
 
@@ -36,6 +37,8 @@ defmodule GoatmireWeb.WarehouseLive do
     {:ok, _} = Fleet.start_simulated_fleet(socket.assigns.fleet_size, tick_ms: 500)
     {:noreply, refresh(socket)}
   end
+
+  def handle_event("stop_fleet", _, %{assigns: %{running: true}} = socket), do: {:noreply, socket}
 
   def handle_event("stop_fleet", _, socket) do
     Fleet.stop_all()
@@ -102,6 +105,14 @@ defmodule GoatmireWeb.WarehouseLive do
      socket
      |> assign(running: false, frame: nil)
      |> put_flash(:error, message)}
+  end
+
+  def handle_info({:talk_play, :warehouse, mode}, socket) when mode in [:observe, :enforce] do
+    handle_event("storm", %{"mode" => Atom.to_string(mode)}, socket)
+  end
+
+  def handle_info({:talk_play, :warehouse, :clear}, socket) do
+    handle_event("stop_fleet", %{}, socket)
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
@@ -345,7 +356,7 @@ defmodule GoatmireWeb.WarehouseLive do
       <div id="shift-card" class="card">
         <h2 style="margin-top:0">Shift change</h2>
         <form id="storm-configuration" phx-change="configure_storm">
-          <div class="row">
+          <div class="storm-config">
             <label for="fleet-size" style="margin:0">fleet</label>
             <input
               id="fleet-size"
@@ -356,7 +367,6 @@ defmodule GoatmireWeb.WarehouseLive do
               max={@max_fleet_size}
               value={@fleet_size}
               data-server-value={@fleet_size}
-              style="width:6rem"
               disabled={@running}
             />
             <label for="storm-duration" style="margin:0">seconds</label>
@@ -369,12 +379,11 @@ defmodule GoatmireWeb.WarehouseLive do
               max={@max_duration_seconds}
               value={@duration}
               data-server-value={@duration}
-              style="width:6rem"
               disabled={@running}
             />
           </div>
         </form>
-        <div class="row" style="margin-top:0.8rem">
+        <div class="storm-actions" style="margin-top:0.8rem">
           <button
             id="run-observe"
             phx-click="storm"
