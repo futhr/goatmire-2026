@@ -19,6 +19,8 @@ defmodule Goatmire.Diagnostics.ProviderTest do
             :fake_ollama_preflight
           ],
           do: Application.delete_env(:goatmire, key)
+
+      Provider.reset()
     end)
 
     :ok

@@ -28,6 +28,15 @@ defmodule Goatmire.Diagnostics.Provider do
     })
   end
 
+  @doc false
+  # Test-only: the status lives in :persistent_term and would otherwise leak
+  # a terminal state (e.g. :unavailable) across test files.
+  @spec reset() :: :ok
+  def reset do
+    :persistent_term.erase(@status_key)
+    :ok
+  end
+
   @doc "Completes through Codex plan access, falling back visibly to local Ollama."
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
   def complete(messages, opts \\ []) do
