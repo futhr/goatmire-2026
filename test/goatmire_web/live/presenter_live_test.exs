@@ -71,7 +71,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     view |> element("#play-next") |> render_click()
 
     html = render(view)
-    assert html =~ "✓ Deploy rule A"
+    assert html =~ ~r/class="done"[^>]*>.*?Deploy rule A/s
     assert html =~ "Load rule B"
   end
 

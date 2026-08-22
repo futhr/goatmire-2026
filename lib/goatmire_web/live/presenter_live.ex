@@ -24,7 +24,13 @@ defmodule GoatmireWeb.PresenterLive do
 
   # One scripted step per press, mirroring docs/talk/manuscript.md.
   @play %{
-    16 => {:rules, [{:seed_deployed, "Deploy rule A"}, {:load_example, "Load rule B"}, {:check, "Check and create"}]},
+    16 =>
+      {:rules,
+       [
+         {:seed_deployed, "Deploy rule A"},
+         {:load_example, "Load rule B"},
+         {:check, "Check and create"}
+       ]},
     17 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
     18 => {:diagnostics, [{:diagnose, "Ask"}]},
     22 => {:verify, [{:run_policy, "Run policy checks"}]}
@@ -34,7 +40,11 @@ defmodule GoatmireWeb.PresenterLive do
   # scripted slides overlay progression states on the same buttons.
   @pane_actions %{
     warehouse: [{:observe, "Observe"}, {:enforce, "Enforce"}, {:clear, "Clear"}],
-    rules: [{:seed_deployed, "Deploy rule A"}, {:load_example, "Load rule B"}, {:check, "Check and create"}],
+    rules: [
+      {:seed_deployed, "Deploy rule A"},
+      {:load_example, "Load rule B"},
+      {:check, "Check and create"}
+    ],
     diagnostics: [{:diagnose, "Ask"}],
     verify: [{:run_policy, "Run policy checks"}]
   }
@@ -58,10 +68,14 @@ defmodule GoatmireWeb.PresenterLive do
     {:noreply, clock(socket, &Clock.snapshot/0)}
   end
 
-  def handle_event("nav", %{"dir" => "next"}, socket), do: {:noreply, clock(socket, &Clock.next/0)}
-  def handle_event("nav", %{"dir" => "prev"}, socket), do: {:noreply, clock(socket, &Clock.prev/0)}
+  def handle_event("nav", %{"dir" => "next"}, socket),
+    do: {:noreply, clock(socket, &Clock.next/0)}
 
-  def handle_event("panel", %{"panel" => panel}, socket) when panel in ~w(split deck_full live_full) do
+  def handle_event("nav", %{"dir" => "prev"}, socket),
+    do: {:noreply, clock(socket, &Clock.prev/0)}
+
+  def handle_event("panel", %{"panel" => panel}, socket)
+      when panel in ~w(split deck_full live_full) do
     {:noreply, clock(socket, fn -> Clock.set_panel(String.to_existing_atom(panel)) end)}
   end
 
@@ -274,22 +288,125 @@ defmodule GoatmireWeb.PresenterLive do
     """
   end
 
+  attr :name, :atom, required: true
+
+  defp chrome_icon(assigns) do
+    ~H"""
+    <svg
+      class="chrome-icon"
+      width="15"
+      height="15"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <%= case @name do %>
+        <% :prev -> %>
+          <path
+            d="M12 5l-5 5 5 5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :next -> %>
+          <path
+            d="M8 5l5 5-5 5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :play -> %>
+          <path d="M7 4.8l8.5 5.2L7 15.2z" fill="currentColor" />
+        <% :done -> %>
+          <path
+            d="M4 10.6l4 4 8-9"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :deck_full -> %>
+          <rect
+            x="3"
+            y="4.5"
+            width="14"
+            height="11"
+            rx="1.5"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <path d="M12 4.5v11" stroke="currentColor" stroke-width="1.7" />
+          <path d="M4.5 6h6v8h-6z" fill="currentColor" opacity="0.35" />
+        <% :split -> %>
+          <rect
+            x="3"
+            y="4.5"
+            width="14"
+            height="11"
+            rx="1.5"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <path d="M10 4.5v11" stroke="currentColor" stroke-width="1.7" />
+        <% :live_full -> %>
+          <rect
+            x="3"
+            y="4.5"
+            width="14"
+            height="11"
+            rx="1.5"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <path d="M8 4.5v11" stroke="currentColor" stroke-width="1.7" />
+          <path d="M9.5 6h6v8h-6z" fill="currentColor" opacity="0.35" />
+        <% :fullscreen -> %>
+          <path
+            d="M4 8V4.5h3.5M16 8V4.5h-3.5M4 12v3.5h3.5M16 12v3.5h-3.5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :reset -> %>
+          <path
+            d="M15.5 10a5.5 5.5 0 1 1-1.7-4M15.5 3v3.4h-3.4"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :warning -> %>
+          <path
+            d="M10 3.6l6.6 12H3.4zM10 8v3.4M10 13.6v.1"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+      <% end %>
+    </svg>
+    """
+  end
+
   defp format_clock(seconds) when seconds < 0, do: "−#{format_clock(-seconds)}"
 
   defp format_clock(seconds) do
     "#{div(seconds, 60)}:#{seconds |> rem(60) |> Integer.to_string() |> String.pad_leading(2, "0")}"
   end
 
+  defp ended?(snap), do: snap.started? and snap.talk_elapsed_s >= snap.slot_s
+
   defp drift_label(%{started?: false}), do: "not started"
-
-  # Ended when the slot is spent — or when the drift exceeds the time left,
-  # because a deficit that no longer fits in the slot is not a number worth
-  # reading on stage.
-  defp drift_label(%{talk_elapsed_s: elapsed, slot_s: slot, drift_s: drift})
-       when elapsed >= slot or drift > slot - elapsed,
-       do: "#{format_clock(slot)} ended"
-
   defp drift_label(%{drift_s: drift}) when abs(drift) <= 10, do: "on time"
+
+  # Past three minutes of drift the schedule comparison is noise, so the chip
+  # falls back to the total against the slot.
+  defp drift_label(%{drift_s: drift} = snap) when abs(drift) > 180,
+    do: "#{format_clock(snap.talk_elapsed_s)} / #{format_clock(snap.slot_s)}"
+
   defp drift_label(%{drift_s: drift}) when drift > 0, do: "+#{format_clock(drift)} behind"
   defp drift_label(%{drift_s: drift}), do: "#{format_clock(drift)} ahead"
 
@@ -375,9 +492,11 @@ defmodule GoatmireWeb.PresenterLive do
               phx-click="play"
               title="Run this scripted step (p)"
             >
-              ▶ {label}
+              <.chrome_icon name={:play} /> {label}
             </button>
-            <button :if={state == :done} type="button" class="done" disabled>✓ {label}</button>
+            <button :if={state == :done} type="button" class="done" disabled>
+              <.chrome_icon name={:done} /> {label}
+            </button>
             <button
               :if={state == :todo}
               type="button"
@@ -418,13 +537,13 @@ defmodule GoatmireWeb.PresenterLive do
 
       <div class="presenter-chrome" role="toolbar" aria-label="Presenter controls">
         <button type="button" phx-click="nav" phx-value-dir="prev" aria-label="Previous slide">
-          ‹
+          <.chrome_icon name={:prev} />
         </button>
         <span class="chrome-slide" title={@titles[@snap.slide]}>
           {@snap.slide} / {@snap.slide_count}
         </span>
         <button type="button" phx-click="nav" phx-value-dir="next" aria-label="Next slide">
-          ›
+          <.chrome_icon name={:next} />
         </button>
         <span
           id="chrome-clock"
@@ -432,27 +551,44 @@ defmodule GoatmireWeb.PresenterLive do
           title="Double-click to restart the timer"
           class="chrome-clock"
         >
-          <span class={["chrome-chip", "mono", @snap.slide_overtime_s > 0 && "over"]}>
-            {format_clock(@snap.slide_elapsed_s)} / {format_clock(@snap.slide_budget_s)}
-          </span>
-          <span class={["chrome-chip", "mono", @snap.drift_s > 10 && "over"]}>
-            {drift_label(@snap)}
-          </span>
+          <%= if ended?(@snap) do %>
+            <span class="chrome-chip mono over">{format_clock(@snap.slot_s)} ended</span>
+          <% else %>
+            <span class={["chrome-chip", "mono", @snap.slide_overtime_s > 0 && "over"]}>
+              {format_clock(@snap.slide_elapsed_s)} / {format_clock(@snap.slide_budget_s)}
+            </span>
+            <span class={["chrome-chip", "mono", @snap.drift_s > 10 && "over"]}>
+              {drift_label(@snap)}
+            </span>
+          <% end %>
         </span>
         <span class="chrome-sep" />
-        <button type="button" phx-click="panel" phx-value-panel="deck_full" title="Expand deck ([)">
-          ⟨
+        <button
+          type="button"
+          phx-click="panel"
+          phx-value-panel="deck_full"
+          title="Expand deck ([)"
+          aria-label="Expand deck"
+        >
+          <.chrome_icon name={:deck_full} />
         </button>
-        <button type="button" phx-click="panel" phx-value-panel="split" title={~S"Reset split (\)"}>
-          ⊙
+        <button
+          type="button"
+          phx-click="panel"
+          phx-value-panel="split"
+          title={~S"Reset split (\)"}
+          aria-label="Reset split"
+        >
+          <.chrome_icon name={:split} />
         </button>
         <button
           type="button"
           phx-click="panel"
           phx-value-panel="live_full"
           title="Expand live panel (])"
+          aria-label="Expand live panel"
         >
-          ⟩
+          <.chrome_icon name={:live_full} />
         </button>
         <button type="button" phx-click="zoom" phx-value-dir="out" title="Smaller text (-)">
           A−
@@ -460,23 +596,30 @@ defmodule GoatmireWeb.PresenterLive do
         <button type="button" phx-click="zoom" phx-value-dir="in" title="Bigger text (+)">
           A+
         </button>
-        <button id="chrome-fullscreen" type="button" phx-hook="Fullscreen" title="Fullscreen">
-          ⛶
+        <button
+          id="chrome-fullscreen"
+          type="button"
+          phx-hook="Fullscreen"
+          title="Fullscreen"
+          aria-label="Fullscreen"
+        >
+          <.chrome_icon name={:fullscreen} />
         </button>
         <span
           :if={@snap.warnings != []}
           class="chrome-chip warn"
           title={Enum.join(@snap.warnings, " · ")}
         >
-          ⚠
+          <.chrome_icon name={:warning} />
         </span>
         <button
           type="button"
           phx-click="reset_talk"
           data-confirm="Reset the talk clock and slide position?"
           title="Reset talk"
+          aria-label="Reset talk"
         >
-          ↺
+          <.chrome_icon name={:reset} />
         </button>
       </div>
     </div>

@@ -402,7 +402,7 @@ Beats: bounded five-minute snapshot → the question, out loud → observations 
 
 ## ACT V — The other author (slides 19–22, ~4:40)
 
-Back to split with code cards for 19–21; slide 22 opens Livebook (fallback: Verify pane, ▶ Run policy checks).
+Back to split with code cards for 19–21; slide 22 opens Livebook (fallback: Verify pane, Run policy checks).
 
 ### 19 · An LLM should not judge itself — 19:20 · 50s
 
@@ -454,7 +454,7 @@ Beats: generate → validate → typed conflict → revise → verify again → 
 
 ### 22 · LIVE 04 — The policy by hand — 22:00 · 120s
 
-On screen: Livebook Scenario 5 (fallback: Verify pane, ▶ Run policy checks).
+On screen: Livebook Scenario 5 (fallback: Verify pane, Run policy checks).
 
 **Anchor:** “Nothing moves in this notebook.”
 

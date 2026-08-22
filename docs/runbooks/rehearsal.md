@@ -36,7 +36,7 @@ make diagnostics-demo
 
 Open the presenter (`make talk`) and pin one Livebook tab for LIVE 04. Every other demo surface is a pane inside `/talk`.
 
-Reset the talk clock (`↺` in the chrome) and application state, and use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
+Reset the talk clock (the reset button in the chrome) and application state, and use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
 
 ## Phase 1 — Technical truth pass
 

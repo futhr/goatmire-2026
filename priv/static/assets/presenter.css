@@ -119,6 +119,9 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: #ffffff;
   font-size: 0.72rem;
   font-weight: 500;
@@ -163,9 +166,13 @@
   border-radius: 999px;
   background: transparent;
   color: var(--subtext);
-  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
   line-height: 1;
 }
+.chrome-icon { flex: none; }
 .presenter-chrome button:hover { background: var(--surface-muted); color: var(--heading); }
 .chrome-slide {
   padding: 0 0.2rem;
@@ -182,6 +189,6 @@
 }
 .chrome-chip.mono { font-family: var(--mono); }
 .chrome-chip.over { color: #b45309; font-weight: 600; }
-.chrome-chip.warn { color: #b45309; cursor: help; }
+.chrome-chip.warn { display: inline-flex; align-items: center; color: #b45309; cursor: help; }
 .chrome-sep { width: 1px; height: 20px; background: var(--overlay); }
 .chrome-play { color: var(--blue); font-weight: 600; }

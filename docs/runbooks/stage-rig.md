@@ -17,7 +17,7 @@ The speech is learned, not read. Two layers:
 1. [`../talk/memorize.md`](../talk/memorize.md) is the learning cut — spine, anchors, beats, exits. Drill it until the anchors are yours (`make learn`).
 2. [`../talk/manuscript.md`](../talk/manuscript.md) is the word-for-word reference. Keep it open on the laptop; if you blank on stage, the current slide's anchor restarts you without looking down.
 
-The timer lives in the presenter chrome: per-slide elapsed against budget, cumulative drift, and `ended` once the slot is spent. It starts when you leave slide 1, so the title can sit on screen while the room settles. Double-click the readout to restart the timer in place; `↺` resets the whole talk.
+The timer lives in the presenter chrome: per-slide elapsed against budget, cumulative drift, and `ended` once the slot is spent. It starts when you leave slide 1, so the title can sit on screen while the room settles. Double-click the readout to restart the timer in place; the reset button clears the whole talk.
 
 The Marp deck (`deck.md`) is a frozen archive. It carries the speaker-note history but is not part of the rig.
 
