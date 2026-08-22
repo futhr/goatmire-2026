@@ -9,7 +9,8 @@ config :goatmire,
   llm_model: "test-model",
   llm_test_base_url: "http://127.0.0.1:11434/v1",
   llm_test_model: "qwen3.5:4b-q4_K_M",
-  metrics_enabled: false
+  metrics_enabled: false,
+  talk_state_path: nil
 
 config :goatmire, GoatmireWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 0],

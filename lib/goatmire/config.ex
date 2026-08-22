@@ -83,6 +83,10 @@ defmodule Goatmire.Config do
   @spec metrics_enabled?() :: boolean()
   def metrics_enabled?, do: get(:metrics_enabled)
 
+  @doc "Where the presenter clock persists position across restarts; nil disables."
+  @spec talk_state_path() :: String.t() | nil
+  def talk_state_path, do: get(:talk_state_path)
+
   @doc "BAML client registry pointing only at Goatmire's loopback provider bridge."
   @spec diagnostics_client_registry() :: map()
   def diagnostics_client_registry do
