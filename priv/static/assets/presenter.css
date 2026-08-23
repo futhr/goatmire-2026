@@ -62,7 +62,7 @@
 .live-tabs {
   position: fixed;
   bottom: 5rem;
-  left: 30%;
+  left: 50%;
   transform: translateX(-50%);
   z-index: 59;
   display: flex;
@@ -72,11 +72,9 @@
   border-radius: 999px;
   background: var(--blue);
   box-shadow: 0 8px 24px rgb(46 64 255 / 0.3);
-  transition: opacity 0.35s ease, left 0.35s ease;
+  transition: opacity 0.35s ease;
   animation: dock-rise 0.25s ease;
 }
-.presenter.deck-full .live-tabs,
-.presenter.live-full .live-tabs { left: 50%; }
 .presenter.idle .live-tabs { opacity: 0; pointer-events: none; }
 .live-tabs > button {
   display: inline-flex;
@@ -141,7 +139,7 @@
 .presenter-chrome {
   position: fixed;
   bottom: 1.1rem;
-  left: 30%;
+  left: 50%;
   transform: translateX(-50%);
   z-index: 60;
   display: flex;
@@ -153,10 +151,8 @@
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 30px rgb(28 42 58 / 0.12);
-  transition: opacity 0.35s ease, left 0.35s ease, bottom 0.35s ease;
+  transition: opacity 0.35s ease;
 }
-.presenter.deck-full .presenter-chrome,
-.presenter.live-full .presenter-chrome { left: 50%; }
 .presenter.idle .presenter-chrome { opacity: 0; pointer-events: none; }
 .presenter-chrome button {
   min-height: 34px;
