@@ -326,7 +326,7 @@ defmodule GoatmireWeb.PresenterLive do
 
   defp tab_icon(assigns) do
     ~H"""
-    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <%= case @tab do %>
         <% :code -> %>
           <path

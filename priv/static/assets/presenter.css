@@ -88,20 +88,18 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: rgb(255 255 255 / 0.75);
+  color: rgb(255 255 255 / 0.7);
 }
-.live-tabs > button:hover { background: rgb(255 255 255 / 0.16); color: #ffffff; }
-.live-tabs > button.active { background: #ffffff; color: var(--accent); }
-.live-tabs > button.active:hover { background: #ffffff; }
+.live-tabs > button:hover { background: rgb(255 255 255 / 0.14); color: #ffffff; }
+.live-tabs > button.active { background: rgb(255 255 255 / 0.18); color: #ffffff; }
+.live-tabs > button.active:hover { background: rgb(255 255 255 / 0.22); }
 .live-steps {
   display: flex;
   align-items: center;
   gap: 0.15rem;
 }
 .live-steps:not(:last-child) {
-  margin-right: 0.15rem;
-  padding-right: 0.25rem;
-  border-right: 1px solid rgb(255 255 255 / 0.3);
+  margin-right: 0.3rem;
 }
 .chrome-clock { display: inline-flex; align-items: center; gap: 0.35rem; cursor: default; }
 .live-steps-label {
