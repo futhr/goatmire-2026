@@ -273,3 +273,5 @@
 }
 .live-pane-body .nb-code .highlight pre { font-size: clamp(0.8rem, 1.1cqw, 1.45rem); }
 .live-pane-body .nb-prose { font-size: clamp(0.86rem, 1.15cqw, 1.5rem); max-width: 90ch; }
+.code-card-actions { padding: 0.6rem 0; border-top: 1px solid var(--overlay); border-bottom: 0; background: transparent; justify-content: space-between; }
+.code-card .nb-output { border: 1px solid var(--overlay); border-radius: 0.5rem; margin-top: 0.4rem; }

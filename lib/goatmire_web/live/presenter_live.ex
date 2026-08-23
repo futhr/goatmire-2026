@@ -1,6 +1,7 @@
 defmodule GoatmireWeb.PresenterLive do
   use GoatmireWeb, :live_view
 
+  alias Goatmire.Notebook
   alias Goatmire.Talk
   alias Goatmire.Talk.Clock
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
@@ -54,6 +55,7 @@ defmodule GoatmireWeb.PresenterLive do
       {:load_example, "Load rule B"},
       {:check, "Check and create"}
     ],
+    code: [{:run_code, "Evaluate"}],
     diagnostics: [{:diagnose, "Ask"}],
     verify: [{:run_policy, "Run policy checks"}],
     notebook: [{:run_next, "Run next cell"}, {:reset, "Reset"}]
@@ -67,11 +69,67 @@ defmodule GoatmireWeb.PresenterLive do
      socket
      |> assign(page_title: "Talk", tab_options: @tabs, panes: @panes)
      |> assign(snap: safe(&Clock.snapshot/0), titles: Map.new(Slides.titles()), play_done: %{})
-     |> assign(confirm_reset: false), layout: false}
+     |> assign(confirm_reset: false, code_results: %{}, code_task: nil, code_slide: nil),
+     layout: false}
   end
 
   @impl true
   def handle_info({:talk_clock, snap}, socket), do: {:noreply, assign(socket, :snap, snap)}
+
+  def handle_info({ref, result}, %{assigns: %{code_task: %{ref: ref}}} = socket) do
+    Process.demonitor(ref, [:flush])
+    {:noreply, finish_code(socket, result)}
+  end
+
+  def handle_info(
+        {:DOWN, ref, :process, _, reason},
+        %{assigns: %{code_task: %{ref: ref}}} = socket
+      ) do
+    {:noreply, finish_code(socket, {:error, "card died: #{inspect(reason)}", ""})}
+  end
+
+  def handle_info({:code_timeout, ref}, %{assigns: %{code_task: %{ref: ref} = task}} = socket) do
+    Task.shutdown(task, :brutal_kill)
+    {:noreply, finish_code(socket, {:error, "card exceeded its deadline", ""})}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  # Code cards evaluate in a supervised task, like the notebook pane: a card
+  # that raises or hangs leaves the deck and the clock untouched.
+  defp run_code(%{assigns: %{code_task: task}} = socket) when not is_nil(task), do: socket
+
+  defp run_code(socket) do
+    slide = socket.assigns.snap.slide
+
+    case CodeExamples.example(slide) do
+      nil ->
+        socket
+
+      example ->
+        task =
+          Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
+            Notebook.eval(example.code, [])
+          end)
+
+        Process.send_after(self(), {:code_timeout, task.ref}, Notebook.eval_timeout())
+        assign(socket, code_task: task, code_slide: slide)
+    end
+  end
+
+  defp finish_code(socket, result) do
+    entry =
+      case result do
+        {:ok, value, _bindings, _env, output} -> %{status: :ok, value: value, output: output}
+        {:error, message, output} -> %{status: :error, error: message, output: output}
+      end
+
+    assign(socket,
+      code_results: Map.put(socket.assigns.code_results, socket.assigns.code_slide, entry),
+      code_task: nil,
+      code_slide: nil
+    )
+  end
 
   @impl true
   def handle_event(_event, _params, %{assigns: %{snap: nil}} = socket) do
@@ -103,6 +161,9 @@ defmodule GoatmireWeb.PresenterLive do
 
   def handle_event("play", _, socket), do: {:noreply, play_step(socket)}
 
+  def handle_event("pane_action", %{"step" => "run_code"}, socket),
+    do: {:noreply, run_code(socket)}
+
   def handle_event("pane_action", %{"step" => step}, socket) do
     tab = effective_tab(socket.assigns.snap.tab, socket.assigns.snap.slide)
 
@@ -113,6 +174,8 @@ defmodule GoatmireWeb.PresenterLive do
 
     {:noreply, socket}
   end
+
+  def handle_event("run_code", _, socket), do: {:noreply, run_code(socket)}
 
   def handle_event("play_to", %{"index" => index}, socket) do
     {:noreply, play_to(socket, String.to_integer(index))}
@@ -489,7 +552,31 @@ defmodule GoatmireWeb.PresenterLive do
                 <div class="highlight">
                   <.code_block code={example.code} />
                 </div>
-                <p class="code-card-source">{example.source}</p>
+                <div class="nb-actions code-card-actions">
+                  <.run_button
+                    id="run-code-card"
+                    phx-click="run_code"
+                    disabled={@code_task != nil}
+                    label={
+                      cond do
+                        @code_task != nil -> "evaluating…"
+                        Map.has_key?(@code_results, @snap.slide) -> "Reevaluate"
+                        true -> "Evaluate"
+                      end
+                    }
+                  />
+                  <span class="code-card-source">{example.source}</span>
+                </div>
+
+                <div :if={result = @code_results[@snap.slide]} class="nb-output">
+                  <pre :if={result.output not in [nil, ""]} class="nb-stdout">{result.output}</pre>
+
+                  <div :if={result.status == :ok} class="highlight">
+                    <.term_block term={result.value} />
+                  </div>
+
+                  <p :if={result.status == :error} class="nb-error">{result.error}</p>
+                </div>
               <% end %>
             </div>
 

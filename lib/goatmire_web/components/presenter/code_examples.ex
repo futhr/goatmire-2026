@@ -1,35 +1,36 @@
 defmodule GoatmireWeb.Presenter.CodeExamples do
   @moduledoc """
-  Right-panel code cards pairing each Maude-flow slide with the code that
-  backs it. Every excerpt is quoted from this repository (or ExMaude's docs
-  where noted) — the card's claim is checkable at the cited path.
+  Runnable code cards for the Maude-flow slides.
+
+  Every example evaluates in the presenter against the running application,
+  so the card is checkable on stage rather than illustrative. `source` names
+  the file the call actually lives in.
   """
 
-  @spec example(pos_integer()) ::
-          %{title: String.t(), description: String.t(), code: String.t(), source: String.t()}
-          | nil
+  @type example :: %{
+          title: String.t(),
+          description: String.t(),
+          code: String.t(),
+          source: String.t()
+        }
+
+  @spec example(pos_integer()) :: example() | nil
   def example(6) do
     %{
       title: "A test samples; the gate decides",
       description:
-        "The suite can only fail closed by scripting the gate — on a machine where " <>
-          "Maude works, :unverified never happens by accident. The test asserts the " <>
-          "property the talk depends on: an availability failure admits nothing.",
+        "The gate cannot be talked into optimism. Hand it an :unverified verdict " <>
+          "and ask what may deploy: nothing is admitted, the whole set is withheld.",
       code: ~S"""
-      test "unverified fails closed — nothing is admitted" do
-        rules = Rules.clean_set()
+      alias Goatmire.{Gate, Rules}
+      alias Goatmire.Verifier.Verdict
 
-        verdict = %Verdict{
-          status: :unverified,
-          reason: :maude_unavailable,
-          rule_count: 5
-        }
+      rules = Rules.clean_set()
+      unverified = %Verdict{status: :unverified, reason: :maude_unavailable}
 
-        assert %{admitted: [], withheld: ^rules} =
-                 Verifier.split_on_verdict(rules, verdict)
-      end
+      Gate.split_on_verdict(rules, unverified)
       """,
-      source: "test/goatmire/verifier_test.exs"
+      source: "lib/goatmire/gate.ex · test/goatmire/verifier_test.exs"
     }
   end
 
@@ -37,28 +38,10 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "The map that becomes four pieces",
       description:
-        "One plain Elixir map per rule. The encoder turns trigger and actions into " <>
-          "the sorts, operators, equations, and rewrite rules of the bundled model — " <>
-          "these two are SOTERIA's O3 and O4, verbatim.",
+        "One plain Elixir map per rule. These two are SOTERIA's O3 and O4: same " <>
+          "trigger, same Thing and property, opposing values.",
       code: ~S"""
-      def research_state_conflict_pair do
-        [
-          %{
-            id: "soteria-o3-contact-open-turn-on",
-            thing_id: "smart-switch-1",
-            trigger: {:prop_eq, "contact", "open"},
-            actions: [{:set_prop, "smart-switch-1", "switch", "on"}],
-            priority: 1
-          },
-          %{
-            id: "soteria-o4-contact-open-turn-off",
-            thing_id: "smart-switch-1",
-            trigger: {:prop_eq, "contact", "open"},
-            actions: [{:set_prop, "smart-switch-1", "switch", "off"}],
-            priority: 1
-          }
-        ]
-      end
+      Goatmire.Rules.research_state_conflict_pair()
       """,
       source: "lib/goatmire/rules.ex"
     }
@@ -66,22 +49,17 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
 
   def example(8) do
     %{
-      title: "The detector call is a reduction",
+      title: "Reduce decides",
       description:
-        "ExMaude.IoT.detect_conflicts/2 is an equational reduce, not a state search: " <>
-          "the answer is decided, not sampled. Validation runs first so a malformed " <>
-          "set becomes :unverified before Maude is ever asked.",
+        "An equational reduce over the validated term — not a search. It returns a " <>
+          "decision about this finite input, with the measured cost beside it.",
       code: ~S"""
-      defp validated_detect(rules, opts) do
-        with :ok <- validate_rule_set(rules) do
-          safe_detect(rules, opts)
-        end
-      end
+      alias Goatmire.Rules
 
-      # ExMaude.IoT.detect_conflicts(rules)
-      # => {:ok, []}                    reduce decided: no modelled conflict
-      # => {:ok, [%{type: :state_conflict, ...}]}
-      # => {:error, reason}             the detector could not run
+      {:ok, conflicts} =
+        ExMaude.IoT.detect_conflicts(Rules.research_state_conflict_pair())
+
+      conflicts
       """,
       source: "lib/goatmire/verifier.ex"
     }
@@ -91,24 +69,17 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "A conflict names its category",
       description:
-        "Each finding carries a type from the model's four categories, both rule ids, " <>
-          "and a reason — the witness the dashboard prints under the verdict.",
+        "A finding is not a boolean. It carries the category, both participating rule " <>
+          "ids, and the reason — the witness the gate prints and a human resolves.",
       code: ~S"""
-      {:ok, conflicts} = ExMaude.IoT.detect_conflicts(rules)
+      alias Goatmire.Rules
 
-      # conflicts =>
-      # [
-      #   %{
-      #     type: :state_conflict,
-      #     rule1: "soteria-o3-contact-open-turn-on",
-      #     rule2: "soteria-o4-contact-open-turn-off",
-      #     reason: "same trigger writes switch=on and switch=off"
-      #   }
-      # ]
-      # types: :state_conflict | :environment_conflict
-      #        | :cascade | :state_env_cascade
+      {:ok, [conflict | _]} =
+        ExMaude.IoT.detect_conflicts(Rules.research_state_conflict_pair())
+
+      Map.take(conflict, [:type, :rule1, :rule2, :reason])
       """,
-      source: "lib/goatmire/verifier.ex (Verdict.conflicts)"
+      source: "lib/goatmire/verifier.ex · ExMaude.IoT"
     }
   end
 
@@ -116,18 +87,10 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "The scope travels with the verdict",
       description:
-        "The claim's boundary is a field on the struct, not a caveat in a talk. A " <>
-          "bare verdict defaults to :unverified — clean must be earned.",
+        "A bare verdict is :unverified, never :clean — clean must be earned. The " <>
+          "boundary of the claim is a field on the struct, not a caveat in a talk.",
       code: ~S"""
-      defstruct status: :unverified,
-                conflicts: [],
-                rule_count: 0,
-                duration_us: 0,
-                reason: nil,
-                scope:
-                  "Evaluated against the four conflict types encoded " <>
-                    "in the bundled iot-rules.maude model. A clean " <>
-                    "result is not a whole-system safety claim."
+      %Goatmire.Verifier.Verdict{}
       """,
       source: "lib/goatmire/verifier.ex (Verdict)"
     }
@@ -137,26 +100,10 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "A pool of four, supervised like anything else",
       description:
-        "Maude is a subprocess behind a worker pool under rest_for_one: if the pool " <>
-          "restarts, the engine restarts with it. Templates preload at start so the " <>
-          "first reduction never races a busy worker.",
+        "Maude is a subprocess behind a worker pool in our supervision tree. This is " <>
+          "the live pool on this machine, right now.",
       code: ~S"""
-      def init(_opts) do
-        children =
-          [ex_maude_child_spec(), Goatmire.Engine] ++ vda5050_children()
-
-        Supervisor.init(children,
-          strategy: :rest_for_one,
-          max_restarts: 10,
-          max_seconds: 10
-        )
-      end
-
-      defp ex_maude_child_spec do
-        preload_maude_templates()
-
-        ExMaude.Pool.child_spec(pool_size: 4, pool_max_overflow: 0)
-      end
+      ExMaude.Pool.status()
       """,
       source: "lib/goatmire/engine/supervisor.ex"
     }
@@ -166,24 +113,17 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "The runtime executes the verified term",
       description:
-        "RuleEval evaluates the same maps the gate reduced — no second translation. " <>
-          "Last-write-wins in action order is exactly the silent behaviour the " <>
-          "state-conflict check exists to catch before deployment.",
+        "The same maps the gate reduced, evaluated by the runtime. Both rules fire on " <>
+          "one contact-open event and both write `switch` — last write wins, silently. " <>
+          "That is the behaviour the check exists to catch.",
       code: ~S"""
-      def evaluate(index, thing_id, world) do
-        props = Map.get(world, thing_id, %{})
-        env = Map.get(world, "__env__", %{})
+      alias Goatmire.Engine.RuleEval
+      alias Goatmire.Rules
 
-        index
-        |> Map.get(thing_id, [])
-        |> Enum.reduce({[], []}, fn rule, {fired, actions} ->
-          if triggered?(rule.trigger, props, env) do
-            {[rule.id | fired], actions ++ rule.actions}
-          else
-            {fired, actions}
-          end
-        end)
-      end
+      index = RuleEval.index(Rules.research_state_conflict_pair())
+      world = %{"smart-switch-1" => %{"contact" => "open"}}
+
+      RuleEval.evaluate(index, "smart-switch-1", world)
       """,
       source: "lib/goatmire/engine/rule_eval.ex"
     }
@@ -193,29 +133,18 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "Three verdicts, never two",
       description:
-        "The case has three branches and the third is not an error path — it is a " <>
-          "verdict. An interpreter timeout becomes :unverified, and :unverified " <>
-          "deploys nothing.",
+        "The gate returns a status and its witness. :clean, :conflicts, or " <>
+          ":unverified — and :unverified deploys nothing.",
       code: ~S"""
-      verdict =
-        case validated_detect(rules, maude_opts) do
-          {:ok, []} ->
-            %Verdict{status: :clean, rule_count: length(rules)}
+      alias Goatmire.{Gate, Rules}
 
-          {:ok, conflicts} ->
-            %Verdict{
-              status: :conflicts,
-              conflicts: conflicts,
-              rule_count: length(rules)
-            }
+      {:ok, verdict} = Gate.verify(Rules.research_state_conflict_pair())
 
-          {:error, reason} ->
-            %Verdict{
-              status: :unverified,
-              reason: reason,
-              rule_count: length(rules)
-            }
-        end
+      %{
+        status: verdict.status,
+        types: Enum.map(verdict.conflicts, & &1.type),
+        duration_us: verdict.duration_us
+      }
       """,
       source: "lib/goatmire/verifier.ex (verify/2)"
     }
@@ -226,21 +155,18 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
       title: "The boundary has its own tests",
       description:
         "The runtime's trigger semantics mirror the model's trigger sorts, and each " <>
-          "arrow is pinned by a test: an unseen sensor has not met a threshold, and a " <>
+          "arrow is pinned: an unseen sensor has not met a threshold, and a " <>
           "non-numeric reading satisfies no numeric comparison.",
       code: ~S"""
-      test "an unreported property never satisfies a threshold" do
-        refute RuleEval.triggered?({:prop_lt, "battery", 20}, %{}, %{})
-        refute RuleEval.triggered?({:prop_gt, "battery", 20}, %{}, %{})
-      end
+      alias Goatmire.Engine.RuleEval
 
-      test "a non-numeric reading does not satisfy a numeric comparison" do
-        refute RuleEval.triggered?(
-                 {:prop_lt, "battery", 20},
-                 %{"battery" => "low"},
-                 %{}
-               )
-      end
+      low_battery = {:prop_lt, "battery", 20}
+
+      %{
+        never_reported: RuleEval.triggered?(low_battery, %{}, %{}),
+        non_numeric: RuleEval.triggered?(low_battery, %{"battery" => "low"}, %{}),
+        genuinely_low: RuleEval.triggered?(low_battery, %{"battery" => 12}, %{})
+      }
       """,
       source: "test/goatmire/engine/rule_eval_test.exs"
     }
@@ -250,27 +176,22 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "Partition on interaction edges",
       description:
-        "Union-find over three conservative edges: shared Thing, shared action " <>
-          "target, writer-to-trigger cascade. The counters on screen are computed " <>
-          "from the real partitions, not scripted.",
+        "Union-find over three conservative edges: shared Thing, shared action target, " <>
+          "writer-to-trigger cascade. The counters below are computed from the real " <>
+          "partitions, not scripted.",
       code: ~S"""
-      def partition(rules) do
-        parent = Map.new(rules, &{&1.id, &1.id})
+      alias Goatmire.Rules
 
-        parent =
-          parent
-          |> union_all(same_thing_groups(rules))
-          |> union_all(same_action_target_groups(rules))
-          |> union_all(cascade_groups(rules))
+      rules = Rules.fleet(50)
+      partitions = Rules.partition(rules)
 
-        rules
-        |> Enum.group_by(&find(parent, &1.id))
-        |> Map.values()
-      end
-
-      pairs_skipped: pair_count(total) - pairs_considered
+      %{
+        rules: length(rules),
+        partitions: length(partitions),
+        largest_partition: partitions |> Enum.map(&length/1) |> Enum.max()
+      }
       """,
-      source: "lib/goatmire/rules.ex · lib/goatmire/verifier.ex"
+      source: "lib/goatmire/rules.ex (partition/1)"
     }
   end
 
@@ -278,36 +199,21 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "A policy is data, and the gate reads it",
       description:
-        "The unsafe policy reaches a high-impact tool with no approval constructor in " <>
-          "its invocation chain; the gated one differs by a single tuple. The LLM may " <>
-          "author either — it judges neither.",
+        "This policy reaches a high-impact tool with no approval constructor in its " <>
+          "invocation chain. The LLM may author it; it does not judge it.",
       code: ~S"""
-      defp unsafe_policy do
-        [
-          %{
-            id: "autodose-controller",
-            agent_id: {"acme", "controller"},
-            trigger: {:always},
-            invocations: [
-              {:invoke_tool, "dose", %{}, "high_impact", :eu}
-            ]
-          }
-        ]
-      end
+      unsafe = [
+        %{
+          id: "autodose-controller",
+          agent_id: {"acme", "controller"},
+          trigger: {:always},
+          invocations: [{:invoke_tool, "dose", %{}, "high_impact", :eu}]
+        }
+      ]
 
-      defp gated_policy do
-        [
-          %{
-            id: "autodose-controller",
-            agent_id: {"acme", "controller"},
-            trigger: {:always},
-            invocations: [
-              {:require_approval, "dosing_high_delta"},
-              {:invoke_tool, "dose", %{}, "high_impact", :eu}
-            ]
-          }
-        ]
-      end
+      {:ok, conflicts} = ExMaude.AI.detect_conflicts(unsafe, jurisdictions: [:eu])
+
+      Enum.map(conflicts, & &1.type)
       """,
       source: "lib/goatmire/verification_demo.ex"
     }
@@ -317,22 +223,20 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "Exactly seven, by construction",
       description:
-        "The AI-policy model encodes seven conflict types — not \"misalignment\", " <>
-          "seven named predicates. A detector that names its categories also names " <>
-          "what it cannot see.",
+        "Not \"misalignment\" — seven named predicates. A detector that enumerates its " <>
+          "categories also states what it cannot see.",
       code: ~S"""
-      # ExMaude.AI detects seven conflict types:
-      #
-      #   :tool_call_conflict              conflicting required args
-      #   :capability_shadowing            equal-priority double grant
-      #   :pack_tool_composition_mismatch  type-shape signature clash
-      #   :sovereignty_violation           jurisdiction outside the set
-      #   :authority_escalation            grant above required authority
-      #   :approval_gate_bypass            high-impact path, no gate
-      #   :agent_loop_cascade              grant feeds a requirement
+      seven = [
+        :tool_call_conflict,
+        :capability_shadowing,
+        :pack_tool_composition_mismatch,
+        :sovereignty_violation,
+        :authority_escalation,
+        :approval_gate_bypass,
+        :agent_loop_cascade
+      ]
 
-      {:ok, conflicts} =
-        ExMaude.AI.detect_conflicts(policy, jurisdictions: [:eu])
+      %{count: length(seven), types: seven}
       """,
       source: "ExMaude.AI moduledoc (../ex_maude)"
     }
@@ -342,30 +246,13 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     %{
       title: "Generate, verify, revise — the gate stays deterministic",
       description:
-        "One generate→verify round per attempt: a conflicted set goes back to the " <>
-          "model with the verdict as the revision prompt, and a detector failure is " <>
-          ":unverified — the author never grades its own work.",
+        "The deterministic half of the loop, with no model in the path: missing " <>
+          "approval is caught, adding the gate clears it, and a US invocation under " <>
+          "EU/CH allowance is a sovereignty violation.",
       code: ~S"""
-      {status, conflicts} = verify(rules, context.jurisdictions)
-
-      if status == :conflicts and attempt < context.max_attempts do
-        messages
-        |> Kernel.++([
-          %{role: "assistant", content: raw},
-          %{role: "user", content: revision_prompt(conflicts)}
-        ])
-        |> attempt(attempt + 1, passes, context)
-      end
-
-      defp verify(rules, jurisdictions) do
-        case ExMaude.AI.detect_conflicts(rules, jurisdictions: jurisdictions) do
-          {:ok, []} -> {:clean, []}
-          {:ok, conflicts} -> {:conflicts, conflicts}
-          {:error, reason} -> {:unverified, [%{type: :unverified, ...}]}
-        end
-      end
+      Goatmire.VerificationDemo.run()
       """,
-      source: "lib/goatmire/ai/rule_generator.ex"
+      source: "lib/goatmire/ai/rule_generator.ex · lib/goatmire/verification_demo.ex"
     }
   end
 

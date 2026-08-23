@@ -114,7 +114,8 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.goto(13)
     assert_eventually(fn -> render(view) =~ "live-tabs" end)
 
-    refute render(view) =~ "pane_action"
+    # the code card contributes its own action
+    assert render(view) =~ "run_code"
 
     view |> element(~s(button[phx-value-tab="rules"])) |> render_click()
     assert render(view) =~ "Deploy rule A"
@@ -170,6 +171,37 @@ defmodule GoatmireWeb.PresenterLiveTest do
     render_keydown(view, "key", %{"key" => "ArrowRight"})
 
     assert Clock.snapshot().slide == 6
+  end
+
+  test "every code card is runnable code, not commentary", %{conn: conn} do
+    {:ok, _view, _} = live(conn, "/talk")
+
+    for slide <- 1..25, example = GoatmireWeb.Presenter.CodeExamples.example(slide) do
+      refute example.code =~ ~r/^\s*defp?\s/m,
+             "slide #{slide} quotes a definition instead of a call"
+
+      assert {:ok, _ast} = Code.string_to_quoted(example.code),
+             "slide #{slide} does not parse"
+
+      code = String.trim(example.code)
+
+      refute code |> String.split("\n") |> Enum.all?(&String.starts_with?(String.trim(&1), "#")),
+             "slide #{slide} is only comments"
+    end
+  end
+
+  test "a code card evaluates and renders its result", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    Clock.goto(14)
+    assert_eventually(fn -> render(view) =~ "run-code-card" end)
+
+    view |> element("#run-code-card") |> render_click()
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ "genuinely_low" and html =~ "Reevaluate"
+    end)
   end
 
   test "panel override buttons switch the grid class", %{conn: conn} do
