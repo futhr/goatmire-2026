@@ -20,7 +20,10 @@ defmodule Goatmire.Talk.Clock do
   @slide_count 25
   @default_budget_seconds 60
   @panels [:split, :deck_full, :live_full]
-  @tabs [:code, :warehouse, :rules, :diagnostics, :verify, :metrics]
+  @tabs [:code, :warehouse, :rules, :diagnostics, :verify, :notebook, :metrics]
+
+  @typedoc "A right-panel pane the presenter can show."
+  @type tab :: :code | :warehouse | :rules | :diagnostics | :verify | :notebook | :metrics
 
   @typedoc "One broadcast frame: everything the presenter chrome renders."
   @type snapshot :: %{
@@ -34,7 +37,7 @@ defmodule Goatmire.Talk.Clock do
           overtime_ratio: float(),
           drift_s: integer(),
           panel: :split | :deck_full | :live_full,
-          tab: :code | :warehouse | :rules | :diagnostics | :verify | :metrics,
+          tab: tab(),
           zoom: float(),
           budget_total_s: non_neg_integer(),
           slot_s: pos_integer(),
@@ -78,7 +81,7 @@ defmodule Goatmire.Talk.Clock do
   def set_panel(panel) when panel in @panels, do: GenServer.call(__MODULE__, {:set_panel, panel})
 
   @doc "Selects the right-panel tab."
-  @spec set_tab(:code | :warehouse | :rules | :diagnostics | :verify | :metrics) :: snapshot()
+  @spec set_tab(tab()) :: snapshot()
   def set_tab(tab) when tab in @tabs, do: GenServer.call(__MODULE__, {:set_tab, tab})
 
   @doc "Steps presenter text zoom up or down, clamped to 0.7–1.5."
@@ -130,7 +133,9 @@ defmodule Goatmire.Talk.Clock do
     mutate(state)
   end
 
-  def handle_call(:next, _, state), do: mutate(change_slide(state, min(state.slide + 1, @slide_count)))
+  def handle_call(:next, _, state),
+    do: mutate(change_slide(state, min(state.slide + 1, @slide_count)))
+
   def handle_call(:prev, _, state), do: mutate(change_slide(state, max(state.slide - 1, 1)))
   def handle_call({:goto, slide}, _, state), do: mutate(change_slide(state, slide))
   def handle_call({:set_panel, panel}, _, state), do: mutate(%{state | panel: panel})
@@ -230,7 +235,9 @@ defmodule Goatmire.Talk.Clock do
 
     planned_start =
       Enum.reduce(1..@slide_count, 0, fn n, acc ->
-        if n < state.slide, do: acc + Map.get(state.timings, n, default_timing()).seconds, else: acc
+        if n < state.slide,
+          do: acc + Map.get(state.timings, n, default_timing()).seconds,
+          else: acc
       end)
 
     %{
@@ -267,6 +274,7 @@ defmodule Goatmire.Talk.Clock do
         :tab,
         :zoom
       ])
+
     Store.put(saved)
 
     with path when is_binary(path) <- Config.talk_state_path() do
@@ -318,7 +326,9 @@ defmodule Goatmire.Talk.Clock do
     rescue
       error ->
         {default_timings(), 1_800,
-         ["timings unreadable (#{Exception.message(error)}); every slide gets #{@default_budget_seconds}s"]}
+         [
+           "timings unreadable (#{Exception.message(error)}); every slide gets #{@default_budget_seconds}s"
+         ]}
     end
   end
 
@@ -336,8 +346,16 @@ defmodule Goatmire.Talk.Clock do
 
     warnings =
       List.flatten([
-        if(missing != [], do: ["no budget for slides #{Enum.join(missing, ", ")}; defaulting to #{@default_budget_seconds}s"], else: []),
-        if(total > slot, do: ["budgets total #{total}s, #{total - slot}s over the #{slot}s slot"], else: [])
+        if(missing != [],
+          do: [
+            "no budget for slides #{Enum.join(missing, ", ")}; defaulting to #{@default_budget_seconds}s"
+          ],
+          else: []
+        ),
+        if(total > slot,
+          do: ["budgets total #{total}s, #{total - slot}s over the #{slot}s slot"],
+          else: []
+        )
       ])
 
     {timings, slot, warnings}

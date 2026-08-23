@@ -35,6 +35,16 @@ defmodule Goatmire.Talk.ClockTest do
     assert snap.tab == :code
   end
 
+  test "every tab a slide can configure is accepted by the clock" do
+    for {_slide, tab} <- [{16, :rules}, {17, :warehouse}, {18, :diagnostics}, {22, :notebook}] do
+      assert %{tab: ^tab} = Clock.set_tab(tab)
+    end
+  end
+
+  test "slide 22 opens the notebook pane" do
+    assert %{tab: :notebook, panel: :live_full} = Clock.goto(22)
+  end
+
   test "manual panel and tab overrides hold only until the next slide change" do
     Clock.goto(6)
 
