@@ -337,7 +337,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
           <div
             :if={message.role == :error}
             class="scope"
-            style="color:var(--red)"
+            style="color:var(--error)"
             role="alert"
             aria-live="assertive"
           >

@@ -11,8 +11,8 @@ surface:
 - warm off-white canvas (`#f8fafc`);
 - white code and evidence surfaces;
 - slate typography and hairline borders;
-- indigo for structure and navigation;
-- teal, red, and amber used only for `clean`, `conflicts`, and `unverified`;
+- purple (`#533a73`) for structure and navigation;
+- teal, magenta, and amber used only for `clean`, `conflicts`, and `unverified`;
 - system sans-serif for speech, system monospace for terms and measurements;
 - no gradients, stock imagery, decorative 3-D, fake terminal chrome, or
   cyberpunk effects.
@@ -43,9 +43,16 @@ that carries the argument; the repository remains available for full context.
 
 | Verdict | Foreground | Surface | Meaning |
 |---|---|---|---|
-| `clean` | `#0f766e` | `#ccfbf1` | detector ran; no modelled conflict found |
-| `conflicts` | `#dc2626` | `#fee2e2` | concrete modelled conflict found |
-| `unverified` | `#b45309` | `#fef3c7` | detector did not produce a verdict |
+| `clean` | `#00695f` | `#dff1ee` | detector ran; no modelled conflict found |
+| `conflicts` | `#d9539b` | `#fce7f2` | concrete modelled conflict found |
+| `unverified` | `#b45309` | `#fef08a` | detector did not produce a verdict |
+
+Teal, magenta, and amber, harmonised with the `#533a73` accent and checked
+with a CVD validator: the worst adjacent pair separates by ΔE 10.5 under
+protanopia and 18.5 with normal vision. The green/red/amber set they replaced
+failed both — red and amber sat ΔE 1.9 apart for deuteranopes and only 10.3
+apart with full colour vision, on the talk's most important distinction. Red
+is retained for infrastructure failure, which is not a verdict.
 
 The words always travel with the colours. No conclusion relies on colour
 alone.

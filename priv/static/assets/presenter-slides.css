@@ -9,10 +9,10 @@
   --sl-accent: #533a73;
   --sl-accent-soft: #f0ecf6;
   --sl-accent-faint: #e0d8ea;
-  --sl-green: #1d891a;
-  --sl-green-soft: #e9f4e9;
-  --sl-red: #db1920;
-  --sl-red-soft: #fce8e9;
+  --sl-verdict-clean: #00695f;
+  --sl-verdict-clean-soft: #dff1ee;
+  --sl-verdict-conflict: #d9539b;
+  --sl-verdict-conflict-soft: #fce7f2;
   --sl-warning-bg: #fef08a;
   --sl-code-bg: #fafafa;
   --sl-code-border: #dfdfe0;
@@ -253,8 +253,8 @@
 
 .sl-panel--clean {
   border-color: transparent;
-  background: var(--sl-green-soft);
-  color: var(--sl-green);
+  background: var(--sl-verdict-clean-soft);
+  color: var(--sl-verdict-clean);
 }
 
 .sl-panel--clean h2 {
@@ -361,13 +361,13 @@
 }
 
 .sl-verdict--clean {
-  background: var(--sl-green-soft);
-  color: var(--sl-green);
+  background: var(--sl-verdict-clean-soft);
+  color: var(--sl-verdict-clean);
 }
 
 .sl-verdict--conflicts {
-  background: var(--sl-red-soft);
-  color: var(--sl-red);
+  background: var(--sl-verdict-conflict-soft);
+  color: var(--sl-verdict-conflict);
 }
 
 .sl-verdict--unverified {

@@ -83,10 +83,15 @@
   --accent-hover: #422e5c;
   --accent-soft: #f0ecf6;
   --accent-faint: #e0d8ea;
-  --green: #1d891a;           /* green-600 */
-  --green-soft: #e9f4e9;      /* green-100 */
-  --red: #db1920;             /* red-600 */
-  --red-soft: #fce8e9;        /* red-100 */
+  /* Verdict palette: teal / magenta / amber, harmonised with the accent and
+     validated for CVD separation. Red is kept only for infrastructure
+     failure, which is not a verdict. */
+  --verdict-clean: #00695f;
+  --verdict-clean-soft: #dff1ee;
+  --verdict-conflict: #d9539b;
+  --verdict-conflict-soft: #fce7f2;
+  --error: #db1920;
+  --error-soft: #fce8e9;
   --warning-bg: #fef08a;      /* yellow-bright-200, Livebook's warning fill */
   /* Floor-plan status palette; validated for CVD separation on white */
   --status-driving: #3e64ff;  /* blue-600 */
@@ -255,8 +260,8 @@ p.lede { max-width: 72ch; margin: 0 0 2rem; color: var(--subtext); font-size: 1r
   text-transform: uppercase;
   white-space: nowrap;
 }
-.badge.clean { background: var(--green-soft); color: var(--green); }
-.badge.conflicts { background: var(--red-soft); color: var(--red); }
+.badge.clean { background: var(--verdict-clean-soft); color: var(--verdict-clean); }
+.badge.conflicts { background: var(--verdict-conflict-soft); color: var(--verdict-conflict); }
 .badge.unverified { background: var(--warning-bg); color: var(--heading); }
 .badge.idle { background: var(--surface-muted); color: var(--subtext); }
 .note { color: var(--subtext); font-size: 0.82rem; }
@@ -269,7 +274,7 @@ p.lede { max-width: 72ch; margin: 0 0 2rem; color: var(--subtext); font-size: 1r
   font-weight: 500;
 }
 .flash.info { border-color: #e0d8ea; background: var(--accent-soft); color: var(--accent-hover); }
-.flash.error { border-color: #f8d1d2; background: var(--red-soft); color: #bc1227; }
+.flash.error { border-color: #f8d1d2; background: var(--error-soft); color: #bc1227; }
 code {
   /* Livebook inline code: mono on a soft gray chip. Long dotted field paths
      must wrap inside narrow panes instead of overflowing the card. */
@@ -568,9 +573,9 @@ li + li { margin-top: 0.3rem; }
 .nb-error {
   margin: 0;
   padding: 0.6rem 0.75rem;
-  border-left: 3px solid var(--red);
-  background: var(--red-soft);
-  color: var(--red);
+  border-left: 3px solid var(--error);
+  background: var(--error-soft);
+  color: var(--error);
   font-family: var(--mono);
   font-size: 0.8rem;
 }

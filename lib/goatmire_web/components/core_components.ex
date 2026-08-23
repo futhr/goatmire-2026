@@ -215,7 +215,7 @@ defmodule GoatmireWeb.CoreComponents do
         </thead>
         <tbody>
           <tr :for={conflict <- @verdict.conflicts}>
-            <td style="color: var(--red)">{conflict[:type]}</td>
+            <td style="color: var(--verdict-conflict)">{conflict[:type]}</td>
             <td>
               {[conflict[:rule1], conflict[:rule2]] |> Enum.reject(&is_nil/1) |> Enum.join(" ↔ ")}
             </td>

@@ -235,7 +235,7 @@ defmodule GoatmireWeb.WarehouseLive do
       <.stat
         label="alerts"
         value={to_string(@engine.counters.alerts)}
-        color={if @engine.counters.alerts > 500, do: "var(--red)", else: "var(--green)"}
+        color={if @engine.counters.alerts > 500, do: "var(--verdict-conflict)", else: "var(--verdict-clean)"}
         note="operator-visible actuations"
       />
       <.stat
@@ -423,7 +423,7 @@ defmodule GoatmireWeb.WarehouseLive do
             <div class="label">alerts so far</div>
             <div
               class="value"
-              style={"color: #{if @frame.mode == :enforce, do: "var(--green)", else: "var(--red)"}"}
+              style={"color: #{if @frame.mode == :enforce, do: "var(--verdict-clean)", else: "var(--verdict-conflict)"}"}
             >
               {@frame.alerts_total}
             </div>
