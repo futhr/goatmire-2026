@@ -68,7 +68,7 @@
   display: flex;
   align-items: center;
   gap: 0.15rem;
-  padding: 0.25rem 0.3rem;
+  padding: 0.25rem;
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 8px 24px rgb(83 58 115 / 0.3);
@@ -97,6 +97,8 @@
   display: flex;
   align-items: center;
   gap: 0.15rem;
+}
+.live-steps:not(:last-child) {
   margin-right: 0.15rem;
   padding-right: 0.25rem;
   border-right: 1px solid rgb(255 255 255 / 0.3);

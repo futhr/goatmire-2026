@@ -595,7 +595,10 @@ defmodule GoatmireWeb.PresenterLive do
       <% {scripted?, steps, actions} = dock_items(@snap.slide, @snap.slide_tab, @play_done)
       has_code = CodeExamples.example(@snap.slide) != nil %>
       <div
-        :if={steps != [] or actions != [] or has_code or @snap.slide_tab != nil}
+        :if={
+          @snap.panel != :deck_full and
+            (steps != [] or actions != [] or has_code or @snap.slide_tab != nil)
+        }
         class="live-tabs"
         role="toolbar"
         aria-label="Live panel"

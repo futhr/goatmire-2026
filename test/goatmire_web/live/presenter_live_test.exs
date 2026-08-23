@@ -43,26 +43,28 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert Clock.snapshot().started?
   end
 
-  test "a LIVE slide enters deck-only and offers only its own pane", %{conn: conn} do
+  test "a LIVE slide enters deck-only with no panel control", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(16)
+    assert_eventually(fn -> render(view) =~ "deck-full" end)
+    refute render(view) =~ "live-tabs"
+
+    Clock.reveal()
 
     assert_eventually(fn ->
       html = render(view)
-
-      html =~ "deck-full" and html =~ ~s(phx-value-tab="rules") and
-        not (html =~ ~s(phx-value-tab="metrics"))
+      html =~ ~s(phx-value-tab="rules") and not (html =~ ~s(phx-value-tab="metrics"))
     end)
   end
 
-  test "running a step reveals the panel the slide is bound to", %{conn: conn} do
+  test "the bracket key reveals the slide's configured layout", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(16)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
 
-    view |> element("#play-next") |> render_click()
+    render_keydown(view, "key", %{"key" => "]"})
 
     assert_eventually(fn -> render(view) =~ "live-full" end)
   end
@@ -79,6 +81,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(16)
+    Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
     view |> element("#play-next") |> render_click()
@@ -109,9 +112,11 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(13)
+    Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-dock" end)
 
     Clock.goto(23)
+    Clock.reveal()
 
     assert_eventually(fn ->
       html = render(view)
@@ -124,11 +129,13 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
     # a code slide offers the play button and no pane actions
     Clock.goto(13)
+    Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-dock" end)
     refute render(view) =~ "pane_action"
 
     # a rules slide offers the rules actions
     Clock.goto(16)
+    Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
     view |> element("#play-next") |> render_click()
@@ -205,6 +212,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(14)
+    Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-card" end)
 
     view |> element("#run-code-dock") |> render_click()
