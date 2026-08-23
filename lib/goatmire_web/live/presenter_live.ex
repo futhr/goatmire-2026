@@ -56,8 +56,8 @@ defmodule GoatmireWeb.PresenterLive do
     {:ok,
      socket
      |> assign(page_title: "Talk", tab_options: @tabs, panes: @panes)
-     |> assign(snap: safe(&Clock.snapshot/0), titles: Map.new(Slides.titles()), play_done: %{}),
-     layout: false}
+     |> assign(snap: safe(&Clock.snapshot/0), titles: Map.new(Slides.titles()), play_done: %{})
+     |> assign(confirm_reset: false), layout: false}
   end
 
   @impl true
@@ -108,12 +108,28 @@ defmodule GoatmireWeb.PresenterLive do
     {:noreply, play_to(socket, String.to_integer(index))}
   end
 
+  def handle_event("ask_reset", _, socket), do: {:noreply, assign(socket, :confirm_reset, true)}
+
+  def handle_event("cancel_reset", _, socket),
+    do: {:noreply, assign(socket, :confirm_reset, false)}
+
   def handle_event("reset_talk", _, socket) do
-    {:noreply, socket |> assign(play_done: %{}) |> clock(&Clock.reset/0)}
+    {:noreply,
+     socket
+     |> assign(play_done: %{}, confirm_reset: false)
+     |> clock(&Clock.reset/0)}
   end
 
   def handle_event("reset_clock", _, socket) do
     {:noreply, clock(socket, &Clock.reset_clock/0)}
+  end
+
+  def handle_event("key", %{"key" => key}, %{assigns: %{confirm_reset: true}} = socket) do
+    case key do
+      "Escape" -> {:noreply, assign(socket, :confirm_reset, false)}
+      "Enter" -> handle_event("reset_talk", %{}, socket)
+      _ -> {:noreply, socket}
+    end
   end
 
   def handle_event("key", %{"key" => key}, socket) do
@@ -614,13 +630,32 @@ defmodule GoatmireWeb.PresenterLive do
         </span>
         <button
           type="button"
-          phx-click="reset_talk"
-          data-confirm="Reset the talk clock and slide position?"
+          phx-click="ask_reset"
           title="Reset talk"
           aria-label="Reset talk"
         >
           <.chrome_icon name={:reset} />
         </button>
+      </div>
+
+      <div :if={@confirm_reset} class="presenter-modal">
+        <button
+          type="button"
+          class="presenter-modal-backdrop"
+          phx-click="cancel_reset"
+          aria-label="Cancel"
+        ></button>
+        <div class="presenter-modal-card" role="dialog" aria-modal="true">
+          <h2>Reset the talk?</h2>
+          <p>
+            The clock returns to zero and the deck returns to slide 1.
+            Panel layout, zoom, and any completed demo steps reset with it.
+          </p>
+          <div class="presenter-modal-actions">
+            <button type="button" class="ghost" phx-click="cancel_reset">Cancel</button>
+            <button id="confirm-reset" type="button" phx-click="reset_talk">Reset talk</button>
+          </div>
+        </div>
       </div>
     </div>
     """

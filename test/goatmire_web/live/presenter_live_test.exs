@@ -124,6 +124,54 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
   end
 
+  test "reset asks for confirmation in-app before clearing the talk", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    view |> element("button[phx-value-dir=next]") |> render_click()
+    assert Clock.snapshot().started?
+
+    refute render(view) =~ "presenter-modal"
+
+    view |> element("button[phx-click=ask_reset]") |> render_click()
+    html = render(view)
+    assert html =~ "presenter-modal"
+    assert html =~ "Reset the talk?"
+
+    view |> element("button[phx-click=cancel_reset]", "Cancel") |> render_click()
+    refute render(view) =~ "presenter-modal"
+    assert Clock.snapshot().slide == 2
+
+    view |> element("button[phx-click=ask_reset]") |> render_click()
+    view |> element("#confirm-reset") |> render_click()
+
+    refute render(view) =~ "presenter-modal"
+    assert %{slide: 1, started?: false} = Clock.snapshot()
+  end
+
+  test "escape dismisses the reset dialog without resetting", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    Clock.goto(6)
+    view |> element("button[phx-click=ask_reset]") |> render_click()
+    assert render(view) =~ "presenter-modal"
+
+    render_keydown(view, "key", %{"key" => "Escape"})
+
+    refute render(view) =~ "presenter-modal"
+    assert Clock.snapshot().slide == 6
+  end
+
+  test "the dialog owns the keyboard while it is open", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    Clock.goto(6)
+    view |> element("button[phx-click=ask_reset]") |> render_click()
+
+    render_keydown(view, "key", %{"key" => "ArrowRight"})
+
+    assert Clock.snapshot().slide == 6
+  end
+
   test "panel override buttons switch the grid class", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 

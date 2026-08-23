@@ -192,3 +192,64 @@
 .chrome-chip.warn { display: inline-flex; align-items: center; color: #b45309; cursor: help; }
 .chrome-sep { width: 1px; height: 20px; background: var(--overlay); }
 .chrome-play { color: var(--blue); font-weight: 600; }
+.presenter-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.presenter-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgb(28 42 58 / 0.4);
+  backdrop-filter: blur(3px);
+  cursor: default;
+  animation: modal-fade 0.18s ease;
+}
+.presenter-modal-backdrop:hover { background: rgb(28 42 58 / 0.4); }
+.presenter-modal-card {
+  position: relative;
+  width: min(430px, 88vw);
+  padding: 1.6rem 1.7rem 1.35rem;
+  border: 1px solid var(--overlay);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  box-shadow: 0 26px 64px rgb(28 42 58 / 0.28);
+  animation: modal-rise 0.18s ease;
+}
+.presenter-modal-card h2 {
+  margin: 0 0 0.5rem;
+  color: var(--heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.presenter-modal-card p {
+  margin: 0;
+  color: var(--subtext);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.presenter-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.3rem;
+}
+.presenter-modal-actions button { min-height: 40px; padding: 0.45rem 1.1rem; cursor: pointer; }
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
