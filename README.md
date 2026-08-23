@@ -10,9 +10,11 @@ A simulation-only demo repository for the Goatmire 2026 talk: a simulated AGV wa
 
 ---
 
-## The stage dashboard
+## The stage presenter
 
-<img src="docs/images/dashboard.png" alt="The Goatmire warehouse dashboard: a live floor plan with status-coloured device dots, storm controls, and engine counters" width="820" />
+<img src="docs/images/presenter.png" alt="The Goatmire presenter: the deck's three-verdict slide on the left, the live warehouse floor with device dots, engine counters, and a running shift change on the right" width="900" />
+
+The talk runs from one fullscreen surface at [`/talk`](http://localhost:4000/talk): the deck on the left, the live system on the right, and a scripted step for each demo beat. No window switching, no second tool.
 
 The demo makes one narrow argument: check interacting automation rules **before** deployment, and preserve a third verdict — `unverified` — when the verifier cannot answer. The fleet is simulated; [Maude](https://maude.cs.illinois.edu) performs the conflict check through [ExMaude](https://github.com/futhr/ex_maude); BeamLens turns a bounded telemetry snapshot into an interactive diagnostic answer. Everything shown on stage lives in this repository.
 
@@ -72,10 +74,12 @@ mix phx.server
 
 | Route | What it shows |
 |---|---|
+| [`/talk`](http://localhost:4000/talk) | the presenter: deck, live panes, timer, scripted steps |
 | [`/warehouse`](http://localhost:4000/warehouse) | simulated fleet, floor plan, and storm controls |
 | [`/rules`](http://localhost:4000/rules) | rule creation with an in-request check |
 | [`/verify`](http://localhost:4000/verify) | verifier detail — term, verdict, measured cost |
 | [`/diagnostics`](http://localhost:4000/diagnostics) | prompt-driven BeamLens diagnostics |
+| [`/metrics`](http://localhost:4000/metrics) | in-app series from the diagnostics sampler |
 | [`/beamlens`](http://localhost:4000/beamlens) | advanced BeamLens inspector |
 
 The dashboard is styled with Livebook's own design tokens and fonts, so the talk moves between notebook and floor without a visual seam.
