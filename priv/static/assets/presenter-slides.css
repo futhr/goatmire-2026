@@ -99,9 +99,13 @@
   font-size: inherit;
 }
 
-.slide blockquote {
-  margin: 2.2cqw 0 0;
-  padding: 0 0 0 1.9cqw;
+/* One quote treatment, shared by blockquotes and the supporting lede on
+   content slides. Defined once so the two cannot drift apart. */
+.slide blockquote,
+.slide--default .sl-lede,
+.slide--statement .sl-lede {
+  margin: 2.4cqw 0 0;
+  padding: 0.5cqw 0 0.5cqw 1.9cqw;
   border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-accent);
   color: var(--sl-text);
   font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
@@ -166,16 +170,6 @@
   color: var(--sl-subtext);
   font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
   line-height: 1.35;
-}
-
-/* Supporting text on content slides wears the quote treatment: accent bar,
-   body ink. The title slide keeps its plain subtitle. */
-.slide--default .sl-lede,
-.slide--statement .sl-lede {
-  padding-left: 1.9cqw;
-  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-accent);
-  color: var(--sl-text);
-  line-height: 1.3;
 }
 
 .sl-author {

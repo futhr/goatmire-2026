@@ -12,7 +12,7 @@ A simulation-only demo repository for the Goatmire 2026 talk: a simulated AGV wa
 
 ## The stage presenter
 
-<img src="docs/images/presenter.png" alt="The Goatmire presenter: the deck's three-verdict slide on the left, the live warehouse floor with device dots, engine counters, and a running shift change on the right" width="900" />
+<img src="docs/images/presenter.png" alt="The Goatmire presenter: the LIVE 02 slide on the left, the live warehouse floor with device dots, engine counters, and a running shift change on the right" width="900" />
 
 The talk runs from one fullscreen surface at [`/talk`](http://localhost:4000/talk): the deck on the left, the live system on the right, and a scripted step for each demo beat. No window switching, no second tool.
 
@@ -143,7 +143,15 @@ Do not quote a universal latency. Generate an artifact on the actual talk machin
 mix goatmire.benchmark --runs 10 --output tmp/goatmire-benchmark.json
 ```
 
-Benchee workloads live in [`bench/`](./bench) and record distributions, memory, and BEAM reductions separately from pass/fail tests.
+Benchee workloads in [`bench/`](./bench) record distributions, memory, and BEAM reductions separately from pass/fail tests. They are exploratory tools, not gates:
+
+```bash
+mix run --no-start bench/rule_eval_bench.exs   # runtime rule evaluation, 20 → 2000 rules
+mix run --no-start bench/partition_bench.exs   # interaction partitioning, 25 → 2005 rules
+mix run --no-start bench/verifier_bench.exs    # the full gate; needs Maude, parallel: 1
+```
+
+Every number they print belongs to one machine, one commit, and one rule corpus. Quote the artifact, never the number alone — see [`bench/README.md`](./bench/README.md).
 
 ---
 
