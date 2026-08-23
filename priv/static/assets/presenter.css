@@ -253,3 +253,21 @@
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* The deck scales with container queries; the pane did not, so expanding it
+   only added whitespace. The code card now tracks the pane's own width —
+   unchanged at 40%, projector-legible at full width. */
+.live-pane-body { container-type: inline-size; }
+.code-card .section-label { font-size: clamp(0.75rem, 1.1cqw, 1.5rem); }
+.code-card .note { font-size: clamp(0.86rem, 1.35cqw, 1.75rem); line-height: 1.45; }
+.code-card pre { font-size: clamp(0.8rem, 1.25cqw, 1.6rem); line-height: 1.55; }
+.code-card pre code { font-size: inherit; }
+.code-card-source { font-size: clamp(0.72rem, 0.95cqw, 1.15rem); }
+
+/* Centre the card once the pane is full width, instead of stranding it at
+   the top of an empty screen. */
+.presenter.live-full .live-pane-body:has(> .code-card) {
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+}
