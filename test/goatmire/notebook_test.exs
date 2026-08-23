@@ -35,14 +35,21 @@ defmodule Goatmire.NotebookTest do
   end
 
   test "evaluation returns the value, the bindings, and captured output" do
-    assert {:ok, 42, bindings, "hi\n"} = Notebook.eval(~s|x = 42\nIO.puts("hi")\nx|, [])
+    assert {:ok, 42, bindings, _env, "hi\n"} = Notebook.eval(~s|x = 42\nIO.puts("hi")\nx|, [])
     assert bindings[:x] == 42
   end
 
   test "bindings accumulate across cells" do
-    {:ok, _, bindings, _} = Notebook.eval("rules = [:a, :b]", [])
+    {:ok, _, bindings, env, _} = Notebook.eval("rules = [:a, :b]", [])
 
-    assert {:ok, 2, _, _} = Notebook.eval("length(rules)", bindings)
+    assert {:ok, 2, _, _, _} = Notebook.eval("length(rules)", bindings, env)
+  end
+
+  test "an alias in one cell still resolves in the next" do
+    {:ok, _, bindings, env, _} = Notebook.eval("alias Goatmire.Rules", [])
+
+    assert {:ok, module, _, _, _} = Notebook.eval("Rules", bindings, env)
+    assert module == Goatmire.Rules
   end
 
   test "a raising cell returns an error instead of escaping" do
@@ -53,5 +60,13 @@ defmodule Goatmire.NotebookTest do
   test "a throwing cell is caught too" do
     assert {:error, message, _} = Notebook.eval("throw(:nope)", [])
     assert message =~ "nope"
+  end
+
+  test "a missing binding reports the variable, not this repository's source" do
+    assert {:error, message, _} = Notebook.eval("Encoder.encode_rules(gated)", [])
+
+    assert message =~ ~s|undefined variable "gated"|
+    refute message =~ "notebook.ex"
+    refute message =~ "cannot compile file"
   end
 end

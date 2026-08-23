@@ -25,6 +25,7 @@ defmodule Goatmire.Notebook do
   end
 
   @dir "livebooks"
+  @eval_file "notebook"
   @eval_timeout 20_000
 
   @doc "Notebook slugs available to the presenter, in filename order."
@@ -85,31 +86,71 @@ defmodule Goatmire.Notebook do
   end
 
   @doc """
-  Evaluates `code` against `bindings`, capturing anything it prints.
+  Evaluates `code` against `bindings` in `env`, capturing anything it prints.
 
-  Returns `{:ok, value, bindings, output}` or `{:error, message, output}`. The
-  caller runs this inside a task so a cell that raises or loops cannot take
-  the pane with it.
+  Returns `{:ok, value, bindings, env, output}` or `{:error, message, output}`.
+  The environment is threaded so an `alias` in one cell still resolves in the
+  next, and compile diagnostics are surfaced as the message — `CompileError`
+  alone only says "cannot compile file" and logs the real reason elsewhere.
+
+  The caller runs this inside a task so a cell that raises or loops cannot
+  take the pane with it.
   """
-  @spec eval(String.t(), keyword()) ::
-          {:ok, term(), keyword(), String.t()} | {:error, String.t(), String.t()}
-  def eval(code, bindings) do
+  @spec eval(String.t(), keyword(), Macro.Env.t() | nil) ::
+          {:ok, term(), keyword(), Macro.Env.t(), String.t()} | {:error, String.t(), String.t()}
+  def eval(code, bindings, env \\ nil) do
+    env = env || fresh_env()
     {:ok, io} = StringIO.open("")
     original = Process.group_leader()
     Process.group_leader(self(), io)
 
-    try do
-      {value, bindings} = Code.eval_string(code, bindings, __ENV__)
-      {:ok, value, bindings, captured(io)}
-    rescue
-      error -> {:error, Exception.message(error), captured(io)}
-    catch
-      :exit, reason -> {:error, "exited: #{inspect(reason)}", captured(io)}
-      thrown -> {:error, "threw: #{inspect(thrown)}", captured(io)}
-    after
-      Process.group_leader(self(), original)
-      StringIO.close(io)
+    {result, diagnostics} = Code.with_diagnostics(fn -> guarded_eval(code, bindings, env) end)
+
+    Process.group_leader(self(), original)
+    output = captured(io)
+    StringIO.close(io)
+
+    finish(result, diagnostics, output)
+  end
+
+  @doc "A fresh evaluation environment, for the first cell of a notebook."
+  @spec fresh_env() :: Macro.Env.t()
+  def fresh_env, do: Code.env_for_eval(file: @eval_file, line: 1)
+
+  defp guarded_eval(code, bindings, env) do
+    quoted = Code.string_to_quoted!(code, file: @eval_file)
+    {value, bindings, env} = Code.eval_quoted_with_env(quoted, bindings, env)
+    {:ok, value, bindings, env}
+  rescue
+    error -> {:error, Exception.message(error)}
+  catch
+    :exit, reason -> {:error, "exited: #{inspect(reason)}"}
+    thrown -> {:error, "threw: #{inspect(thrown)}"}
+  end
+
+  defp finish({:ok, value, bindings, env}, diagnostics, output) do
+    {:ok, value, bindings, env, output <> warnings(diagnostics)}
+  end
+
+  defp finish({:error, message}, diagnostics, output) do
+    {:error, explain(message, diagnostics), output}
+  end
+
+  # CompileError's own message is a placeholder; the diagnostics carry the
+  # sentence a reader needs.
+  defp explain(message, diagnostics) do
+    case Enum.map(diagnostics, & &1.message) do
+      [] -> message
+      messages -> Enum.join(messages, "\n")
     end
+  end
+
+  defp warnings([]), do: ""
+
+  defp warnings(diagnostics) do
+    diagnostics
+    |> Enum.filter(&(&1.severity == :warning))
+    |> Enum.map_join("", &("warning: " <> &1.message <> "\n"))
   end
 
   @doc "Deadline a caller should apply to `eval/2`."

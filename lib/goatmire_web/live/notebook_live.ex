@@ -72,6 +72,7 @@ defmodule GoatmireWeb.NotebookLive do
       title: Notebook.title(slug),
       cells: Notebook.cells(slug),
       bindings: [],
+      env: Notebook.fresh_env(),
       results: %{},
       running_index: nil,
       task: nil,
@@ -98,10 +99,11 @@ defmodule GoatmireWeb.NotebookLive do
 
       cell ->
         bindings = socket.assigns.bindings
+        env = socket.assigns.env
 
         task =
           Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
-            Notebook.eval(cell.source, bindings)
+            Notebook.eval(cell.source, bindings, env)
           end)
 
         Process.send_after(self(), {:cell_timeout, task.ref}, Notebook.eval_timeout())
@@ -118,19 +120,20 @@ defmodule GoatmireWeb.NotebookLive do
     index = socket.assigns.running_index
     duration = System.monotonic_time(:millisecond) - (socket.assigns.started_at || 0)
 
-    {entry, bindings} =
+    {entry, bindings, env} =
       case result do
-        {:ok, value, bindings, output} ->
-          {%{status: :ok, value: value, output: output, ms: duration}, bindings}
+        {:ok, value, bindings, env, output} ->
+          {%{status: :ok, value: value, output: output, ms: duration}, bindings, env}
 
         {:error, message, output} ->
           {%{status: :error, error: message, output: output, ms: duration},
-           socket.assigns.bindings}
+           socket.assigns.bindings, socket.assigns.env}
       end
 
     assign(socket,
       results: Map.put(socket.assigns.results, index, entry),
       bindings: bindings,
+      env: env,
       running_index: nil,
       task: nil
     )
