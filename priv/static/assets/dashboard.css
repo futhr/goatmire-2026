@@ -1,7 +1,8 @@
 /* The dashboard borrows Livebook's design system so the talk moves
    between notebook and floor without a visual seam. Every token below
    is taken from the compiled CSS shipped in ghcr.io/livebook-dev/
-   livebook:0.19.9, and the fonts are the same self-hosted files.
+   livebook:0.19.9, and the fonts are the same self-hosted files — with
+   one deliberate departure: the structural blue is the Goatmire purple.
    Dependency-free on purpose: usable from a cold checkout. */
 @font-face {
   font-family: Inter;
@@ -77,10 +78,11 @@
   --text: #304254;            /* gray-700 */
   --heading: #1c2a3a;         /* gray-800 */
   --subtext: #61758a;         /* gray-500 */
-  /* Livebook semantic hues */
-  --blue: #3e64ff;            /* blue-600 */
-  --blue-hover: #2d4cdb;      /* blue-700 */
-  --blue-soft: #ecf0ff;       /* blue-100 */
+  /* Brand accent: Livebook's structural blue replaced by the Goatmire purple */
+  --accent: #533a73;
+  --accent-hover: #422e5c;
+  --accent-soft: #f0ecf6;
+  --accent-faint: #e0d8ea;
   --green: #1d891a;           /* green-600 */
   --green-soft: #e9f4e9;      /* green-100 */
   --red: #db1920;             /* red-600 */
@@ -111,10 +113,10 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-a { color: var(--blue); text-decoration: none; }
-a:hover { color: var(--blue-hover); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
 /* No focus rings anywhere; keyboard focus on form fields stays visible
-   through the blue border + soft shadow below. */
+   through the accent border + soft shadow below. */
 :focus-visible { outline: none; }
 .skip-link {
   position: fixed;
@@ -161,7 +163,7 @@ header.top .brand {
   width: 28px;
   height: 28px;
   border-radius: 0.5rem;
-  background: var(--blue);
+  background: var(--accent);
   color: white;
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -266,7 +268,7 @@ p.lede { max-width: 72ch; margin: 0 0 2rem; color: var(--subtext); font-size: 1r
   font-size: 0.875rem;
   font-weight: 500;
 }
-.flash.info { border-color: #d8e0ff; background: var(--blue-soft); color: var(--blue-hover); }
+.flash.info { border-color: #e0d8ea; background: var(--accent-soft); color: var(--accent-hover); }
 .flash.error { border-color: #f8d1d2; background: var(--red-soft); color: #bc1227; }
 code {
   /* Livebook inline code: mono on a soft gray chip. Long dotted field paths
@@ -308,20 +310,20 @@ th {
 td { padding: 0.58rem 0.55rem; border-bottom: 1px solid var(--overlay); vertical-align: top; }
 tbody tr:last-child td { border-bottom: 0; }
 button, .btn {
-  /* Livebook button-base + button-blue: px-5 py-2 rounded-lg text-sm
-     font-medium, bg-blue-600 → hover bg-blue-700 */
+  /* Livebook button-base geometry: px-5 py-2 rounded-lg text-sm
+     font-medium, filled with the accent → hover accent-hover */
   min-height: 44px;
   padding: 0.5rem 1.25rem;
   border: 1px solid transparent;
   border-radius: 0.5rem;
-  background: var(--blue);
+  background: var(--accent);
   color: #ffffff;
   font-family: var(--sans);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
 }
-button:hover, .btn:hover { background: var(--blue-hover); }
+button:hover, .btn:hover { background: var(--accent-hover); }
 button.ghost {
   /* Livebook outlined button: bg-transparent border-gray-300
      text-gray-600 → hover bg-gray-100 */
@@ -362,9 +364,9 @@ input, select, textarea {
   font-size: 0.875rem;
 }
 input:focus, select:focus, textarea:focus {
-  border-color: var(--blue);
+  border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px var(--blue-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 label { display: block; margin: 0.75rem 0 0.3rem; color: var(--subtext); font-size: 0.75rem; font-weight: 500; }
 .scope {
@@ -477,7 +479,7 @@ select {
   font-size: 0.78rem;
 }
 .chip-count {
-  color: var(--blue-hover);
+  color: var(--accent-hover);
   font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 600;

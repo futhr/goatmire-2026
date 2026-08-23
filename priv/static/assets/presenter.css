@@ -17,10 +17,10 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
-  /* Ambient wash from the Livebook blue/gray tokens, drifting slowly. */
+  /* Ambient wash from the accent and gray tokens, drifting slowly. */
   background:
-    radial-gradient(60% 55% at 12% 8%, var(--blue-soft) 0%, transparent 62%),
-    radial-gradient(52% 48% at 90% 88%, #d8e0ff 0%, transparent 65%),
+    radial-gradient(60% 55% at 12% 8%, var(--accent-soft) 0%, transparent 62%),
+    radial-gradient(52% 48% at 90% 88%, #e0d8ea 0%, transparent 65%),
     radial-gradient(45% 42% at 78% 12%, var(--surface-muted) 0%, transparent 60%),
     var(--bg);
   background-size: 170% 170%;
@@ -70,8 +70,8 @@
   gap: 0.15rem;
   padding: 0.25rem 0.3rem;
   border-radius: 999px;
-  background: var(--blue);
-  box-shadow: 0 8px 24px rgb(46 64 255 / 0.3);
+  background: var(--accent);
+  box-shadow: 0 8px 24px rgb(83 58 115 / 0.3);
   transition: opacity 0.35s ease;
   animation: dock-rise 0.25s ease;
 }
@@ -91,7 +91,7 @@
   color: rgb(255 255 255 / 0.75);
 }
 .live-tabs > button:hover { background: rgb(255 255 255 / 0.16); color: #ffffff; }
-.live-tabs > button.active { background: #ffffff; color: var(--blue); }
+.live-tabs > button.active { background: #ffffff; color: var(--accent); }
 .live-tabs > button.active:hover { background: #ffffff; }
 .live-steps {
   display: flex;
@@ -187,7 +187,7 @@
 .chrome-chip.over { color: #b45309; font-weight: 600; }
 .chrome-chip.warn { display: inline-flex; align-items: center; color: #b45309; cursor: help; }
 .chrome-sep { width: 1px; height: 20px; background: var(--overlay); }
-.chrome-play { color: var(--blue); font-weight: 600; }
+.chrome-play { color: var(--accent); font-weight: 600; }
 .presenter-modal {
   position: fixed;
   inset: 0;

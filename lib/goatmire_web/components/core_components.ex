@@ -43,11 +43,11 @@ defmodule GoatmireWeb.CoreComponents do
       aria-label={"#{@label}: #{@summary}"}
     >
       <title>{@label}: {@summary}</title>
-      <polygon points={@geometry.area} fill="var(--blue-soft)" />
+      <polygon points={@geometry.area} fill="var(--accent-soft)" />
       <polyline
         points={@geometry.line}
         fill="none"
-        stroke="var(--blue)"
+        stroke="var(--accent)"
         stroke-width="2"
         stroke-linejoin="round"
         stroke-linecap="round"
@@ -56,7 +56,7 @@ defmodule GoatmireWeb.CoreComponents do
         cx={@geometry.cx}
         cy={@geometry.cy}
         r="3.5"
-        fill="var(--blue)"
+        fill="var(--accent)"
         stroke="var(--surface)"
         stroke-width="2"
       />

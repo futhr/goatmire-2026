@@ -6,9 +6,9 @@
   --sl-text: #304254;
   --sl-heading: #1c2a3a;
   --sl-subtext: #61758a;
-  --sl-blue: #3e64ff;
-  --sl-blue-soft: #ecf0ff;
-  --sl-blue-faint: #d8e0ff;
+  --sl-accent: #533a73;
+  --sl-accent-soft: #f0ecf6;
+  --sl-accent-faint: #e0d8ea;
   --sl-green: #1d891a;
   --sl-green-soft: #e9f4e9;
   --sl-red: #db1920;
@@ -26,7 +26,7 @@
   padding: 4.6% 5.6% 4.4%;
   overflow: hidden;
   /* Transparent so the deck pane's ambient gradient shows through;
-     demo slides keep their own solid blue. */
+     demo slides keep their own solid accent fill. */
   background: transparent;
   color: var(--sl-text);
   font-family: var(--sl-sans);
@@ -102,7 +102,7 @@
 .slide blockquote {
   margin: 2.2cqw 0 0;
   padding: 0 0 0 1.9cqw;
-  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-blue);
+  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-accent);
   color: var(--sl-text);
   font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
   line-height: 1.3;
@@ -134,7 +134,7 @@
 
 .slide th {
   padding-top: 0;
-  border-bottom: 2px solid var(--sl-blue-faint);
+  border-bottom: 2px solid var(--sl-accent-faint);
   color: var(--sl-subtext);
   font-family: var(--sl-mono);
   font-size: clamp(0.65rem, 1.25cqw, 1.15rem);
@@ -147,7 +147,7 @@
   position: absolute;
   top: 4.6%;
   left: 5.6%;
-  color: var(--sl-blue);
+  color: var(--sl-accent);
   font-family: var(--sl-mono);
   font-size: clamp(0.85rem, 1.8cqw, 1.6rem);
   font-weight: 400;
@@ -168,12 +168,12 @@
   line-height: 1.35;
 }
 
-/* Supporting text on content slides wears the quote treatment: blue bar,
+/* Supporting text on content slides wears the quote treatment: accent bar,
    body ink. The title slide keeps its plain subtitle. */
 .slide--default .sl-lede,
 .slide--statement .sl-lede {
   padding-left: 1.9cqw;
-  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-blue);
+  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-accent);
   color: var(--sl-text);
   line-height: 1.3;
 }
@@ -310,7 +310,7 @@
 .sl-flow .sl-arrow {
   display: grid;
   place-items: center;
-  color: var(--sl-blue);
+  color: var(--sl-accent);
   font-size: clamp(1rem, 2.2cqw, 2rem);
 }
 
@@ -335,7 +335,7 @@
   justify-content: space-between;
   max-width: 34cqw;
   margin: 0.4cqw auto;
-  color: var(--sl-blue);
+  color: var(--sl-accent);
   font-size: clamp(1rem, 2.2cqw, 2rem);
 }
 
@@ -394,7 +394,7 @@
 .slide--demo {
   display: grid;
   place-items: center;
-  background: var(--sl-blue);
+  background: var(--sl-accent);
   color: #ffffff;
   text-align: center;
 }
@@ -408,7 +408,7 @@
 
 .sl-live-label,
 .sl-live-caption {
-  color: var(--sl-blue-faint);
+  color: var(--sl-accent-faint);
   font-family: var(--sl-mono);
   font-size: clamp(0.7rem, 1.56cqw, 1.45rem);
 }
