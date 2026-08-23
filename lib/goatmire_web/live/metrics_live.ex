@@ -1,4 +1,12 @@
 defmodule GoatmireWeb.MetricsLive do
+  @moduledoc """
+  The engine and verifier as series, read from the diagnostics sampler.
+
+  The same in-memory ring buffer the BeamLens answers cite, so the charts and
+  the prose can never disagree. Five minutes deep and gone with the node: for
+  a talk that bound is the point, not a limitation to apologise for.
+  """
+
   use GoatmireWeb, :live_view
 
   alias Goatmire.Diagnostics.Sampler
@@ -7,7 +15,7 @@ defmodule GoatmireWeb.MetricsLive do
   @windows [60, 300]
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_, _, socket) do
     if connected?(socket), do: schedule_refresh()
 
     {:ok,
@@ -30,7 +38,11 @@ defmodule GoatmireWeb.MetricsLive do
   def handle_event("window", %{"seconds" => seconds}, socket) do
     window = String.to_integer(seconds)
     window = if window in @windows, do: window, else: 300
-    {:noreply, socket |> assign(window: window) |> load()}
+
+    {:noreply,
+     socket
+     |> assign(window: window)
+     |> load()}
   end
 
   defp schedule_refresh, do: Process.send_after(self(), :refresh, @refresh_ms)

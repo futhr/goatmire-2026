@@ -35,7 +35,7 @@ defmodule Goatmire.NotebookTest do
   end
 
   test "evaluation returns the value, the bindings, and captured output" do
-    assert {:ok, 42, bindings, _env, "hi\n"} = Notebook.eval(~s|x = 42\nIO.puts("hi")\nx|, [])
+    assert {:ok, 42, bindings, _, "hi\n"} = Notebook.eval(~s|x = 42\nIO.puts("hi")\nx|, [])
     assert bindings[:x] == 42
   end
 

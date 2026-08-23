@@ -12,7 +12,7 @@ defmodule GoatmireWeb.MetricsLiveTest do
   end
 
   test "renders the tiles with server-rendered sparklines", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/metrics")
+    {:ok, _, html} = live(conn, "/metrics")
 
     assert html =~ "Alerts / s"
     assert html =~ "Maude pool in use"
@@ -23,7 +23,7 @@ defmodule GoatmireWeb.MetricsLiveTest do
   test "the window toggle switches the sampled range", %{conn: conn} do
     {:ok, view, _} = live(conn, "/metrics")
 
-    view |> element(~s(button[phx-value-seconds="60"])) |> render_click()
+    render_click(element(view, ~s(button[phx-value-seconds="60"])))
 
     assert render(view) =~ "last 60 s"
   end
@@ -31,7 +31,10 @@ defmodule GoatmireWeb.MetricsLiveTest do
   test "the summary table stays open across refresh ticks", %{conn: conn} do
     {:ok, view, _} = live(conn, "/metrics")
 
-    view |> element("button", "Window summary as a table") |> render_click()
+    view
+    |> element("button", "Window summary as a table")
+    |> render_click()
+
     assert render(view) =~ "Hide summary table"
 
     send(view.pid, :refresh)

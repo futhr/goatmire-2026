@@ -107,7 +107,10 @@ defmodule Goatmire.Diagnostics.Sampler do
   end
 
   def handle_call({:series, window_seconds}, _, state) do
-    points = state.history |> Enum.take(window_seconds) |> Enum.reverse()
+    points =
+      state.history
+      |> Enum.take(window_seconds)
+      |> Enum.reverse()
 
     reply = %{
       captured_at: DateTime.utc_now() |> DateTime.to_iso8601(),
@@ -117,7 +120,8 @@ defmodule Goatmire.Diagnostics.Sampler do
       series: %{
         events: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :events]) || 0)),
         alerts: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :alerts]) || 0)),
-        throttled: series_of(points, &(get_in(&1, [:engine, :rates_per_second, :throttled]) || 0)),
+        throttled:
+          series_of(points, &(get_in(&1, [:engine, :rates_per_second, :throttled]) || 0)),
         withheld: series_of(points, &get_in(&1, [:engine, :withheld])),
         maude_in_use: series_of(points, &Map.get(&1.maude.pool, :in_use, 0)),
         maude_checkout_us: series_of(points, & &1.maude.checkout_last_us),

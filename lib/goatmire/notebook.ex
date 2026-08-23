@@ -158,7 +158,7 @@ defmodule Goatmire.Notebook do
   def eval_timeout, do: @eval_timeout
 
   defp captured(io) do
-    {_in, out} = StringIO.contents(io)
+    {_, out} = StringIO.contents(io)
     out
   end
 
@@ -192,29 +192,42 @@ defmodule Goatmire.Notebook do
     |> Enum.reduce(%{cells: [], buffer: [], in_code: false}, &take_line/2)
     |> close_buffer()
     |> Enum.reverse()
-    |> Enum.reject(fn {_type, text} -> String.trim(text) == "" end)
+    |> Enum.reject(fn {_, text} -> String.trim(text) == "" end)
   end
 
   defp take_line("```elixir", %{in_code: false} = state) do
-    state |> flush(:markdown) |> Map.put(:in_code, true)
+    state
+    |> flush(:markdown)
+    |> Map.put(:in_code, true)
   end
 
   defp take_line("```", %{in_code: true} = state) do
-    state |> flush(:code) |> Map.put(:in_code, false)
+    state
+    |> flush(:code)
+    |> Map.put(:in_code, false)
   end
 
   defp take_line(line, state), do: %{state | buffer: [line | state.buffer]}
 
   defp flush(state, type) do
-    text = state.buffer |> Enum.reverse() |> Enum.join("\n")
+    text =
+      state.buffer
+      |> Enum.reverse()
+      |> Enum.join("\n")
+
     cells = if String.trim(text) == "", do: state.cells, else: [{type, text} | state.cells]
     %{state | cells: cells, buffer: []}
   end
 
   defp close_buffer(state) do
-    state |> flush(if(state.in_code, do: :code, else: :markdown)) |> Map.fetch!(:cells)
+    state
+    |> flush(if(state.in_code, do: :code, else: :markdown))
+    |> Map.fetch!(:cells)
   end
 
+  # valid_slug?/1 admits only [a-z0-9_], so the join cannot escape dir/0.
+  # sobelow_skip ["Traversal.FileModule"]
+  # credo:disable-for-lines:8 OeditusCredo.Check.Security.PathTraversal
   defp read(slug) do
     with true <- valid_slug?(slug),
          path = Path.join(dir(), slug <> ".livemd"),

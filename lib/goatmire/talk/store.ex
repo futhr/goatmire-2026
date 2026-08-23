@@ -49,7 +49,7 @@ defmodule Goatmire.Talk.Store do
   end
 
   @impl true
-  def init(_opts) do
+  def init(_) do
     :ets.new(@table, [:named_table, :public, :set, read_concurrency: true])
     {:ok, %{}}
   end

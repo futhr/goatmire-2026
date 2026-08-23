@@ -7,6 +7,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
   alias Goatmire.{Engine, StubVerifier}
   alias Goatmire.Talk.Clock
+  alias GoatmireWeb.Presenter.CodeExamples
 
   @endpoint GoatmireWeb.Endpoint
 
@@ -26,7 +27,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   end
 
   test "renders slide 1, the pane tabs, and the chrome", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/talk")
+    {:ok, _, html} = live(conn, "/talk")
 
     assert html =~ "1 / 25"
     assert html =~ "Warehouse"
@@ -37,7 +38,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "chrome navigation advances the deck and starts the clock", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    view |> element("button[phx-value-dir=next]") |> render_click()
+    render_click(element(view, "button[phx-value-dir=next]"))
 
     assert render(view) =~ "2 / 25"
     assert Clock.snapshot().started?
@@ -84,7 +85,9 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
-    view |> element("#play-next") |> render_click()
+    view
+    |> element("#play-next")
+    |> render_click()
 
     html = render(view)
     assert html =~ ~r/class="done"[^>]*>.*?Deploy rule A/s
@@ -102,7 +105,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   end
 
   test "slide 1 is deck-only: no pane, no pill", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/talk")
+    {:ok, _, html} = live(conn, "/talk")
 
     assert html =~ "deck-full"
     refute html =~ "live-tabs"
@@ -138,7 +141,9 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
-    view |> element("#play-next") |> render_click()
+    view
+    |> element("#play-next")
+    |> render_click()
 
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
   end
@@ -146,22 +151,25 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "reset asks for confirmation in-app before clearing the talk", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    view |> element("button[phx-value-dir=next]") |> render_click()
+    render_click(element(view, "button[phx-value-dir=next]"))
     assert Clock.snapshot().started?
 
     refute render(view) =~ "presenter-modal"
 
-    view |> element("button[phx-click=ask_reset]") |> render_click()
+    render_click(element(view, "button[phx-click=ask_reset]"))
     html = render(view)
     assert html =~ "presenter-modal"
     assert html =~ "Reset the talk?"
 
-    view |> element("button[phx-click=cancel_reset]", "Cancel") |> render_click()
+    render_click(element(view, "button[phx-click=cancel_reset]", "Cancel"))
     refute render(view) =~ "presenter-modal"
     assert Clock.snapshot().slide == 2
 
-    view |> element("button[phx-click=ask_reset]") |> render_click()
-    view |> element("#confirm-reset") |> render_click()
+    render_click(element(view, "button[phx-click=ask_reset]"))
+
+    view
+    |> element("#confirm-reset")
+    |> render_click()
 
     refute render(view) =~ "presenter-modal"
     assert %{slide: 1, started?: false} = Clock.snapshot()
@@ -171,7 +179,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(6)
-    view |> element("button[phx-click=ask_reset]") |> render_click()
+    render_click(element(view, "button[phx-click=ask_reset]"))
     assert render(view) =~ "presenter-modal"
 
     render_keydown(view, "key", %{"key" => "Escape"})
@@ -184,7 +192,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(6)
-    view |> element("button[phx-click=ask_reset]") |> render_click()
+    render_click(element(view, "button[phx-click=ask_reset]"))
 
     render_keydown(view, "key", %{"key" => "ArrowRight"})
 
@@ -192,18 +200,20 @@ defmodule GoatmireWeb.PresenterLiveTest do
   end
 
   test "every code card is runnable code, not commentary", %{conn: conn} do
-    {:ok, _view, _} = live(conn, "/talk")
+    {:ok, _, _} = live(conn, "/talk")
 
-    for slide <- 1..25, example = GoatmireWeb.Presenter.CodeExamples.example(slide) do
+    for slide <- 1..25, example = CodeExamples.example(slide) do
       refute example.code =~ ~r/^\s*defp?\s/m,
              "slide #{slide} quotes a definition instead of a call"
 
-      assert {:ok, _ast} = Code.string_to_quoted(example.code),
+      assert {:ok, _} = Code.string_to_quoted(example.code),
              "slide #{slide} does not parse"
 
       code = String.trim(example.code)
 
-      refute code |> String.split("\n") |> Enum.all?(&String.starts_with?(String.trim(&1), "#")),
+      refute code
+             |> String.split("\n")
+             |> Enum.all?(&String.starts_with?(String.trim(&1), "#")),
              "slide #{slide} is only comments"
     end
   end
@@ -215,7 +225,9 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-card" end)
 
-    view |> element("#run-code-dock") |> render_click()
+    view
+    |> element("#run-code-dock")
+    |> render_click()
 
     assert_eventually(fn ->
       html = render(view)
@@ -226,10 +238,10 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "panel override buttons switch the grid class", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    view |> element("button[phx-value-panel=deck_full]") |> render_click()
+    render_click(element(view, "button[phx-value-panel=deck_full]"))
     assert render(view) =~ "deck-full"
 
-    view |> element("button[phx-value-panel=split]") |> render_click()
+    render_click(element(view, "button[phx-value-panel=split]"))
     refute render(view) =~ "deck-full"
   end
 

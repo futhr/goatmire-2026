@@ -97,8 +97,12 @@ defmodule Goatmire.TalkSoakTest do
     {:message_queue_len, len} = Process.info(Process.whereis(name), :message_queue_len)
 
     cond do
-      len == 0 -> :ok
-      System.monotonic_time(:millisecond) >= deadline -> :ok
+      len == 0 ->
+        :ok
+
+      System.monotonic_time(:millisecond) >= deadline ->
+        :ok
+
       true ->
         Process.sleep(25)
         drain(name, deadline)

@@ -21,7 +21,10 @@ defmodule GoatmireWeb.NotebookLive do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
     end
 
-    {:ok, socket |> assign(page_title: "Notebook") |> load(@default_slug)}
+    {:ok,
+     socket
+     |> assign(page_title: "Notebook")
+     |> load(@default_slug)}
   end
 
   @impl true
@@ -89,10 +92,7 @@ defmodule GoatmireWeb.NotebookLive do
     if next, do: run_cell(socket, next.index), else: socket
   end
 
-  defp run_cell(%{assigns: %{running_index: running}} = socket, _) when not is_nil(running),
-    do: socket
-
-  defp run_cell(socket, index) do
+  defp run_cell(%{assigns: %{running_index: nil}} = socket, index) do
     case Enum.find(socket.assigns.cells, &(&1.index == index and &1.type == :code)) do
       nil ->
         socket
@@ -115,6 +115,9 @@ defmodule GoatmireWeb.NotebookLive do
         )
     end
   end
+
+  # a cell is already running
+  defp run_cell(socket, _), do: socket
 
   defp complete(socket, result) do
     index = socket.assigns.running_index
@@ -150,7 +153,11 @@ defmodule GoatmireWeb.NotebookLive do
     end
   end
 
-  defp label(slug), do: slug |> String.replace("_", " ") |> String.replace(~r/^0(\d) /, "\\1 · ")
+  defp label(slug),
+    do:
+      slug
+      |> String.replace("_", " ")
+      |> String.replace(~r/^0(\d) /, "\\1 · ")
 
   @impl true
   def render(assigns) do

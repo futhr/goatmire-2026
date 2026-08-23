@@ -1,8 +1,17 @@
 defmodule GoatmireWeb.PresenterLive do
+  @moduledoc """
+  The stage surface: deck on the left, the running system on the right.
+
+  Every slide enters deck-only and reveals the one pane it is bound to, so
+  the room reads a claim before it sees the evidence. Panes are nested
+  LiveViews rather than components — a demo that crashes takes only itself
+  down, and `Goatmire.Talk.Clock` holds slide, layout, and zoom so a refresh
+  lands exactly where the talk was.
+  """
+
   use GoatmireWeb, :live_view
 
-  alias Goatmire.Notebook
-  alias Goatmire.Talk
+  alias Goatmire.{Notebook, Talk}
   alias Goatmire.Talk.Clock
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
@@ -60,7 +69,7 @@ defmodule GoatmireWeb.PresenterLive do
   }
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_, _, socket) do
     if connected?(socket), do: Phoenix.PubSub.subscribe(Goatmire.PubSub, Clock.topic())
 
     {:ok,
@@ -95,9 +104,7 @@ defmodule GoatmireWeb.PresenterLive do
 
   # Code cards evaluate in a supervised task, like the notebook pane: a card
   # that raises or hangs leaves the deck and the clock untouched.
-  defp run_code(%{assigns: %{code_task: task}} = socket) when not is_nil(task), do: socket
-
-  defp run_code(socket) do
+  defp run_code(%{assigns: %{code_task: nil}} = socket) do
     slide = socket.assigns.snap.slide
 
     case CodeExamples.example(slide) do
@@ -105,7 +112,10 @@ defmodule GoatmireWeb.PresenterLive do
         socket
 
       example ->
-        socket = socket |> clock(fn -> Clock.set_tab(:code) end) |> clock(&Clock.reveal/0)
+        socket =
+          socket
+          |> clock(fn -> Clock.set_tab(:code) end)
+          |> clock(&Clock.reveal/0)
 
         task =
           Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
@@ -117,10 +127,13 @@ defmodule GoatmireWeb.PresenterLive do
     end
   end
 
+  # a card is already running
+  defp run_code(socket), do: socket
+
   defp finish_code(socket, result) do
     entry =
       case result do
-        {:ok, value, _bindings, _env, output} -> %{status: :ok, value: value, output: output}
+        {:ok, value, _, _, output} -> %{status: :ok, value: value, output: output}
         {:error, message, output} -> %{status: :error, error: message, output: output}
       end
 
@@ -132,7 +145,7 @@ defmodule GoatmireWeb.PresenterLive do
   end
 
   @impl true
-  def handle_event(_event, _params, %{assigns: %{snap: nil}} = socket) do
+  def handle_event(_, _, %{assigns: %{snap: nil}} = socket) do
     {:noreply, clock(socket, &Clock.snapshot/0)}
   end
 
@@ -148,10 +161,15 @@ defmodule GoatmireWeb.PresenterLive do
   end
 
   def handle_event("tab", %{"tab" => tab}, socket) do
-    with {:ok, tab} <- known_tab(tab) do
-      {:noreply, socket |> clock(fn -> Clock.set_tab(tab) end) |> clock(&Clock.reveal/0)}
-    else
-      _ -> {:noreply, socket}
+    case known_tab(tab) do
+      {:ok, tab} ->
+        {:noreply,
+         socket
+         |> clock(fn -> Clock.set_tab(tab) end)
+         |> clock(&Clock.reveal/0)}
+
+      :error ->
+        {:noreply, socket}
     end
   end
 
@@ -169,7 +187,7 @@ defmodule GoatmireWeb.PresenterLive do
     tab = effective_tab(socket.assigns.snap.tab, socket.assigns.snap.slide)
 
     case Enum.find(Map.get(@pane_actions, tab, []), fn {s, _} -> Atom.to_string(s) == step end) do
-      {s, _label} -> Talk.play(tab, s)
+      {s, _} -> Talk.play(tab, s)
       nil -> :ok
     end
 
@@ -207,21 +225,34 @@ defmodule GoatmireWeb.PresenterLive do
   end
 
   def handle_event("key", %{"key" => key}, socket) do
-    case key do
-      k when k in ["ArrowRight", "PageDown", " "] -> {:noreply, clock(socket, &Clock.next/0)}
-      k when k in ["ArrowLeft", "PageUp"] -> {:noreply, clock(socket, &Clock.prev/0)}
-      "Home" -> {:noreply, clock(socket, fn -> Clock.goto(1) end)}
-      "End" -> {:noreply, clock(socket, fn -> Clock.goto(socket.assigns.snap.slide_count) end)}
-      "[" -> {:noreply, clock(socket, fn -> Clock.set_panel(:deck_full) end)}
-      "]" -> {:noreply, clock(socket, &Clock.reveal/0)}
-      "\\" -> {:noreply, clock(socket, fn -> Clock.set_panel(:split) end)}
-      k when k in ["+", "="] -> {:noreply, clock(socket, fn -> Clock.zoom(:in) end)}
-      "-" -> {:noreply, clock(socket, fn -> Clock.zoom(:out) end)}
-      "r" -> {:noreply, clock(socket, &Clock.reload_timings/0)}
-      "p" -> {:noreply, play_step(socket)}
-      _ -> {:noreply, socket}
+    case keybinding(key) do
+      nil ->
+        {:noreply, socket}
+
+      :play ->
+        {:noreply, play_step(socket)}
+
+      :last_slide ->
+        {:noreply, clock(socket, fn -> Clock.goto(socket.assigns.snap.slide_count) end)}
+
+      fun when is_function(fun, 0) ->
+        {:noreply, clock(socket, fun)}
     end
   end
+
+  # The stage keymap, as a table: PageUp/PageDown are what a clicker sends.
+  defp keybinding(key) when key in ["ArrowRight", "PageDown", " "], do: &Clock.next/0
+  defp keybinding(key) when key in ["ArrowLeft", "PageUp"], do: &Clock.prev/0
+  defp keybinding(key) when key in ["+", "="], do: fn -> Clock.zoom(:in) end
+  defp keybinding("-"), do: fn -> Clock.zoom(:out) end
+  defp keybinding("Home"), do: fn -> Clock.goto(1) end
+  defp keybinding("End"), do: :last_slide
+  defp keybinding("["), do: fn -> Clock.set_panel(:deck_full) end
+  defp keybinding("]"), do: &Clock.reveal/0
+  defp keybinding("\\"), do: fn -> Clock.set_panel(:split) end
+  defp keybinding("r"), do: &Clock.reload_timings/0
+  defp keybinding("p"), do: :play
+  defp keybinding(_), do: nil
 
   defp clock(socket, fun) do
     case safe(fun) do
@@ -253,7 +284,7 @@ defmodule GoatmireWeb.PresenterLive do
          done = Map.get(socket.assigns.play_done, slide, 0),
          true <- target >= done and target < length(steps) do
       Enum.each(done..target, fn index ->
-        {step, _label} = Enum.at(steps, index)
+        {step, _} = Enum.at(steps, index)
         Talk.play(pane, step)
       end)
 
@@ -271,30 +302,28 @@ defmodule GoatmireWeb.PresenterLive do
       nil ->
         []
 
-      {_pane, steps} ->
+      {_, steps} ->
         done = Map.get(play_done, slide, 0)
 
         steps
         |> Enum.with_index()
-        |> Enum.map(fn {{_step, label}, index} ->
-          state =
-            cond do
-              index < done -> :done
-              index == done -> :next
-              true -> :todo
-            end
-
-          {label, state, index}
-        end)
+        |> Enum.map(fn {{_, label}, index} -> {label, step_state(index, done), index} end)
     end
   end
+
+  defp step_state(index, done) when index < done, do: :done
+  defp step_state(index, done) when index == done, do: :next
+  defp step_state(_, _), do: :todo
 
   # Scripted steps for the slide's pane, plus the visible pane's remaining
   # actions as plain buttons. Returns {scripted?, steps, actions}.
   defp dock_items(slide, tab, play_done) do
     case Map.get(@play, slide) do
       {pane, steps} when pane == tab ->
-        covered = steps |> Enum.map(&elem(&1, 0)) |> Enum.uniq()
+        covered =
+          steps
+          |> Enum.map(&elem(&1, 0))
+          |> Enum.uniq()
 
         actions =
           for {step, label} <- Map.get(@pane_actions, tab, []), step not in covered do
@@ -493,7 +522,13 @@ defmodule GoatmireWeb.PresenterLive do
   defp format_clock(seconds) when seconds < 0, do: "−#{format_clock(-seconds)}"
 
   defp format_clock(seconds) do
-    "#{div(seconds, 60)}:#{seconds |> rem(60) |> Integer.to_string() |> String.pad_leading(2, "0")}"
+    padded =
+      seconds
+      |> rem(60)
+      |> Integer.to_string()
+      |> String.pad_leading(2, "0")
+
+    "#{div(seconds, 60)}:#{padded}"
   end
 
   defp ended?(snap), do: snap.started? and snap.talk_elapsed_s >= snap.slot_s
@@ -517,7 +552,7 @@ defmodule GoatmireWeb.PresenterLive do
     if CodeExamples.example(slide), do: :code, else: :metrics
   end
 
-  defp effective_tab(tab, _slide), do: tab
+  defp effective_tab(tab, _), do: tab
 
   @impl true
   def render(%{snap: nil} = assigns) do

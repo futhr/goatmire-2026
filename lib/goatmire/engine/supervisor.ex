@@ -16,7 +16,7 @@ defmodule Goatmire.Engine.Supervisor do
   end
 
   @impl true
-  def init(_opts) do
+  def init(_) do
     children = [ex_maude_child_spec(), Goatmire.Engine] ++ vda5050_children()
 
     Supervisor.init(children, strategy: :rest_for_one, max_restarts: 10, max_seconds: 10)

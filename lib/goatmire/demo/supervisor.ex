@@ -19,7 +19,7 @@ defmodule Goatmire.Demo.Supervisor do
   end
 
   @impl true
-  def init(_opts) do
+  def init(_) do
     children =
       [Transport.impl()] ++
         Fleet.children() ++

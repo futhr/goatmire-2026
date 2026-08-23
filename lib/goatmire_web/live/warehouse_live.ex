@@ -235,7 +235,11 @@ defmodule GoatmireWeb.WarehouseLive do
       <.stat
         label="alerts"
         value={to_string(@engine.counters.alerts)}
-        color={if @engine.counters.alerts > 500, do: "var(--verdict-conflict)", else: "var(--verdict-clean)"}
+        color={
+          if @engine.counters.alerts > 500,
+            do: "var(--verdict-conflict)",
+            else: "var(--verdict-clean)"
+        }
         note="operator-visible actuations"
       />
       <.stat

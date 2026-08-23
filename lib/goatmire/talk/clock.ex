@@ -12,6 +12,8 @@ defmodule Goatmire.Talk.Clock do
 
   use GenServer
 
+  require Logger
+
   alias Goatmire.Config
   alias Goatmire.Talk.Store
 
@@ -168,9 +170,12 @@ defmodule Goatmire.Talk.Clock do
     mutate(%{state | started_at_ms: now, entered_at_ms: now, accumulated_ms: %{}})
   end
 
+  # The path is a checked-in config value, not request input.
+  # sobelow_skip ["Traversal.FileModule"]
   def handle_call(:reset, _, state) do
     Store.clear()
 
+    # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
     with path when is_binary(path) <- Config.talk_state_path(), do: File.rm(path)
 
     %{
@@ -281,6 +286,8 @@ defmodule Goatmire.Talk.Clock do
     Phoenix.PubSub.broadcast(Goatmire.PubSub, @topic, {:talk_clock, build_snapshot(state)})
   end
 
+  # The path is a checked-in config value, not request input.
+  # sobelow_skip ["Traversal.FileModule"]
   defp persist(state) do
     saved =
       Map.take(state, [
@@ -297,6 +304,7 @@ defmodule Goatmire.Talk.Clock do
 
     with path when is_binary(path) <- Config.talk_state_path() do
       File.mkdir_p(Path.dirname(path))
+      # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
       File.write(path, :erlang.term_to_binary(saved))
     end
 
@@ -326,6 +334,11 @@ defmodule Goatmire.Talk.Clock do
 
   defp slide_timing(state), do: Map.get(state.timings, state.slide, default_timing())
 
+  # The path is a checked-in config value, not request input, and the term is
+  # one this process wrote. `:safe` keeps it from minting atoms; anyone who
+  # can write the file can already run code as this user.
+  # sobelow_skip ["Traversal.FileModule", "Misc.BinToTerm"]
+  # credo:disable-for-lines:6 OeditusCredo.Check.Security.PathTraversal
   defp read_saved_file do
     with path when is_binary(path) <- Config.talk_state_path(),
          {:ok, binary} <- File.read(path) do
@@ -337,6 +350,10 @@ defmodule Goatmire.Talk.Clock do
     ArgumentError -> nil
   end
 
+  # The only path is the repository's own priv/talk/timings.exs, and the only
+  # author is whoever can already edit this codebase.
+  # sobelow_skip ["RCE.CodeModule"]
+  # credo:disable-for-lines:8 OeditusCredo.Check.Security.CodeInjection
   defp load_timings do
     path = Path.join(Application.app_dir(:goatmire, "priv"), "talk/timings.exs")
 
@@ -345,6 +362,8 @@ defmodule Goatmire.Talk.Clock do
       normalize_timings(slides, slot)
     rescue
       error ->
+        Logger.warning("talk timings unreadable: #{Exception.message(error)}")
+
         {default_timings(), 1_800,
          [
            "timings unreadable (#{Exception.message(error)}); every slide gets #{@default_budget_seconds}s"

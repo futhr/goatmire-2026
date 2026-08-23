@@ -12,7 +12,7 @@ defmodule GoatmireWeb.NotebookLiveTest do
   end
 
   test "renders the notebook cells with evaluate buttons", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/notebook")
+    {:ok, _, html} = live(conn, "/notebook")
 
     assert html =~ "Scenario 5"
     assert html =~ "Evaluate"
@@ -30,7 +30,9 @@ defmodule GoatmireWeb.NotebookLiveTest do
       |> Goatmire.Notebook.cells()
       |> Enum.find(&(&1.type == :code and not &1.setup?))
 
-    view |> element("#run-cell-#{cell.index}") |> render_click()
+    view
+    |> element("#run-cell-#{cell.index}")
+    |> render_click()
 
     assert_eventually(fn ->
       html = render(view)
@@ -41,7 +43,7 @@ defmodule GoatmireWeb.NotebookLiveTest do
   test "switching notebooks reloads the cells", %{conn: conn} do
     {:ok, view, _} = live(conn, "/notebook")
 
-    view |> element(~s|button[phx-value-slug="01_iot_state_conflict"]|) |> render_click()
+    render_click(element(view, ~s|button[phx-value-slug="01_iot_state_conflict"]|))
 
     assert render(view) =~ "Scenario 1"
   end

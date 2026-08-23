@@ -92,7 +92,7 @@ defmodule Goatmire.SupervisionChaosTest do
   # Kills the sampler until the demo branch itself falls over (pid changes or
   # vanishes mid-restart). Only landed kills consume attempts, so the branch
   # budget is always exceeded inside its 10-second window.
-  defp kill_until_meltdown(_demo, 0), do: flunk("demo branch never exhausted its restart budget")
+  defp kill_until_meltdown(_, 0), do: flunk("demo branch never exhausted its restart budget")
 
   defp kill_until_meltdown(demo, attempts_left) do
     cond do

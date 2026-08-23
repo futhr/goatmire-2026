@@ -38,7 +38,7 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "every tab a slide can configure is accepted by the clock" do
-    for {_slide, tab} <- [{16, :rules}, {17, :warehouse}, {18, :diagnostics}, {22, :notebook}] do
+    for {_, tab} <- [{16, :rules}, {17, :warehouse}, {18, :diagnostics}, {22, :notebook}] do
       assert %{tab: ^tab} = Clock.set_tab(tab)
     end
   end

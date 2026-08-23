@@ -14,6 +14,11 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
           source: String.t()
         }
 
+  @doc """
+  The runnable card for slide `n`, or `nil` when that slide has none.
+
+  Each `code` string evaluates on its own against the running application.
+  """
   @spec example(pos_integer()) :: example() | nil
   def example(6) do
     %{
@@ -256,5 +261,5 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(_n), do: nil
+  def example(_), do: nil
 end

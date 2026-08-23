@@ -44,6 +44,9 @@ defmodule GoatmireWeb.Presenter.Slides do
 
   @doc "Renders slide `n` of the deck."
   @spec slide(map()) :: Phoenix.LiveView.Rendered.t()
+  # A dispatch table over the 25 slides; the branch count is the deck length,
+  # not decision logic.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def slide(assigns) do
     case assigns.n do
       1 -> slide_1(assigns)
@@ -320,7 +323,9 @@ defmodule GoatmireWeb.Presenter.Slides do
         <div class="sl-panel sl-panel--center">ExMaude encoder + detector</div>
         <div class="sl-panel sl-panel--center">rule evaluator + actuator</div>
       </div>
-      <blockquote>A verified copy that drifts from runtime proves the wrong thing precisely.</blockquote>
+      <blockquote>
+        A verified copy that drifts from runtime proves the wrong thing precisely.
+      </blockquote>
     </section>
     """
   end

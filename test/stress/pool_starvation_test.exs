@@ -55,7 +55,9 @@ defmodule Goatmire.PoolStarvationTest do
       Task.async(fn ->
         1..32
         |> Task.async_stream(
-          fn n -> Verifier.verify_partitioned(Rules.clean_set(), scenario: {:starvation_bg, n}) end,
+          fn n ->
+            Verifier.verify_partitioned(Rules.clean_set(), scenario: {:starvation_bg, n})
+          end,
           max_concurrency: 32,
           ordered: false,
           timeout: 120_000
