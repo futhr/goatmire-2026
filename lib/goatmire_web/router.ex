@@ -33,6 +33,7 @@ defmodule GoatmireWeb.Router do
     live "/rules", RuleLive, :new
     live "/verify", VerifyLive, :index
     live "/diagnostics", DiagnosticsLive, :index
+    live "/notebook", NotebookLive, :index
     live "/metrics", MetricsLive, :index
   end
 

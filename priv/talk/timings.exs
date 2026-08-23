@@ -32,7 +32,7 @@
     {19, 50, tab: :code},
     {20, 50, tab: :code},
     {21, 60, tab: :code},
-    {22, 120, panel: :live_full, tab: :verify},
+    {22, 120, panel: :live_full, tab: :notebook},
     {23, 60, tab: :metrics},
     {24, 65, tab: :metrics},
     {25, 300, tab: :metrics}

@@ -537,3 +537,40 @@ li + li { margin-top: 0.3rem; }
   header.top { padding-right: 0.75rem; padding-left: 0.75rem; }
   .card { padding: 0.85rem; }
 }
+.nb-cell + .nb-cell { margin-top: 0.9rem; }
+.nb-prose { max-width: 74ch; color: var(--text); }
+.nb-prose h2 { font-size: 0.95rem; }
+.nb-prose p { margin: 0 0 0.6rem; }
+.nb-prose p:last-child { margin-bottom: 0; }
+.nb-code { padding: 0; overflow: hidden; }
+.nb-code .highlight pre { border: 0; border-radius: 0; }
+.nb-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.15rem 1rem;
+  border-top: 1px solid var(--overlay);
+  background: var(--surface);
+}
+.nb-output { border-top: 1px solid var(--overlay); padding: 0.9rem 1rem; background: var(--surface); }
+.nb-output .highlight pre { border: 0; padding: 0; background: transparent; }
+.nb-stdout {
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-left: 3px solid var(--overlay-strong);
+  border-radius: 0;
+  background: var(--surface-muted);
+  color: var(--subtext);
+}
+.nb-error {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--red);
+  background: var(--red-soft);
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.nb-setup summary { padding: 0.6rem 1rem; cursor: pointer; }
+.nb-setup .highlight pre { border-top: 1px solid var(--overlay); }

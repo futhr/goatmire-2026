@@ -271,3 +271,5 @@
   flex-direction: column;
   justify-content: safe center;
 }
+.live-pane-body .nb-code .highlight pre { font-size: clamp(0.8rem, 1.1cqw, 1.45rem); }
+.live-pane-body .nb-prose { font-size: clamp(0.86rem, 1.15cqw, 1.5rem); max-width: 90ch; }

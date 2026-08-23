@@ -11,6 +11,7 @@ defmodule GoatmireWeb.PresenterLive do
     rules: "Rules",
     diagnostics: "Diagnostics",
     verify: "Verify",
+    notebook: "Notebook",
     metrics: "Metrics"
   ]
 
@@ -19,6 +20,7 @@ defmodule GoatmireWeb.PresenterLive do
     rules: GoatmireWeb.RuleLive,
     diagnostics: GoatmireWeb.DiagnosticsLive,
     verify: GoatmireWeb.VerifyLive,
+    notebook: GoatmireWeb.NotebookLive,
     metrics: GoatmireWeb.MetricsLive
   }
 
@@ -33,7 +35,14 @@ defmodule GoatmireWeb.PresenterLive do
        ]},
     17 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
     18 => {:diagnostics, [{:diagnose, "Ask"}]},
-    22 => {:verify, [{:run_policy, "Run policy checks"}]}
+    22 =>
+      {:notebook,
+       [
+         {:run_next, "Cell 1"},
+         {:run_next, "Cell 2"},
+         {:run_next, "Cell 3"},
+         {:run_next, "Cell 4"}
+       ]}
   }
 
   # Every pane delegates its actions to the dock whenever it is visible;
@@ -46,7 +55,8 @@ defmodule GoatmireWeb.PresenterLive do
       {:check, "Check and create"}
     ],
     diagnostics: [{:diagnose, "Ask"}],
-    verify: [{:run_policy, "Run policy checks"}]
+    verify: [{:run_policy, "Run policy checks"}],
+    notebook: [{:run_next, "Run next cell"}, {:reset, "Reset"}]
   }
 
   @impl true
@@ -219,7 +229,7 @@ defmodule GoatmireWeb.PresenterLive do
   defp dock_items(slide, tab, play_done) do
     case Map.get(@play, slide) do
       {pane, steps} when pane == tab ->
-        covered = Enum.map(steps, &elem(&1, 0))
+        covered = steps |> Enum.map(&elem(&1, 0)) |> Enum.uniq()
 
         actions =
           for {step, label} <- Map.get(@pane_actions, tab, []), step not in covered do
@@ -289,6 +299,14 @@ defmodule GoatmireWeb.PresenterLive do
             d="M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm-3-7 2 2 4-4"
             stroke="currentColor"
             stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        <% :notebook -> %>
+          <path
+            d="M5 4h9l2 2v10H5zM8 8h5M8 11h5"
+            stroke="currentColor"
+            stroke-width="1.7"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
