@@ -92,19 +92,17 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute html =~ "live-tabs"
   end
 
-  test "the Code icon exists only on slides with a code card", %{conn: conn} do
+  test "the play button exists only on slides with a code card", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(13)
-    assert_eventually(fn -> render(view) =~ ~s(phx-value-tab="code") end)
+    assert_eventually(fn -> render(view) =~ "run-code-dock" end)
 
     Clock.goto(23)
 
     assert_eventually(fn ->
       html = render(view)
-
-      not (html =~ ~s(phx-value-tab="code")) and
-        html =~ ~s(aria-selected="true" class="active" phx-click="tab" phx-value-tab="metrics")
+      not (html =~ "run-code-dock") and html =~ ~s(phx-value-tab="metrics")
     end)
   end
 
@@ -114,8 +112,8 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.goto(13)
     assert_eventually(fn -> render(view) =~ "live-tabs" end)
 
-    # the code card contributes its own action
-    assert render(view) =~ "run_code"
+    # the play button owns the code card, whatever pane is open
+    assert render(view) =~ "run-code-dock"
 
     view |> element(~s(button[phx-value-tab="rules"])) |> render_click()
     assert render(view) =~ "Deploy rule A"
@@ -196,7 +194,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.goto(14)
     assert_eventually(fn -> render(view) =~ "run-code-card" end)
 
-    view |> element("#run-code-card") |> render_click()
+    view |> element("#run-code-dock") |> render_click()
 
     assert_eventually(fn ->
       html = render(view)

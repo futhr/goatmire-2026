@@ -7,7 +7,6 @@ defmodule GoatmireWeb.PresenterLive do
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
   @tabs [
-    code: "Code",
     warehouse: "Warehouse",
     rules: "Rules",
     diagnostics: "Diagnostics",
@@ -55,7 +54,6 @@ defmodule GoatmireWeb.PresenterLive do
       {:load_example, "Load rule B"},
       {:check, "Check and create"}
     ],
-    code: [{:run_code, "Evaluate"}],
     diagnostics: [{:diagnose, "Ask"}],
     verify: [{:run_policy, "Run policy checks"}],
     notebook: [{:run_next, "Run next cell"}, {:reset, "Reset"}]
@@ -107,6 +105,8 @@ defmodule GoatmireWeb.PresenterLive do
         socket
 
       example ->
+        socket = clock(socket, fn -> Clock.set_tab(:code) end)
+
         task =
           Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
             Notebook.eval(example.code, [])
@@ -597,14 +597,29 @@ defmodule GoatmireWeb.PresenterLive do
         aria-label="Live panel"
       >
         <% {scripted?, steps, actions} =
-          dock_items(@snap.slide, effective_tab(@snap.tab, @snap.slide), @play_done) %>
+          dock_items(@snap.slide, effective_tab(@snap.tab, @snap.slide), @play_done)
+
+        has_code = CodeExamples.example(@snap.slide) != nil %>
         <div
-          :if={steps != [] or actions != []}
+          :if={steps != [] or actions != [] or has_code}
           class="live-steps"
           role="toolbar"
           aria-label="Pane actions"
         >
           <span :if={scripted?} class="live-steps-label">LIVE</span>
+
+          <button
+            :if={has_code}
+            id="run-code-dock"
+            type="button"
+            class="dock-icon"
+            phx-click="run_code"
+            disabled={@code_task != nil}
+            title="Evaluate this slide's code"
+            aria-label="Evaluate this slide's code"
+          >
+            <.chrome_icon name={:play} />
+          </button>
           <%= for {label, state, index} <- steps do %>
             <button
               :if={state == :next}
