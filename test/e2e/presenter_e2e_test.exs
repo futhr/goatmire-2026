@@ -47,21 +47,23 @@ defmodule GoatmireWeb.PresenterE2ETest do
     |> assert_has(css(".presenter-chrome", text: "1 / 25"))
     |> click(css("button[phx-value-panel='live_full']"))
     |> assert_has(css(".presenter-grid.live-full"))
-    |> assert_has(css(".live-tabs button[phx-value-tab='metrics']"))
     |> click(css("button[phx-value-panel='split']"))
-    |> click(css(".live-tabs button[phx-value-tab='metrics']"))
-    |> assert_has(css(".live-tabs button.active[phx-value-tab='metrics']"))
+    |> assert_has(css(".presenter-chrome"))
 
     assert Clock.snapshot().started?
   end
 
   feature "typing in an embedded form does not advance the deck", %{session: session} do
+    session = visit(session, "/talk")
+
+    # slide 18 is the diagnostics beat; revealing opens its pane
+    Clock.goto(18)
+    Clock.reveal()
+
     session
-    |> visit("/talk")
-    |> click(css("button[phx-value-panel='live_full']"))
-    |> click(css(".live-tabs button[phx-value-tab='diagnostics']"))
+    |> assert_has(css("#diagnostic-prompt"))
     |> fill_in(css("#diagnostic-prompt"), with: "why ")
     |> send_keys([:space])
-    |> assert_has(css(".presenter-chrome", text: "1 / 25"))
+    |> assert_has(css(".presenter-chrome", text: "18 / 25"))
   end
 end

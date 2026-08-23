@@ -2,8 +2,11 @@
 # tweak between rehearsal runs, no restart needed.
 #
 # {slide, seconds} or {slide, seconds, opts} with:
-#   panel: :split | :deck_full | :live_full   view state applied on slide entry
-#   tab:   :code | :warehouse | :rules | :diagnostics | :verify | :metrics
+#   panel: :split | :deck_full | :live_full   layout used when the panel is
+#                                             revealed; slides always enter
+#                                             deck-only
+#   tab:   the one pane this slide owns — :code, :warehouse, :rules,
+#          :diagnostics, :verify, :notebook, or :metrics
 #
 # Slide 25 is the reserve: repo links, other projects, audience questions.
 # Slides 1..24 must fit inside slot_seconds minus that reserve; the clock
@@ -11,11 +14,11 @@
 %{
   slot_seconds: 1_800,
   slides: [
-    {1, 40, panel: :deck_full},
-    {2, 50, panel: :deck_full},
-    {3, 35, panel: :deck_full},
-    {4, 40, panel: :deck_full},
-    {5, 35, panel: :deck_full},
+    {1, 40},
+    {2, 50},
+    {3, 35},
+    {4, 40},
+    {5, 35},
     {6, 55, tab: :code},
     {7, 50, tab: :code},
     {8, 55, tab: :code},

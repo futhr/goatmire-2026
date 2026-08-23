@@ -38,6 +38,8 @@ defmodule Goatmire.Talk.Clock do
           drift_s: integer(),
           panel: :split | :deck_full | :live_full,
           tab: tab(),
+          slide_tab: tab() | nil,
+          reveal_panel: :split | :deck_full | :live_full,
           zoom: float(),
           budget_total_s: non_neg_integer(),
           slot_s: pos_integer(),
@@ -75,6 +77,15 @@ defmodule Goatmire.Talk.Clock do
   def goto(slide) when is_integer(slide) and slide in 1..@slide_count do
     GenServer.call(__MODULE__, {:goto, slide})
   end
+
+  @doc """
+  Opens the right panel at this slide's configured layout.
+
+  Slides always enter deck-only so the room reads the claim before the
+  evidence; revealing is a deliberate act.
+  """
+  @spec reveal() :: snapshot()
+  def reveal, do: GenServer.call(__MODULE__, :reveal)
 
   @doc "Overrides the panel layout until the next slide change."
   @spec set_panel(:split | :deck_full | :live_full) :: snapshot()
@@ -139,6 +150,11 @@ defmodule Goatmire.Talk.Clock do
   def handle_call(:prev, _, state), do: mutate(change_slide(state, max(state.slide - 1, 1)))
   def handle_call({:goto, slide}, _, state), do: mutate(change_slide(state, slide))
   def handle_call({:set_panel, panel}, _, state), do: mutate(%{state | panel: panel})
+
+  def handle_call(:reveal, _, state) do
+    mutate(%{state | panel: slide_timing(state).panel})
+  end
+
   def handle_call({:set_tab, tab}, _, state), do: mutate(%{state | tab: tab})
 
   def handle_call({:zoom, direction}, _, state) do
@@ -205,7 +221,7 @@ defmodule Goatmire.Talk.Clock do
       state
       | slide: slide,
         entered_at_ms: now_ms(),
-        panel: timing.panel,
+        panel: :deck_full,
         tab: timing.tab || state.tab
     }
   end
@@ -252,6 +268,8 @@ defmodule Goatmire.Talk.Clock do
       drift_s: talk_elapsed - planned_start - min(slide_elapsed, budget),
       panel: state.panel,
       tab: state.tab,
+      slide_tab: timing.tab,
+      reveal_panel: timing.panel,
       zoom: state.zoom,
       budget_total_s: Enum.sum(Enum.map(Map.values(state.timings), & &1.seconds)),
       slot_s: state.slot_seconds,
@@ -302,9 +320,11 @@ defmodule Goatmire.Talk.Clock do
   end
 
   defp apply_timing_defaults(state) do
-    timing = Map.get(state.timings, state.slide, default_timing())
-    %{state | panel: timing.panel, tab: timing.tab || state.tab}
+    timing = slide_timing(state)
+    %{state | panel: :deck_full, tab: timing.tab || state.tab}
   end
+
+  defp slide_timing(state), do: Map.get(state.timings, state.slide, default_timing())
 
   defp read_saved_file do
     with path when is_binary(path) <- Config.talk_state_path(),

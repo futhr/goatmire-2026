@@ -27,11 +27,13 @@ defmodule Goatmire.Talk.ClockTest do
     assert snap.slide == 2
 
     snap = Clock.goto(16)
-    assert snap.panel == :live_full
+    assert snap.panel == :deck_full
+    assert snap.reveal_panel == :live_full
     assert snap.tab == :rules
 
     snap = Clock.goto(13)
-    assert snap.panel == :split
+    assert snap.panel == :deck_full
+    assert snap.reveal_panel == :split
     assert snap.tab == :code
   end
 
@@ -41,8 +43,16 @@ defmodule Goatmire.Talk.ClockTest do
     end
   end
 
-  test "slide 22 opens the notebook pane" do
-    assert %{tab: :notebook, panel: :live_full} = Clock.goto(22)
+  test "slide 22 binds the notebook pane" do
+    assert %{tab: :notebook, panel: :deck_full, reveal_panel: :live_full} = Clock.goto(22)
+  end
+
+  test "a slide enters deck-only and reveal opens its configured layout" do
+    assert %{panel: :deck_full} = Clock.goto(17)
+    assert %{panel: :live_full} = Clock.reveal()
+
+    assert %{panel: :deck_full} = Clock.goto(13)
+    assert %{panel: :split} = Clock.reveal()
   end
 
   test "manual panel and tab overrides hold only until the next slide change" do
@@ -52,7 +62,7 @@ defmodule Goatmire.Talk.ClockTest do
     assert %{tab: :metrics} = Clock.set_tab(:metrics)
 
     snap = Clock.next()
-    assert snap.panel == :split
+    assert snap.panel == :deck_full
     assert snap.tab == :code
   end
 
@@ -98,6 +108,7 @@ defmodule Goatmire.Talk.ClockTest do
 
   test "reset_clock restarts the timer but keeps slide, layout, and zoom" do
     Clock.goto(16)
+    Clock.reveal()
     Clock.zoom(:in)
     Process.sleep(1_100)
 

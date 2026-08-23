@@ -32,11 +32,13 @@ opens fullscreen Chrome on `/talk`. Pin one more tab: Livebook (`localhost:8080`
 | Input | Does |
 |---|---|
 | `←/→`, PageUp/PageDown, space | previous / next slide |
-| `[` `\` `]` | deck only · split · live panel full |
+| `[` `\` `]` | deck only · split · reveal this slide's pane |
 | `A−` / `A+` (or `-` / `+`) | text zoom, held across refreshes |
 | `p` or the LIVE pill | next scripted demo step |
 | clicking a later LIVE step | runs the remaining steps in order |
 | `r` | reload `priv/talk/timings.exs` |
+
+Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: `]`, the pane icon, or any run button opens it at the slide's configured layout, and moving to the next slide closes it again.
 
 Slide state, panel, zoom, and the clock all live in the server, so a browser refresh lands exactly where you were. That is the recovery move: Cmd+R, not window juggling.
 

@@ -43,15 +43,28 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert Clock.snapshot().started?
   end
 
-  test "a LIVE slide expands the live panel and selects its pane", %{conn: conn} do
+  test "a LIVE slide enters deck-only and offers only its own pane", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(16)
 
     assert_eventually(fn ->
       html = render(view)
-      html =~ "live-full" and html =~ "aria-selected=\"true\""
+
+      html =~ "deck-full" and html =~ ~s(phx-value-tab="rules") and
+        not (html =~ ~s(phx-value-tab="metrics"))
     end)
+  end
+
+  test "running a step reveals the panel the slide is bound to", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    Clock.goto(16)
+    assert_eventually(fn -> render(view) =~ "deck-full" end)
+
+    view |> element("#play-next") |> render_click()
+
+    assert_eventually(fn -> render(view) =~ "live-full" end)
   end
 
   test "a Maude slide shows its code card in the right panel", %{conn: conn} do
@@ -106,19 +119,19 @@ defmodule GoatmireWeb.PresenterLiveTest do
     end)
   end
 
-  test "the visible pane delegates its actions to the dock", %{conn: conn} do
+  test "the slide's own pane delegates its actions to the dock", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
+    # a code slide offers the play button and no pane actions
     Clock.goto(13)
-    assert_eventually(fn -> render(view) =~ "live-tabs" end)
+    assert_eventually(fn -> render(view) =~ "run-code-dock" end)
+    refute render(view) =~ "pane_action"
 
-    # the play button owns the code card, whatever pane is open
-    assert render(view) =~ "run-code-dock"
+    # a rules slide offers the rules actions
+    Clock.goto(16)
+    assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
-    view |> element(~s(button[phx-value-tab="rules"])) |> render_click()
-    assert render(view) =~ "Deploy rule A"
-
-    view |> element(~s(button[phx-value-step="seed_deployed"])) |> render_click()
+    view |> element("#play-next") |> render_click()
 
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
   end

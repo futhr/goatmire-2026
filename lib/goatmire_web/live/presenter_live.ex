@@ -105,7 +105,7 @@ defmodule GoatmireWeb.PresenterLive do
         socket
 
       example ->
-        socket = clock(socket, fn -> Clock.set_tab(:code) end)
+        socket = socket |> clock(fn -> Clock.set_tab(:code) end) |> clock(&Clock.reveal/0)
 
         task =
           Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
@@ -149,7 +149,7 @@ defmodule GoatmireWeb.PresenterLive do
 
   def handle_event("tab", %{"tab" => tab}, socket) do
     with {:ok, tab} <- known_tab(tab) do
-      {:noreply, clock(socket, fn -> Clock.set_tab(tab) end)}
+      {:noreply, socket |> clock(fn -> Clock.set_tab(tab) end) |> clock(&Clock.reveal/0)}
     else
       _ -> {:noreply, socket}
     end
@@ -165,6 +165,7 @@ defmodule GoatmireWeb.PresenterLive do
     do: {:noreply, run_code(socket)}
 
   def handle_event("pane_action", %{"step" => step}, socket) do
+    socket = clock(socket, &Clock.reveal/0)
     tab = effective_tab(socket.assigns.snap.tab, socket.assigns.snap.slide)
 
     case Enum.find(Map.get(@pane_actions, tab, []), fn {s, _} -> Atom.to_string(s) == step end) do
@@ -212,7 +213,7 @@ defmodule GoatmireWeb.PresenterLive do
       "Home" -> {:noreply, clock(socket, fn -> Clock.goto(1) end)}
       "End" -> {:noreply, clock(socket, fn -> Clock.goto(socket.assigns.snap.slide_count) end)}
       "[" -> {:noreply, clock(socket, fn -> Clock.set_panel(:deck_full) end)}
-      "]" -> {:noreply, clock(socket, fn -> Clock.set_panel(:live_full) end)}
+      "]" -> {:noreply, clock(socket, &Clock.reveal/0)}
       "\\" -> {:noreply, clock(socket, fn -> Clock.set_panel(:split) end)}
       k when k in ["+", "="] -> {:noreply, clock(socket, fn -> Clock.zoom(:in) end)}
       "-" -> {:noreply, clock(socket, fn -> Clock.zoom(:out) end)}
@@ -258,6 +259,7 @@ defmodule GoatmireWeb.PresenterLive do
 
       socket
       |> clock(fn -> Clock.set_tab(pane) end)
+      |> clock(&Clock.reveal/0)
       |> assign(:play_done, Map.put(socket.assigns.play_done, slide, target + 1))
     else
       _ -> socket
@@ -590,16 +592,14 @@ defmodule GoatmireWeb.PresenterLive do
         </div>
       </div>
 
+      <% {scripted?, steps, actions} = dock_items(@snap.slide, @snap.slide_tab, @play_done)
+      has_code = CodeExamples.example(@snap.slide) != nil %>
       <div
-        :if={@snap.panel != :deck_full}
+        :if={steps != [] or actions != [] or has_code or @snap.slide_tab != nil}
         class="live-tabs"
         role="toolbar"
         aria-label="Live panel"
       >
-        <% {scripted?, steps, actions} =
-          dock_items(@snap.slide, effective_tab(@snap.tab, @snap.slide), @play_done)
-
-        has_code = CodeExamples.example(@snap.slide) != nil %>
         <div
           :if={steps != [] or actions != [] or has_code}
           class="live-steps"
@@ -657,7 +657,7 @@ defmodule GoatmireWeb.PresenterLive do
 
         <button
           :for={{tab, label} <- @tab_options}
-          :if={tab != :code or CodeExamples.example(@snap.slide) != nil}
+          :if={tab == @snap.slide_tab}
           type="button"
           role="tab"
           aria-selected={to_string(effective_tab(@snap.tab, @snap.slide) == tab)}
