@@ -301,7 +301,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
     <div class="row" style="margin-bottom:1rem">
       <span id="diagnostic-provider" class="badge idle">{@provider_label}</span>
       <span class="badge idle">mode: {current(assigns.snapshot)[:mode] || "no run"}</span>
-      <a href={~p"/beamlens"} class="note">open full BeamLens inspector →</a>
+      <a href={~p"/beamlens"} class="note">open inspector →</a>
     </div>
 
     <div id="diagnostic-metrics" class="grid cols-4 metrics">
