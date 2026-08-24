@@ -1,7 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells from prose. Use whenever writing or editing any text a human will read — README, docs/, runbooks, talk script, commit messages, moduledocs, code comments, chat replies. Also /unslop <file> to clean an existing file.
-argument-hint: "[file]"
+description: Cut AI tells from human-facing prose while preserving technical, legal, product, and domain precision. Use when writing or editing README, docs, runbooks, specs, commit messages, moduledocs, comments, PR text, or chat replies; also /unslop FILE.
 ---
 
 Strip the patterns that mark text as machine-written. Meaning stays, voice tightens.
@@ -12,21 +11,20 @@ delve, crucial, pivotal, testament, tapestry, landscape, interplay, intricate, v
 
 ## Banned constructions
 
-- "serves as" / "stands as" / "acts as" → "is"
+- "serves as" / "stands as" / "acts as" -> "is"
 - "not just X, but Y"
-- forced triads ("fast, simple, and powerful")
-- empty gerund tails ("…ensuring reliability", "…highlighting the importance")
-- hedge stacks ("could potentially")
+- forced triads where two concrete points are enough
+- empty gerund tails, such as "ensuring reliability" or "highlighting the importance"
+- hedge stacks, such as "could potentially"
 - "It's important to note", "Here's where it gets interesting", "the kicker"
-- vague authority ("experts believe", "many argue")
-- filler: "in order to" → "to", "the fact that" → drop it
+- vague authority, such as "experts believe" or "many argue"
+- filler: "in order to" -> "to"; "the fact that" -> drop it
 
 ## Banned formatting
 
-- bold sprinkled on nouns — bold only as a scan anchor
-- Title Case Headings → sentence case
+- bold sprinkled on nouns; bold only as a scan anchor
 - decorative emoji
-- em-dash chains — at most one per paragraph
+- em-dash chains; use a period when a period works
 - a colon splice where a period works
 
 ## Banned tone
@@ -35,14 +33,16 @@ delve, crucial, pivotal, testament, tapestry, landscape, interplay, intricate, v
 - preamble before the answer, recap after it
 - "In conclusion", "Overall"
 
-## House calibration (this repo)
+## House calibration
 
-- Voice: match README.md — plain, direct, honest about scope. The talk's thesis is honest scoping; overclaiming is off-brand.
-- Code, commands, error output, and file paths stay verbatim. Never paraphrase a number.
-- Domain registers compose on top of this skill: `elixir-prose` governs .ex/.exs docs and comments (hard-wrapped ~80 cols, hexdocs rules); `teach` governs README, docs/, and livebooks (pedagogic, unwrapped markdown). The wrap conventions are opposites — never let one leak into the other.
+GOAT/Maude/IoT stage demo. Preserve Maude, ExMaude, term, equation, rewrite rule, verifier, verdict, witness, unverified, simulated AGV, deployment gate, BeamLens, and stage-beat terms exactly. Never turn a bounded formal claim into a broad safety claim.
+
+Code, commands, error output, file paths, identifiers, dates, and numbers stay verbatim. Never paraphrase a measured result or a contract boundary.
+
+Domain registers compose on top of this skill. If another local skill governs Elixir docs, specs, legal text, research prose, or product copy, obey that skill's terminology and wrapping rules while applying this cleanup pass.
 
 ## Self-audit
 
 Before finishing, reread once and ask: what here is obviously AI-generated? Fix it.
 
-With a file argument: Read $ARGUMENTS, rewrite it under these rules, report what changed in two or three lines.
+With a file argument: read $ARGUMENTS, rewrite it under these rules, preserve technical claims and code blocks exactly, and report what changed in two or three lines.
