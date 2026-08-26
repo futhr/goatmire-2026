@@ -78,12 +78,7 @@ defmodule Goatmire.MixProject do
         "../beamlens_web",
         ref: "a8bcb2340d9a67cb91265d929f0f286d3425ad24"
       ),
-      git_or_local(
-        :ex_maude,
-        "https://github.com/futhr/ex_maude.git",
-        "../ex_maude",
-        ref: "e8b9ead8884b69e0aaf4ac3aa1ef7332c7c9ac38"
-      ),
+      {:ex_maude, "~> 0.4.1"},
 
       # Renders the verifier's rule terms with Livebook editor colours.
       {:makeup_elixir, "~> 1.0"},

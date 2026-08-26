@@ -17,7 +17,7 @@ defmodule Goatmire.Engine.Supervisor do
 
   @impl true
   def init(_) do
-    children = [ex_maude_child_spec(), Goatmire.Engine] ++ vda5050_children()
+    children = ex_maude_children() ++ [Goatmire.Engine] ++ vda5050_children()
 
     Supervisor.init(children, strategy: :rest_for_one, max_restarts: 10, max_seconds: 10)
   end
@@ -33,6 +33,13 @@ defmodule Goatmire.Engine.Supervisor do
       ExMaude.iot_rules_path(),
       ExMaude.ai_rules_path()
     ])
+  end
+
+  defp ex_maude_children do
+    case ExMaude.Binary.find() do
+      nil -> []
+      _ -> [ex_maude_child_spec()]
+    end
   end
 
   defp ex_maude_child_spec do
