@@ -1,6 +1,7 @@
 defmodule Goatmire.FakeCodexRunner do
   @moduledoc false
 
+  @doc false
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
   def complete(_, _) do
     Application.get_env(
@@ -11,6 +12,7 @@ defmodule Goatmire.FakeCodexRunner do
     )
   end
 
+  @doc false
   @spec preflight() :: {:ok, map()} | {:error, term()}
   def preflight do
     Application.get_env(
@@ -24,6 +26,7 @@ end
 defmodule Goatmire.FakeOllamaRunner do
   @moduledoc false
 
+  @doc false
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
   def complete(_, _) do
     Application.get_env(
@@ -33,6 +36,7 @@ defmodule Goatmire.FakeOllamaRunner do
     )
   end
 
+  @doc false
   @spec preflight() :: {:ok, map()} | {:error, term()}
   def preflight do
     Application.get_env(
