@@ -46,6 +46,8 @@ jobs:
 
       - name: Install the pinned Maude interpreter
         run: mix maude.install --version 3.5.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run the canonical repository gate
         run: mix check --no-retry
@@ -83,6 +85,11 @@ jobs:
 
       - name: Install ChromeDriver matching the runner Chrome
         run: scripts/install-chromedriver.sh
+
+      - name: Install the pinned Maude interpreter
+        run: mix maude.install --version 3.5.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Exercise the connected responsive dashboards
         run: mix test.e2e
