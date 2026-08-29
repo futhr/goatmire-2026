@@ -1,0 +1,7 @@
+interface:
+  display_name: "Debuzz"
+  short_description: "Rewrite prose without theatrical framing"
+  default_prompt: "Use $debuzz to rewrite this text for a colleague without theatrics."
+
+policy:
+  allow_implicit_invocation: false

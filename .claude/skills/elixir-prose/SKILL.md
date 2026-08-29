@@ -1,12 +1,14 @@
 ---
 name: elixir-prose
 description: Moduledoc, @doc, @spec, and code-comment style for this codebase. Use when writing or editing any prose inside .ex/.exs files.
-paths:
-  - "lib/**/*.ex"
-  - "test/**/*.exs"
+metadata:
+  path-scope: "lib/**/*.ex,test/**/*.exs"
 ---
 
 Senior voice, hexdocs discipline. The best calibration is already in this repo — match it, don't invent a new register.
+
+Apply this skill only to prose inside `lib/**/*.ex` and `test/**/*.exs`.
+Markdown, Livebook, and other documentation belong to the teaching style owner.
 
 ## Hexdocs rules (non-negotiable)
 

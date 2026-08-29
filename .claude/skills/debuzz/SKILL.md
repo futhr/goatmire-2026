@@ -1,11 +1,15 @@
 ---
 name: debuzz
-description: Rewrite text for an audience, minus the theatrics.
-disable-model-invocation: true
-argument-hint: "[colleague|manager|director] [file or text]"
+description: Rewrite text for a named audience without theatrics. Use only when the user explicitly invokes debuzz; never select it implicitly for ordinary editing.
+metadata:
+  argument-hint: "[colleague|manager|director] [file or text]"
+  legacy-claude-disable-model-invocation: "true"
 ---
 
 Translate the target — a file path, pasted text, or with no target your own previous reply — into plain English. Print the translation verbatim. Do not tidy it afterwards; tidying reintroduces the voice being removed.
+
+This skill is explicit-only. Do not apply it unless the user directly invokes
+`debuzz` and supplies, or clearly implies, one of the modes below.
 
 Modes:
 

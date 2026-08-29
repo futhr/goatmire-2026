@@ -1,15 +1,16 @@
 ---
 name: teach
-description: Pedagogic style for the talk and teaching docs. Use when writing or editing README.md, anything in docs/, notebooks, or livebooks — and /teach <file> to rewrite an existing doc that reads like a research paper.
-argument-hint: "[file]"
-paths:
-  - "README.md"
-  - "docs/**/*.md"
-  - "notebooks/**/*.livemd"
-  - "priv/livebooks/**/*.livemd"
+description: Pedagogic style for the talk and teaching docs. Use when writing or editing README.md, anything in docs/, notebooks, or livebooks — and /teach [file] to rewrite an existing doc that reads like a research paper.
+metadata:
+  argument-hint: "[file]"
+  path-scope: "README.md,docs/**/*.md,notebooks/**/*.livemd,priv/livebooks/**/*.livemd"
 ---
 
 The reader is a senior Elixir developer who has never seen Maude. The speaker has to *say* this material on stage and understand every sentence they say. Write for that person, not for reviewers.
+
+Apply this skill only to `README.md`, `docs/**/*.md`,
+`notebooks/**/*.livemd`, and `priv/livebooks/**/*.livemd`. Elixir source prose
+belongs to `elixir-prose`.
 
 ## The failure mode being fixed
 
