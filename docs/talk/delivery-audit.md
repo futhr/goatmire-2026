@@ -72,11 +72,11 @@ Rates are occurrences per thousand spoken tokens. `Audience` counts `you`, `we`,
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Goatmire | 32 | 16.1 | 148,085 | 36.40 | 9.57 | 1.62 | 6.12 | 2.37 |
 | ElixirConf | 12 | 8.8 | 93,090 | 40.71 | 9.84 | 2.20 | 6.75 | 2.48 |
-| Current stage manuscript | 1 | — | 2,331 | 20.59 | 12.44 | 3.00 | 0.86 | 9.44 |
+| Current stage manuscript | 1 | — | 1,348 | 18.55 | 10.39 | 1.48 | 4.45 | 10.39 |
 
 The manuscript row is a snapshot; rerun `scripts/analyze-conference-captions.rb` after any manuscript edit so the table matches the text being rehearsed.
 
-The manuscript deliberately uses less conversational filler and more scope language than the corpus. Its direction and demo cue rates are at or above the comparison range. Audience/shared-action language rose from 4.39 in the first draft to 20.59 without imitating filler.
+The plain-language manuscript deliberately keeps necessary scope language while removing the Maude mini-language lecture, partitioning detail, detector inventories, and tool comparison from the spoken path. Its shorter sentences and smaller vocabulary are intended for live comprehension rather than written completeness.
 
 ## Patterns adopted
 
@@ -87,7 +87,7 @@ The manuscript deliberately uses less conversational filler and more scope langu
 5. Use shared directional language (`we`, `you`, `now`, `let's`, `watch`) to move the room through technical transitions.
 6. Put resources before the takeaways and let the narrow formal-method claim, not a URL or disclaimer, be the final sound.
 
-These patterns produced the current 25-slide, 2,331-token manuscript with explicit hard cuts and 2:30 of contingency.
+These patterns produced the current 18-slide, 1,348-token manuscript with explicit recovery cuts and at least four minutes of contingency.
 
 ## What remains
 

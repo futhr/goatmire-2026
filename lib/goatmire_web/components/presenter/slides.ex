@@ -1,51 +1,26 @@
 defmodule GoatmireWeb.Presenter.Slides do
   @moduledoc """
-  The 25 talk slides as function components.
+  The 18-slide conference deck as Phoenix function components.
 
-  Ported from `docs/talk/slides/deck.md`; speaker notes stay archived there.
-  Styled by `priv/static/assets/presenter-slides.css`.
+  The main path carries one idea at a time. Partitioning, detector inventories,
+  tool comparisons, and production audit detail remain in the repository for
+  Q&A instead of competing with the thirty-minute story.
   """
 
   use Phoenix.Component
 
-  @titles [
-    {1, "Zero Alert Storms"},
-    {2, "Both apps were reasonable"},
-    {3, "Both rules are reasonable"},
-    {4, "The loop nobody designed"},
-    {5, "The deployment question"},
-    {6, "Sample behaviour—or decide an encoded predicate"},
-    {7, "Four pieces"},
-    {8, "Reduce is not search"},
-    {9, "Four conflict categories"},
-    {10, "A narrow claim can be strong"},
-    {11, "Maude as an ordinary supervised dependency"},
-    {12, "Verify the term the runtime executes"},
-    {13, "Never turn “no answer” into “yes”"},
-    {14, "Every arrow deserves a test"},
-    {15, "Partition on interaction edges"},
-    {16, "Catch the conflict before the rule exists"},
-    {17, "Run the same shift change twice"},
-    {18, "Ask the running system why"},
-    {19, "An LLM may propose policy; it should not judge itself"},
-    {20, "Exactly seven categories"},
-    {21, "Put a deterministic gate around a probabilistic author"},
-    {22, "Approval missing → clean revision → wrong jurisdiction"},
-    {23, "Maude is not the only answer"},
-    {24, "Keep the claim attached to its evidence"},
-    {25, "Close"}
-  ]
+  alias Goatmire.Talk.Deck
 
-  @doc "Slide numbers and titles, in deck order, for the presenter chrome."
+  @doc "Slide numbers and titles, in deck order, for every talk surface."
   @spec titles() :: [{pos_integer(), String.t()}]
-  def titles, do: @titles
+  def titles, do: Deck.titles()
 
   attr :n, :integer, required: true
 
   @doc "Renders slide `n` of the deck."
   @spec slide(map()) :: Phoenix.LiveView.Rendered.t()
-  # A dispatch table over the 25 slides; the branch count is the deck length,
-  # not decision logic.
+  # A dispatch table over the slides; the branch count is deck length, not
+  # decision logic.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def slide(assigns) do
     case assigns.n do
@@ -67,13 +42,6 @@ defmodule GoatmireWeb.Presenter.Slides do
       16 -> slide_16(assigns)
       17 -> slide_17(assigns)
       18 -> slide_18(assigns)
-      19 -> slide_19(assigns)
-      20 -> slide_20(assigns)
-      21 -> slide_21(assigns)
-      22 -> slide_22(assigns)
-      23 -> slide_23(assigns)
-      24 -> slide_24(assigns)
-      25 -> slide_25(assigns)
     end
   end
 
@@ -83,8 +51,7 @@ defmodule GoatmireWeb.Presenter.Slides do
       <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
       <h1>Zero Alert Storms</h1>
       <p class="sl-lede">
-        Formal verification for IoT automation—at the deployment gate, before
-        reasonable rules become an unreasonable system.
+        Check rules together—before reasonable rules become an unreasonable system.
       </p>
       <p class="sl-author">Tobias Bohwalli</p>
     </section>
@@ -94,29 +61,21 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_2(assigns) do
     ~H"""
     <section class="slide slide-2 slide--default">
-      <div class="sl-eyebrow">A published interaction</div>
-      <h1>Both apps were reasonable</h1>
-      <div class="sl-flow">
-        <div class="sl-node">
-          <div class="sl-label">smart-home app</div>
-          <div class="sl-value">O3</div>
+      <div class="sl-eyebrow">A published SOTERIA interaction</div>
+      <h1>Two reasonable rules disagree</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <div class="sl-label">O3 shape</div>
+          <h2>Contact opens</h2>
+          <p>Set <code>switch</code> to <code>on</code>.</p>
         </div>
-        <span class="sl-arrow">+</span>
-        <div class="sl-node">
-          <div class="sl-label">smart-home app</div>
-          <div class="sl-value">O4</div>
-        </div>
-        <span class="sl-arrow">→</span>
-        <div class="sl-node">
-          <div class="sl-label">installed together</div>
-          <div class="sl-value">one home, one switch</div>
+        <div class="sl-panel">
+          <div class="sl-label">O4 shape</div>
+          <h2>Contact opens</h2>
+          <p>Set <code>switch</code> to <code>off</code>.</p>
         </div>
       </div>
-      <p class="sl-lede">
-        From SOTERIA, a published smart-home safety analysis: two apps react to
-        the same contact-open event — and set the same switch to conflicting values.
-      </p>
-      <p class="sl-small">Reproduced rule shape · controlled simulation · no real home involved.</p>
+      <p class="sl-small">Published pattern · controlled reproduction · no real home involved</p>
     </section>
     """
   end
@@ -124,50 +83,45 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_3(assigns) do
     ~H"""
     <section class="slide slide-3 slide--default">
-      <div class="sl-eyebrow">One event · one switch · two values</div>
-      <h1>Both rules are reasonable</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <div class="sl-label">SOTERIA O3 shape</div>
-          <h2>Contact opens</h2>
-          <p>Set <code>switch</code> to <code>on</code>.</p>
-        </div>
-        <div class="sl-panel">
-          <div class="sl-label">SOTERIA O4 shape</div>
-          <h2>Contact opens</h2>
-          <p>Set <code>switch</code> to <code>off</code>.</p>
-        </div>
+      <div class="sl-eyebrow">Composition is the bug</div>
+      <h1>The system runs the set</h1>
+      <div class="sl-flow">
+        <div class="sl-node">contact opens</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">switch on</div>
+        <div class="sl-arrow">↔</div>
+        <div class="sl-node">switch off</div>
       </div>
+      <blockquote>You review one change. The system runs all of them together.</blockquote>
     </section>
     """
   end
 
   defp slide_4(assigns) do
     ~H"""
-    <section class="slide slide-4 slide--default">
-      <div class="sl-eyebrow">Composition is the bug</div>
-      <h1>The loop nobody designed</h1>
-      <div class="sl-flow">
-        <div class="sl-node">contact open</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">O3: on</div>
-        <div class="sl-arrow">↔</div>
-        <div class="sl-node">same switch</div>
-        <div class="sl-arrow">↔</div>
-        <div class="sl-node">O4: off</div>
-      </div>
-      <blockquote>Every component can work while the system is absurd.</blockquote>
+    <section class="slide slide-4 slide--statement">
+      <div class="sl-eyebrow">The deployment question</div>
+      <div class="sl-statement">If the conflict exists now, why discover it after deployment?</div>
     </section>
     """
   end
 
   defp slide_5(assigns) do
     ~H"""
-    <section class="slide slide-5 slide--statement">
-      <div class="sl-eyebrow">The deployment question</div>
-      <div class="sl-statement">
-        If the relationship exists before activation, why wait for telemetry to discover it?
+    <section class="slide slide-5 slide--default">
+      <div class="sl-eyebrow">Different tools · different questions</div>
+      <h1>Tests and checks answer different questions</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <div class="sl-label">tests and simulation</div>
+          <div class="sl-value">What happened in these runs?</div>
+        </div>
+        <div class="sl-panel">
+          <div class="sl-label">formal checker</div>
+          <div class="sl-value">Can these rules fight?</div>
+        </div>
       </div>
+      <p class="sl-lede sl-mt">A smaller question can support a stronger answer.</p>
     </section>
     """
   end
@@ -175,22 +129,16 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_6(assigns) do
     ~H"""
     <section class="slide slide-6 slide--default">
-      <div class="sl-eyebrow">Testing and formal checking answer different questions</div>
-      <h1>Sample behaviour—or decide an encoded predicate</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <div class="sl-label">tests / simulation</div>
-          <div class="sl-value">Did these executions fail?</div>
-          <p class="sl-small">
-            Excellent for runtime code, timing, integration, and properties over generated cases.
-          </p>
-        </div>
-        <div class="sl-panel">
-          <div class="sl-label">equational detector</div>
-          <div class="sl-value">Does this finite term match the conflict definition?</div>
-          <p class="sl-small">Strong only inside the validated input and encoded model.</p>
-        </div>
+      <div class="sl-eyebrow">Maude in one picture</div>
+      <h1>Maude turns rules into an answer</h1>
+      <div class="sl-flow">
+        <div class="sl-node">validated rules</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">conflict definitions</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">answer + concrete example</div>
       </div>
+      <blockquote>It checks the model we wrote—not every fact about the physical world.</blockquote>
     </section>
     """
   end
@@ -198,29 +146,23 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_7(assigns) do
     ~H"""
     <section class="slide slide-7 slide--default">
-      <div class="sl-eyebrow">A Maude mental model</div>
-      <h1>Four pieces</h1>
+      <div class="sl-eyebrow">What this demo checks</div>
+      <h1>Four ways rules can fight</h1>
       <div class="sl-four">
         <div class="sl-panel">
-          <div class="sl-label">sorts</div>
-          <div class="sl-value">types</div>
+          <div class="sl-value">opposite writes</div>
         </div>
         <div class="sl-panel">
-          <div class="sl-label">operators</div>
-          <div class="sl-value">constructors + functions</div>
+          <div class="sl-value">opposite effects</div>
         </div>
         <div class="sl-panel">
-          <div class="sl-label">equations</div>
-          <div class="sl-value">simplify</div>
+          <div class="sl-value">chain reaction</div>
         </div>
         <div class="sl-panel">
-          <div class="sl-label">rewrite rules</div>
-          <div class="sl-value">transition</div>
+          <div class="sl-value">state ↔ environment chain</div>
         </div>
       </div>
-      <p class="sl-lede sl-mt">
-        For an Elixir developer: complete function clauses versus possible state transitions.
-      </p>
+      <p class="sl-lede sl-mt">If a problem is not represented here, this checker does not see it.</p>
     </section>
     """
   end
@@ -228,20 +170,17 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_8(assigns) do
     ~H"""
     <section class="slide slide-8 slide--default">
-      <div class="sl-eyebrow">Two commands · two claims</div>
-      <h1>Reduce is not search</h1>
-      <pre><code>reduce in SWITCH : toggle(toggle(on)) .
-
-    search [1] in CELL : idle =>* ready .</code></pre>
-      <div class="sl-two sl-mt">
-        <p>
-          <strong>reduce</strong><br />
-          <span class="sl-small">normal form under equations</span>
-        </p>
-        <p>
-          <strong>search</strong><br />
-          <span class="sl-small">reachable witness under transitions</span>
-        </p>
+      <div class="sl-eyebrow">Draw the border around the answer</div>
+      <h1>A narrow answer is still useful</h1>
+      <div class="sl-two">
+        <div class="sl-panel sl-panel--clean">
+          <h2>Checked</h2>
+          <p>these rules<br />these conflict definitions<br />this result</p>
+        </div>
+        <div class="sl-panel">
+          <h2>Not checked</h2>
+          <p>physics · timing · permissions · hazards we did not model</p>
+        </div>
       </div>
     </section>
     """
@@ -250,26 +189,18 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_9(assigns) do
     ~H"""
     <section class="slide slide-9 slide--default">
-      <div class="sl-eyebrow">The bundled IoT model</div>
-      <h1>Four conflict categories</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <h2>state conflict</h2>
-          <p class="sl-small">same action target + property, incompatible writes</p>
-        </div>
-        <div class="sl-panel">
-          <h2>environment conflict</h2>
-          <p class="sl-small">actions push a shared environmental property apart</p>
-        </div>
-        <div class="sl-panel">
-          <h2>state cascade</h2>
-          <p class="sl-small">one action satisfies another rule's trigger</p>
-        </div>
-        <div class="sl-panel">
-          <h2>state–environment cascade</h2>
-          <p class="sl-small">the causal chain crosses state and environment</p>
-        </div>
+      <div class="sl-eyebrow">An ordinary BEAM dependency</div>
+      <h1>Maude runs as a supervised worker</h1>
+      <div class="sl-flow">
+        <div class="sl-node">Elixir call</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">worker pool</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">Maude process</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">typed answer</div>
       </div>
+      <pre><code>ExMaude.IoT.detect_conflicts(rules)</code></pre>
     </section>
     """
   end
@@ -277,18 +208,15 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_10(assigns) do
     ~H"""
     <section class="slide slide-10 slide--default">
-      <div class="sl-eyebrow">Formal methods need a border</div>
-      <h1>A narrow claim can be strong</h1>
+      <div class="sl-eyebrow">One rule representation · two uses</div>
+      <h1>Check the same rule you run</h1>
+      <div class="sl-branch-source" phx-no-curly-interpolation>%{trigger: …, actions: …}</div>
+      <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
       <div class="sl-two">
-        <div class="sl-panel sl-panel--clean">
-          <h2>Inside</h2>
-          <p>validated finite rules<br />encoder<br />selected model<br />interpreter result</p>
-        </div>
-        <div class="sl-panel">
-          <h2>Outside</h2>
-          <p>physics · firmware timing · authorization · omitted hazards · deployment reality</p>
-        </div>
+        <div class="sl-panel sl-panel--center">checker</div>
+        <div class="sl-panel sl-panel--center">runtime</div>
       </div>
+      <blockquote>A checked copy that drifts from runtime checks the wrong thing.</blockquote>
     </section>
     """
   end
@@ -296,18 +224,22 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_11(assigns) do
     ~H"""
     <section class="slide slide-11 slide--default">
-      <div class="sl-eyebrow">ExMaude</div>
-      <h1>Maude as an ordinary supervised dependency</h1>
-      <div class="sl-flow">
-        <div class="sl-node">Elixir caller</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">named worker pool</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">Maude subprocess</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">typed result</div>
+      <div class="sl-eyebrow">The gate has three answers</div>
+      <h1>Never turn “no answer” into “yes”</h1>
+      <div class="sl-three">
+        <div class="sl-verdict sl-verdict--clean">
+          <strong>clean</strong>
+          <span>check completed; no modelled conflict found</span>
+        </div>
+        <div class="sl-verdict sl-verdict--conflicts">
+          <strong>conflicts</strong>
+          <span>concrete conflict + rule ids</span>
+        </div>
+        <div class="sl-verdict sl-verdict--unverified">
+          <strong>unverified</strong>
+          <span>the checker could not answer</span>
+        </div>
       </div>
-      <pre><code>ExMaude.IoT.detect_conflicts(rules)</code></pre>
     </section>
     """
   end
@@ -315,39 +247,29 @@ defmodule GoatmireWeb.Presenter.Slides do
   defp slide_12(assigns) do
     ~H"""
     <section class="slide slide-12 slide--default">
-      <div class="sl-eyebrow">One representation · two consumers</div>
-      <h1>Verify the term the runtime executes</h1>
-      <div class="sl-branch-source" phx-no-curly-interpolation>%{trigger: …, actions: …}</div>
-      <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
-      <div class="sl-two">
-        <div class="sl-panel sl-panel--center">ExMaude encoder + detector</div>
-        <div class="sl-panel sl-panel--center">rule evaluator + actuator</div>
+      <div class="sl-eyebrow">The real trust boundary</div>
+      <h1>Test every translation step</h1>
+      <div class="sl-flow">
+        <div class="sl-node">Elixir rule</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">encoded rule</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">checker output</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">deploy or stop</div>
       </div>
-      <blockquote>
-        A verified copy that drifts from runtime proves the wrong thing precisely.
-      </blockquote>
     </section>
     """
   end
 
   defp slide_13(assigns) do
     ~H"""
-    <section class="slide slide-13 slide--default">
-      <div class="sl-eyebrow">The gate has three answers</div>
-      <h1>Never turn “no answer” into “yes”</h1>
-      <div class="sl-three">
-        <div class="sl-verdict sl-verdict--clean">
-          <strong>clean</strong>
-          <span>detector ran; no modelled conflict found</span>
-        </div>
-        <div class="sl-verdict sl-verdict--conflicts">
-          <strong>conflicts</strong>
-          <span>concrete typed conflict + rule ids</span>
-        </div>
-        <div class="sl-verdict sl-verdict--unverified">
-          <strong>unverified</strong>
-          <span>timeout, unavailable backend, or rejected input</span>
-        </div>
+    <section class="slide slide-13 slide--demo">
+      <div class="sl-eyebrow">Live demo · rule gate</div>
+      <div class="sl-live">
+        <p class="sl-live-label">LIVE · 01</p>
+        <h1>Catch the conflict before the rule exists</h1>
+        <p class="sl-live-caption">deploy rule A → check rule B → read the answer</p>
       </div>
     </section>
     """
@@ -355,64 +277,7 @@ defmodule GoatmireWeb.Presenter.Slides do
 
   defp slide_14(assigns) do
     ~H"""
-    <section class="slide slide-14 slide--default">
-      <div class="sl-eyebrow">The real trust boundary</div>
-      <h1>Every arrow deserves a test</h1>
-      <div class="sl-flow">
-        <div class="sl-node">validated Elixir data</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">encoder</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">Maude term + module</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">parsed verdict</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">activation policy</div>
-      </div>
-    </section>
-    """
-  end
-
-  defp slide_15(assigns) do
-    ~H"""
-    <section class="slide slide-15 slide--default">
-      <div class="sl-eyebrow">Scale the comparison, not the claim</div>
-      <h1>Partition on interaction edges</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <div class="sl-label">conservative edges</div>
-          <div class="sl-value">same Thing</div>
-          <div class="sl-value">same action target</div>
-          <div class="sl-value">writer → trigger property</div>
-        </div>
-        <div class="sl-panel">
-          <div class="sl-label">on screen</div>
-          <div class="sl-value">rules</div>
-          <div class="sl-value">partitions</div>
-          <div class="sl-value">pairs skipped</div>
-        </div>
-      </div>
-      <p class="sl-lede sl-mt">Grouping only by Thing would miss cross-Thing cascades.</p>
-    </section>
-    """
-  end
-
-  defp slide_16(assigns) do
-    ~H"""
-    <section class="slide slide-16 slide--demo">
-      <div class="sl-eyebrow">Live demo · rule gate</div>
-      <div class="sl-live">
-        <p class="sl-live-label">LIVE · 01</p>
-        <h1>Catch the conflict before the rule exists</h1>
-        <p class="sl-live-caption">localhost:4000/rules</p>
-      </div>
-    </section>
-    """
-  end
-
-  defp slide_17(assigns) do
-    ~H"""
-    <section class="slide slide-17 slide--demo">
+    <section class="slide slide-14 slide--demo">
       <div class="sl-eyebrow">Live demo · warehouse floor</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 02</p>
@@ -423,152 +288,54 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_18(assigns) do
+  defp slide_15(assigns) do
     ~H"""
-    <section class="slide slide-18 slide--demo">
+    <section class="slide slide-15 slide--demo">
       <div class="sl-eyebrow">Live demo · diagnostics</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 03</p>
         <h1>Ask the running system why</h1>
-        <p class="sl-live-caption">BeamLens · bounded snapshot · cited fields · visible provider</p>
+        <p class="sl-live-caption">observations cite fields · inference stays separate</p>
       </div>
     </section>
     """
   end
 
-  defp slide_19(assigns) do
+  defp slide_16(assigns) do
     ~H"""
-    <section class="slide slide-19 slide--default">
-      <div class="sl-eyebrow">The pattern transfers</div>
-      <h1>An LLM may propose policy; it should not judge itself</h1>
-      <pre phx-no-curly-interpolation><code>invocations: [
-      {:invoke_tool, "dose", %{}, "high_impact", :eu}
-    ]</code></pre>
-      <p class="sl-lede sl-mt">Structured output in. Deterministic policy equations out.</p>
-    </section>
-    """
-  end
-
-  defp slide_20(assigns) do
-    ~H"""
-    <section class="slide slide-20 slide--default">
-      <div class="sl-eyebrow">The bundled AI policy model</div>
-      <h1>Exactly seven categories</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <p>
-            tool-call conflict<br />capability shadowing<br />pack/tool mismatch<br />sovereignty
-            violation
-          </p>
-        </div>
-        <div class="sl-panel">
-          <p>authority escalation<br />approval-gate bypass<br />agent-loop cascade</p>
-        </div>
-      </div>
-      <blockquote>If it is not in this list, this detector did not check it.</blockquote>
-    </section>
-    """
-  end
-
-  defp slide_21(assigns) do
-    ~H"""
-    <section class="slide slide-21 slide--default">
-      <div class="sl-eyebrow">Generate · verify · revise</div>
-      <h1>Put a deterministic gate around a probabilistic author</h1>
+    <section class="slide slide-16 slide--default">
+      <div class="sl-eyebrow">The same boundary works for generated policy</div>
+      <h1>AI may suggest; the checker decides</h1>
       <div class="sl-flow">
-        <div class="sl-node">generate structured rules</div>
+        <div class="sl-node">AI suggests a rule</div>
         <div class="sl-arrow">→</div>
-        <div class="sl-node">validate + encode</div>
+        <div class="sl-node">validate its shape</div>
         <div class="sl-arrow">→</div>
-        <div class="sl-node">typed conflict</div>
+        <div class="sl-node">deterministic check</div>
         <div class="sl-arrow">→</div>
-        <div class="sl-node">revise</div>
-        <div class="sl-arrow">↺</div>
+        <div class="sl-node">revise or admit</div>
       </div>
+      <blockquote>The author does not grade its own work.</blockquote>
     </section>
     """
   end
 
-  defp slide_22(assigns) do
+  defp slide_17(assigns) do
     ~H"""
-    <section class="slide slide-22 slide--demo">
+    <section class="slide slide-17 slide--demo">
       <div class="sl-eyebrow">Live demo · policy by hand</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 04</p>
-        <h1>Approval missing → clean revision → wrong jurisdiction</h1>
-        <p class="sl-live-caption">Livebook · generated command, not a hand-copied command</p>
+        <h1>Approval missing → fixed → wrong region</h1>
+        <p class="sl-live-caption">three inputs · three readable answers</p>
       </div>
     </section>
     """
   end
 
-  defp slide_23(assigns) do
+  defp slide_18(assigns) do
     ~H"""
-    <section class="slide slide-23 slide--default">
-      <div class="sl-eyebrow">Choose by property shape</div>
-      <h1>Maude is not the only answer</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Need</th>
-            <th>Reach for</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>algebraic terms + concurrent transitions</td>
-            <td>Maude</td>
-          </tr>
-          <tr>
-            <td>temporal distributed behaviours</td>
-            <td>TLA+ / PlusCal</td>
-          </tr>
-          <tr>
-            <td>bounded relational structures</td>
-            <td>Alloy</td>
-          </tr>
-          <tr>
-            <td>constraints and satisfiability</td>
-            <td>SMT / Z3</td>
-          </tr>
-          <tr>
-            <td>protocol/session conformance</td>
-            <td>types, model checking, or both</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-    """
-  end
-
-  defp slide_24(assigns) do
-    ~H"""
-    <section class="slide slide-24 slide--default">
-      <div class="sl-eyebrow">Before production</div>
-      <h1>Keep the claim attached to its evidence</h1>
-      <div class="sl-two">
-        <div class="sl-panel">
-          <h2>Engineering</h2>
-          <p>
-            validate input<br />test every translation edge<br />bound time + pool +
-            search<br />restart uncertain workers
-          </p>
-        </div>
-        <div class="sl-panel">
-          <h2>Audit</h2>
-          <p>
-            model revision<br />interpreter version<br />validated term<br />typed
-            result<br />activation decision
-          </p>
-        </div>
-      </div>
-    </section>
-    """
-  end
-
-  defp slide_25(assigns) do
-    ~H"""
-    <section class="slide slide-25 slide--closing">
+    <section class="slide slide-18 slide--closing">
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>

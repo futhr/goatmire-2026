@@ -8,7 +8,7 @@ Companion setup: [`demo-setup.md`](./demo-setup.md). The displays, the presenter
 
 A dress rehearsal passes only when all of these are true:
 
-- spoken duration is at most 27:30, leaving 2:30 recovery margin
+- prepared talk ends in 25–26 minutes, leaving at least four minutes for recovery or questions
 - Scenario 1 is introduced as a SOTERIA-derived reproduction
 - Scenario 2 says **observe** and **enforce**, uses the same staged load, and reads current counters rather than memorized ones
 - `clean`, `conflicts`, and `unverified` are each described accurately
@@ -88,21 +88,21 @@ Rehearse each branch; do not wait for conference Wi-Fi to discover it.
 
 ## Phase 3 — Timed slide pass
 
-Use [`../talk/manuscript.md`](../talk/manuscript.md) word for word. Record timestamps at every live transition.
+Use the seven-beat spine and slide anchors from [`../talk/memorize.md`](../talk/memorize.md). The complete [`../talk/manuscript.md`](../talk/manuscript.md) stays visible on the private notes screen as a recovery aid; do not force word-for-word delivery. Record timestamps at every live transition.
 
 | Checkpoint | Target |
 |---|---:|
-| research-derived pair introduced | 01:35 |
-| Maude vocabulary complete | 08:25 |
-| three verdicts complete | 11:45 |
-| LIVE 01 starts | 13:45 |
-| LIVE 02 starts | 15:15 |
-| LIVE 03 BeamLens starts | 18:15 |
-| AI-policy transfer starts | 19:20 |
-| closing begins | 26:25 |
-| stop | no later than 27:30 |
+| research-derived pair introduced | 00:45 |
+| narrow-check boundary complete | 08:35 |
+| three verdicts complete | 12:05 |
+| LIVE 01 starts | 13:05 |
+| LIVE 02 starts | 14:45 |
+| LIVE 03 starts | 18:15 |
+| AI-policy transfer starts | 20:05 |
+| closing begins | 24:35 |
+| prepared talk stops | 25:00–26:00 |
 
-If late, use the hard-cut map in the manuscript. Never cut the three-verdict slide, the BeamLens/Maude boundary, or the final scope sentence.
+If late, use the hard-cut map in the manuscript. Never cut the three-verdict slide, the Maude/language-model boundary, or the final scope sentence.
 
 ## Phase 3b — Recorded performance pass
 
@@ -207,6 +207,6 @@ Use [`../talk/qa-bank.md`](../talk/qa-bank.md) to score the answers. Any answer 
 - [ ] Confirm `unverified` and both-provider failure fallbacks.
 - [ ] Disable notifications, sleep, VPN, and automatic updates.
 - [ ] Keep terminal font and browser zoom projector-readable.
-- [ ] Begin the close by 26:25 and stop after the final sentence.
+- [ ] Begin the close by 26:00 and stop after the final sentence.
 
 After the talk, record the actual provider, scenario parameters, benchmark artifact, and any deviations. Do not retrofit a production claim from a good conference demo.

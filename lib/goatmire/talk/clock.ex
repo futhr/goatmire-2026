@@ -15,11 +15,12 @@ defmodule Goatmire.Talk.Clock do
   require Logger
 
   alias Goatmire.Config
+  alias Goatmire.Talk.Deck
   alias Goatmire.Talk.Store
 
   @topic "talk:clock"
   @tick_ms 1_000
-  @slide_count 25
+  @slide_count Deck.count()
   @default_budget_seconds 60
   @panels [:split, :deck_full, :live_full]
   @tabs [:code, :warehouse, :rules, :diagnostics, :verify, :notebook, :metrics]

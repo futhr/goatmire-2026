@@ -59,14 +59,15 @@ alone.
 
 ## Narrative rhythm
 
-Twenty-five slides fit the 30-minute slot. The deck carries roughly 22 minutes
-of speech, 6 minutes of live interaction, and 2 minutes of recovery margin.
+Eighteen main slides fit the 30-minute slot. The deck carries roughly 13–15
+minutes of prepared speech, 7–8 minutes of live interaction, deliberate reading
+silence, and at least 4 minutes of recovery or questions.
 
 1. **Incident** — two sensible rules become one absurd system.
-2. **Method** — terms, equations, rules, reduction, and search.
+2. **Method** — tests and formal checks answer different questions.
 3. **Gate** — one representation, three verdicts, fail-closed activation.
-4. **Evidence** — three IoT demos and one policy demo.
-5. **Transfer** — where the method fits, what it omits, and the closing rule.
+4. **Evidence** — three IoT demos and one short policy demo.
+5. **Transfer** — AI may suggest or explain; the checker decides.
 
 Live-demo slides are intentionally sparse. In the merged presenter the live
 pane opens beside them, so the card only anchors the beat — and it is a clean

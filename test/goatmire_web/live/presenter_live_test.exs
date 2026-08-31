@@ -29,7 +29,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "renders slide 1, the pane tabs, and the chrome", %{conn: conn} do
     {:ok, _, html} = live(conn, "/talk")
 
-    assert html =~ "1 / 25"
+    assert html =~ "1 / 18"
     assert html =~ "Warehouse"
     assert html =~ "Metrics"
     assert html =~ "presenter-chrome"
@@ -40,14 +40,14 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
     render_click(element(view, "button[phx-value-dir=next]"))
 
-    assert render(view) =~ "2 / 25"
+    assert render(view) =~ "2 / 18"
     assert Clock.snapshot().started?
   end
 
   test "a LIVE slide enters deck-only with no panel control", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(16)
+    Clock.goto(13)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
     refute render(view) =~ "live-tabs"
 
@@ -62,7 +62,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "the bracket key reveals the slide's configured layout", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(16)
+    Clock.goto(13)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
 
     render_keydown(view, "key", %{"key" => "]"})
@@ -73,7 +73,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "a Maude slide shows its code card in the right panel", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(13)
+    Clock.goto(11)
 
     assert_eventually(fn -> render(view) =~ "code-card" end)
   end
@@ -81,7 +81,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "the play dock steps the scripted sequence with labeled buttons", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(16)
+    Clock.goto(13)
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
@@ -98,10 +98,10 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     render_keydown(view, "key", %{"key" => "PageDown"})
-    assert render(view) =~ "2 / 25"
+    assert render(view) =~ "2 / 18"
 
     render_keydown(view, "key", %{"key" => "PageUp"})
-    assert render(view) =~ "1 / 25"
+    assert render(view) =~ "1 / 18"
   end
 
   test "slide 1 is deck-only: no pane, no pill", %{conn: conn} do
@@ -114,11 +114,11 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "the play button exists only on slides with a code card", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(13)
+    Clock.goto(11)
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-dock" end)
 
-    Clock.goto(23)
+    Clock.goto(18)
     Clock.reveal()
 
     assert_eventually(fn ->
@@ -131,13 +131,13 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     # a code slide offers the play button and no pane actions
-    Clock.goto(13)
+    Clock.goto(11)
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-dock" end)
     refute render(view) =~ "pane_action"
 
     # a rules slide offers the rules actions
-    Clock.goto(16)
+    Clock.goto(13)
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
 
@@ -239,7 +239,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "every code card is runnable code, not commentary", %{conn: conn} do
     {:ok, _, _} = live(conn, "/talk")
 
-    for slide <- 1..25, example = CodeExamples.example(slide) do
+    for slide <- 1..18, example = CodeExamples.example(slide) do
       refute example.code =~ ~r/^\s*defp?\s/m,
              "slide #{slide} quotes a definition instead of a call"
 
@@ -258,7 +258,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "a code card evaluates and renders its result", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(14)
+    Clock.goto(12)
     Clock.reveal()
     assert_eventually(fn -> render(view) =~ "run-code-card" end)
 

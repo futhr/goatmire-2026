@@ -40,11 +40,11 @@ defmodule GoatmireWeb.PresenterE2ETest do
     session
     |> visit("/talk")
     |> assert_has(css("#presenter"))
-    |> assert_has(css(".presenter-chrome", text: "1 / 25"))
+    |> assert_has(css(".presenter-chrome", text: "1 / 18"))
     |> send_keys([:right_arrow])
-    |> assert_has(css(".presenter-chrome", text: "2 / 25"))
+    |> assert_has(css(".presenter-chrome", text: "2 / 18"))
     |> send_keys([:left_arrow])
-    |> assert_has(css(".presenter-chrome", text: "1 / 25"))
+    |> assert_has(css(".presenter-chrome", text: "1 / 18"))
     |> click(css("button[phx-value-panel='live_full']"))
     |> assert_has(css(".presenter-grid.live-full"))
     |> click(css("button[phx-value-panel='split']"))
@@ -56,14 +56,14 @@ defmodule GoatmireWeb.PresenterE2ETest do
   feature "typing in an embedded form does not advance the deck", %{session: session} do
     session = visit(session, "/talk")
 
-    # slide 18 is the diagnostics beat; revealing opens its pane
-    Clock.goto(18)
+    # slide 15 is the diagnostics beat; revealing opens its pane
+    Clock.goto(15)
     Clock.reveal()
 
     session
     |> assert_has(css("#diagnostic-prompt"))
     |> fill_in(css("#diagnostic-prompt"), with: "why ")
     |> send_keys([:space])
-    |> assert_has(css(".presenter-chrome", text: "18 / 25"))
+    |> assert_has(css(".presenter-chrome", text: "15 / 18"))
   end
 end

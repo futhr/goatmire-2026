@@ -64,7 +64,7 @@ defmodule Goatmire.TalkSoakTest do
       {:ok, _} = Gate.verify(Rules.clean_set(), scenario: :soak)
     end)
 
-    Clock.goto(rem(iteration, 25) + 1)
+    Clock.goto(rem(iteration, 18) + 1)
     drain(Engine)
   end
 

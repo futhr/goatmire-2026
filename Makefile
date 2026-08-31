@@ -67,10 +67,10 @@ simulators:
 	@docker compose -f docker/docker-compose.diagnostics.yml up -d --scale simulator=$(or $(N),2)
 
 rehearse-solo:
-	@echo "==> Phase 1 solo rehearsal — read docs/talk/manuscript.md aloud against a stopwatch."
+	@echo "==> Solo rehearsal — seven beats and anchors first; manuscript only as recovery."
 	@open docs/talk/manuscript.md || xdg-open docs/talk/manuscript.md || cat docs/talk/manuscript.md
 
-# The memorization cut: anchors, beats, exits, and the 25-line spine.
+# The learning cut: seven beats, eighteen anchors, and protected lines.
 learn:
 	@open docs/talk/memorize.md || xdg-open docs/talk/memorize.md || cat docs/talk/memorize.md
 

@@ -35,16 +35,16 @@ defmodule GoatmireWeb.PresenterLive do
 
   # One scripted step per press, mirroring docs/talk/manuscript.md.
   @play %{
-    16 =>
+    13 =>
       {:rules,
        [
          {:seed_deployed, "Deploy rule A"},
          {:load_example, "Load rule B"},
          {:check, "Check and create"}
        ]},
-    17 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
-    18 => {:diagnostics, [{:diagnose, "Ask"}]},
-    22 =>
+    14 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
+    15 => {:diagnostics, [{:diagnose, "Ask"}]},
+    17 =>
       {:notebook,
        [
          {:run_next, "Cell 1"},

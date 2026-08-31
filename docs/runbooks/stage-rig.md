@@ -12,10 +12,10 @@ One-time macOS settings (System Settings → Desktop & Dock → Mission Control)
 
 ## Where the speech lives
 
-The speech is learned, not read. Two layers:
+The speech is learned as a short story, with the full wording available as a safety net:
 
-1. [`../talk/memorize.md`](../talk/memorize.md) is the learning cut — spine, anchors, beats, exits. Drill it until the anchors are yours (`make learn`).
-2. [`../talk/manuscript.md`](../talk/manuscript.md) is the word-for-word reference. Keep it open on the laptop; if you blank on stage, the current slide's anchor restarts you without looking down.
+1. [`../talk/memorize.md`](../talk/memorize.md) contains the seven-beat story, eighteen anchors, and protected lines. Drill those until they are yours (`make learn`).
+2. [`../talk/manuscript.md`](../talk/manuscript.md) is the complete plain-language reference. It is recovery text, not a word-for-word memorization assignment.
 
 The timer lives in the presenter chrome: per-slide elapsed against budget, cumulative drift, and `ended` once the slot is spent. It starts when you leave slide 1, so the title can sit on screen while the room settles. Double-click the readout to restart the timer in place; the reset button clears the whole talk.
 

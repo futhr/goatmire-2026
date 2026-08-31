@@ -77,15 +77,15 @@ The UI must keep the scope sentence adjacent to every result:
 
 ## Thirty-minute arc
 
-### Act 1 — Composition is the problem (about 5 minutes)
+### Act 1 — Composition is the problem (about 4 minutes)
 
 Open with the SOTERIA-derived contact-open pair. Show why reviewing each rule alone misses an interaction. Introduce the synthetic alert storm as the behavioral consequence the simulator will make visible, not as a real outage.
 
 ### Act 2 — A narrow formal gate (about 9 minutes)
 
-Explain Maude through familiar Elixir ideas: sorts as domain types, operators as constructors, and equations or rewrite rules as executable semantics. Show the shared rule representation, the three-verdict result, witness, and the three conservative partition edges: same Thing, same action target, and writer-to-trigger property. Avoid universal latency or scale claims.
+Explain Maude in one picture: validated rules, explicit conflict definitions, and a concrete answer. Show the shared rule representation and the three-verdict result. Keep language mechanics, partitioning, and backend comparisons for Q&A. Avoid universal latency or scale claims.
 
-### Act 3 — Observe, enforce, then ask the system (about 10 minutes)
+### Act 3 — Observe, enforce, then ask the system (about 7 minutes)
 
 Run the same staged shift change — same fleet size, tick rate, and shift parameters — once in observe mode and once in enforce mode. Read counters from the screen. Then ask BeamLens why alerts rose, which formal verdict accompanies the run, and what to inspect next. Point to its cited fields, observation/inference split, grounding, and active provider. Use one raw Metrics-pane series only if corroboration helps.
 
@@ -93,7 +93,7 @@ Run the same staged shift change — same fleet size, tick rate, and shift param
 
 Connect the pattern to LLM-generated rules: generation and explanation may be probabilistic; permission to deploy remains deterministic. State what the model omits, point to the benchmark task in the repository, and invite the audience to try the code.
 
-### Buffer and transition (about 2 minutes)
+### Buffer, reading silence, and questions (at least 4 minutes)
 
 Reserve this for provider fallback, browser movement, and the final scope sentence. The formal demo remains complete if both diagnostic models are unavailable.
 
