@@ -76,8 +76,14 @@ defmodule GoatmireWeb.PresenterLive do
      socket
      |> assign(page_title: "Talk", tab_options: @tabs, panes: @panes)
      |> assign(snap: safe(&Clock.snapshot/0), titles: Map.new(Slides.titles()), play_done: %{})
-     |> assign(confirm_reset: false, code_results: %{}, code_task: nil, code_slide: nil),
-     layout: false}
+     |> assign(
+       confirm_reset: false,
+       shortcuts_open: false,
+       controls_hidden: false,
+       code_results: %{},
+       code_task: nil,
+       code_slide: nil
+     ), layout: false}
   end
 
   @impl true
@@ -200,7 +206,15 @@ defmodule GoatmireWeb.PresenterLive do
     {:noreply, play_to(socket, String.to_integer(index))}
   end
 
-  def handle_event("ask_reset", _, socket), do: {:noreply, assign(socket, :confirm_reset, true)}
+  def handle_event("show_shortcuts", _, socket),
+    do: {:noreply, assign(socket, :shortcuts_open, true)}
+
+  def handle_event("hide_shortcuts", _, socket),
+    do: {:noreply, assign(socket, :shortcuts_open, false)}
+
+  def handle_event("ask_reset", _, socket) do
+    {:noreply, assign(socket, confirm_reset: true, shortcuts_open: false)}
+  end
 
   def handle_event("cancel_reset", _, socket),
     do: {:noreply, assign(socket, :confirm_reset, false)}
@@ -224,6 +238,14 @@ defmodule GoatmireWeb.PresenterLive do
     end
   end
 
+  def handle_event("key", %{"key" => key}, %{assigns: %{shortcuts_open: true}} = socket) do
+    case key do
+      "Escape" -> {:noreply, assign(socket, :shortcuts_open, false)}
+      "?" -> {:noreply, assign(socket, :shortcuts_open, false)}
+      _ -> {:noreply, socket}
+    end
+  end
+
   def handle_event("key", %{"key" => key}, socket) do
     case keybinding(key) do
       nil ->
@@ -231,6 +253,12 @@ defmodule GoatmireWeb.PresenterLive do
 
       :play ->
         {:noreply, play_step(socket)}
+
+      :toggle_shortcuts ->
+        {:noreply, assign(socket, :shortcuts_open, not socket.assigns.shortcuts_open)}
+
+      :toggle_controls ->
+        {:noreply, assign(socket, :controls_hidden, not socket.assigns.controls_hidden)}
 
       :last_slide ->
         {:noreply, clock(socket, fn -> Clock.goto(socket.assigns.snap.slide_count) end)}
@@ -252,6 +280,8 @@ defmodule GoatmireWeb.PresenterLive do
   defp keybinding("\\"), do: fn -> Clock.set_panel(:split) end
   defp keybinding("r"), do: &Clock.reload_timings/0
   defp keybinding("p"), do: :play
+  defp keybinding("c"), do: :toggle_controls
+  defp keybinding("?"), do: :toggle_shortcuts
   defp keybinding(_), do: nil
 
   defp clock(socket, fun) do
@@ -569,7 +599,11 @@ defmodule GoatmireWeb.PresenterLive do
     ~H"""
     <div
       id="presenter"
-      class={["presenter", panel_class(@snap.panel)]}
+      class={[
+        "presenter",
+        panel_class(@snap.panel),
+        @controls_hidden && "controls-hidden"
+      ]}
       phx-hook="IdleChrome"
       phx-window-keydown="key"
     >
@@ -779,6 +813,15 @@ defmodule GoatmireWeb.PresenterLive do
         >
           <.chrome_icon name={:fullscreen} />
         </button>
+        <button
+          id="chrome-shortcuts"
+          type="button"
+          phx-click="show_shortcuts"
+          title="Keyboard shortcuts (?)"
+          aria-label="Keyboard shortcuts"
+        >
+          <span aria-hidden="true">?</span>
+        </button>
         <span
           :if={@snap.warnings != []}
           class="chrome-chip warn"
@@ -794,6 +837,78 @@ defmodule GoatmireWeb.PresenterLive do
         >
           <.chrome_icon name={:reset} />
         </button>
+      </div>
+
+      <div :if={@shortcuts_open} id="presenter-shortcuts" class="presenter-modal">
+        <button
+          type="button"
+          class="presenter-modal-backdrop"
+          phx-click="hide_shortcuts"
+          aria-label="Close keyboard shortcuts"
+        ></button>
+        <div
+          class="presenter-modal-card presenter-shortcuts-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="presenter-shortcuts-title"
+        >
+          <h2 id="presenter-shortcuts-title">Keyboard shortcuts</h2>
+          <div class="presenter-shortcuts-grid">
+            <section>
+              <h3>Slides</h3>
+              <dl>
+                <div>
+                  <dt><kbd>←</kbd> <kbd>Page Up</kbd></dt><dd>Previous</dd>
+                </div>
+                <div>
+                  <dt><kbd>→</kbd> <kbd>Page Down</kbd> <kbd>Space</kbd></dt><dd>Next</dd>
+                </div>
+                <div>
+                  <dt><kbd>Home</kbd> <kbd>End</kbd></dt><dd>First / last</dd>
+                </div>
+              </dl>
+            </section>
+            <section>
+              <h3>Stage</h3>
+              <dl>
+                <div>
+                  <dt><kbd>[</kbd> <kbd>\\</kbd> <kbd>]</kbd></dt><dd>Deck / split / reveal pane</dd>
+                </div>
+                <div>
+                  <dt><kbd>p</kbd></dt><dd>Next live action</dd>
+                </div>
+                <div>
+                  <dt><kbd>−</kbd> <kbd>+</kbd></dt><dd>Text size</dd>
+                </div>
+              </dl>
+            </section>
+            <section>
+              <h3>Screen</h3>
+              <dl>
+                <div>
+                  <dt><kbd>f</kbd></dt><dd>Fullscreen</dd>
+                </div>
+                <div>
+                  <dt><kbd>c</kbd></dt><dd>Hide / show controls</dd>
+                </div>
+                <div>
+                  <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Help / close</dd>
+                </div>
+              </dl>
+            </section>
+            <section>
+              <h3>Rehearsal</h3>
+              <dl>
+                <div>
+                  <dt><kbd>r</kbd></dt><dd>Reload timings</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+          <p class="presenter-shortcuts-note">
+            The reset control remains confirmation-only. Typing in a form never drives the deck.
+          </p>
+        </div>
       </div>
 
       <div :if={@confirm_reset} class="presenter-modal">

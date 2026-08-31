@@ -32,10 +32,14 @@ opens fullscreen Chrome on `/talk`. Pin one more tab: Livebook (`localhost:8080`
 | Input | Does |
 |---|---|
 | `←/→`, PageUp/PageDown, space | previous / next slide |
-| `[` `\` `]` | deck only · split · reveal this slide's pane |
+| Home / End | first / last slide |
+| `[` `\` `]` | deck only · split · reveal this slide's configured pane |
 | `A−` / `A+` (or `-` / `+`) | text zoom, held across refreshes |
 | `p` or the LIVE pill | next scripted demo step |
 | clicking a later LIVE step | runs the remaining steps in order |
+| `f` | enter / leave fullscreen |
+| `c` | hide / show the floating controls |
+| `?` | keyboard help; `?` or Escape closes it |
 | `r` | reload `priv/talk/timings.exs` |
 
 Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: press `]` or a panel icon in the control bar. The purple pane control belongs to the panel, so it only appears once the panel is open; moving to the next slide closes both again.

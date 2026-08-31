@@ -15,22 +15,18 @@ const hooks = {
   // player controls; any pointer movement brings it back.
   IdleChrome: {
     mounted() {
-      let timer;
-
       this.wake = () => {
         this.el.classList.remove("idle");
-        clearTimeout(timer);
-        timer = setTimeout(() => this.el.classList.add("idle"), 3000);
+        clearTimeout(this.idleTimer);
+        this.idleTimer = setTimeout(() => this.el.classList.add("idle"), 3000);
       };
 
       this.el.addEventListener("mousemove", this.wake);
       this.el.addEventListener("touchstart", this.wake);
       this.wake();
     },
-    updated() {
-      this.wake();
-    },
     destroyed() {
+      clearTimeout(this.idleTimer);
       this.el.removeEventListener("mousemove", this.wake);
       this.el.removeEventListener("touchstart", this.wake);
     }
@@ -58,6 +54,21 @@ const hooks = {
 document.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, textarea, select, [contenteditable]")) {
     event.stopPropagation();
+    return;
+  }
+
+  if (
+    event.key.toLowerCase() === "f" &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen();
   }
 });
 

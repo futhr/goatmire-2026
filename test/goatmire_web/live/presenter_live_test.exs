@@ -199,6 +199,43 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert Clock.snapshot().slide == 6
   end
 
+  test "question mark opens keyboard help and escape closes it", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    render_keydown(view, "key", %{"key" => "?"})
+
+    html = render(view)
+    assert html =~ ~s(id="presenter-shortcuts")
+    assert html =~ "Next live action"
+    assert html =~ "Hide / show controls"
+
+    render_keydown(view, "key", %{"key" => "Escape"})
+    refute render(view) =~ ~s(id="presenter-shortcuts")
+  end
+
+  test "keyboard help owns the keyboard while it is open", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    Clock.goto(6)
+    render_keydown(view, "key", %{"key" => "?"})
+    render_keydown(view, "key", %{"key" => "ArrowRight"})
+
+    assert Clock.snapshot().slide == 6
+
+    render_keydown(view, "key", %{"key" => "?"})
+    refute render(view) =~ ~s(id="presenter-shortcuts")
+  end
+
+  test "c hides and restores the visual controls", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    render_keydown(view, "key", %{"key" => "c"})
+    assert render(view) =~ ~r/id="presenter"[^>]*class="[^"]*controls-hidden/
+
+    render_keydown(view, "key", %{"key" => "c"})
+    refute render(view) =~ ~r/id="presenter"[^>]*class="[^"]*controls-hidden/
+  end
+
   test "every code card is runnable code, not commentary", %{conn: conn} do
     {:ok, _, _} = live(conn, "/talk")
 
