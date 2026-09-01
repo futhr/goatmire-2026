@@ -87,6 +87,10 @@ defmodule Goatmire.Config do
   @spec talk_state_path() :: String.t() | nil
   def talk_state_path, do: get(:talk_state_path)
 
+  @doc "Secret that unlocks the private speaker-notes session; nil disables it."
+  @spec talk_remote_token() :: String.t() | nil
+  def talk_remote_token, do: get(:talk_remote_token)
+
   @doc "BAML client registry pointing only at Goatmire's loopback provider bridge."
   @spec diagnostics_client_registry() :: map()
   def diagnostics_client_registry do

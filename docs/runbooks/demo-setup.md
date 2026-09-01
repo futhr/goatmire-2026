@@ -64,6 +64,7 @@ Useful URLs:
 | Surface | URL | Stage role |
 |---|---|---|
 | Presenter | <http://localhost:4000/talk> | the stage surface — deck, panes, timer |
+| Speaker notes | printed by `make talk-stage` | private synchronized iPad text and slide remote |
 | Livebook | <http://localhost:8080> | LIVE 04, the teaching notebooks, and the lab |
 | Warehouse | <http://localhost:4000/warehouse> | simulated load and counters |
 | Rule editor | <http://localhost:4000/rules> | formal gate |

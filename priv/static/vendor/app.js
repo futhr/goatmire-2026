@@ -46,6 +46,37 @@ const hooks = {
     mounted() {
       this.el.addEventListener("dblclick", () => this.pushEvent("reset_clock", {}));
     }
+  },
+
+  SpeakerNotes: {
+    mounted() {
+      this.currentSlide = this.el.dataset.currentSlide;
+      this.scrollToCurrent("auto");
+    },
+    updated() {
+      const nextSlide = this.el.dataset.currentSlide;
+
+      if (nextSlide !== this.currentSlide) {
+        this.currentSlide = nextSlide;
+        this.scrollToCurrent("smooth");
+      }
+    },
+    disconnected() {
+      this.el.classList.add("disconnected");
+    },
+    reconnected() {
+      this.el.classList.remove("disconnected");
+      this.scrollToCurrent("auto");
+    },
+    scrollToCurrent(behavior) {
+      const current = this.el.querySelector(".speaker-note.current");
+      if (!current) return;
+
+      requestAnimationFrame(() => {
+        const top = current.offsetTop - window.innerHeight * 0.32;
+        window.scrollTo({ top: Math.max(0, top), behavior });
+      });
+    }
   }
 };
 

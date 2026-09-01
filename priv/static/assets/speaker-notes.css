@@ -1,0 +1,137 @@
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("/fonts/inter-latin-600-normal.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: light;
+  background: #ffffff;
+  color: #111111;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  min-height: 100%;
+  background: #ffffff;
+  scroll-behavior: auto;
+}
+
+.speaker-notes-body {
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background: #ffffff;
+  color: #111111;
+}
+
+.speaker-notes {
+  min-height: 100svh;
+  background: #ffffff;
+}
+
+.speaker-notes-list {
+  width: min(52rem, 100%);
+  margin: 0 auto;
+  padding: 34svh max(2rem, env(safe-area-inset-right)) 44svh max(2rem, env(safe-area-inset-left));
+}
+
+.speaker-note {
+  appearance: none;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: clamp(2.8rem, 7svh, 5.5rem) 0;
+  border: 0;
+  background: transparent;
+  color: #111111;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.07;
+  transition: opacity 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.speaker-note.adjacent { opacity: 0.2; }
+.speaker-note.current { opacity: 1; }
+
+.speaker-note-label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: clamp(0.78rem, 1.7vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.speaker-note-paragraph {
+  display: block;
+  margin-top: 0.8em;
+  font-size: clamp(1.35rem, 3.4vw, 2.35rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.speaker-note.current .speaker-note-paragraph {
+  font-size: clamp(1.8rem, 4.25vw, 2.8rem);
+}
+
+.speaker-note:focus-visible {
+  outline: 3px solid #111111;
+  outline-offset: 0.7rem;
+}
+
+.speaker-notes-connection {
+  position: fixed;
+  right: max(1.5rem, env(safe-area-inset-right));
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  margin: 0;
+  color: #111111;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.speaker-notes.disconnected .speaker-notes-connection { opacity: 1; }
+
+.speaker-notes-locked {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 2rem;
+  background: #ffffff;
+  color: #111111;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  text-align: center;
+}
+
+@media (orientation: landscape) {
+  .speaker-notes-list {
+    width: min(64rem, 100%);
+    padding-top: 28svh;
+  }
+
+  .speaker-note-paragraph { font-size: clamp(1.3rem, 2.35vw, 2.1rem); }
+  .speaker-note.current .speaker-note-paragraph { font-size: clamp(1.65rem, 3vw, 2.45rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speaker-note { transition: none; }
+}

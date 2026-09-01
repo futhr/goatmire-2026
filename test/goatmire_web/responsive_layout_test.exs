@@ -26,4 +26,22 @@ defmodule GoatmireWeb.ResponsiveLayoutTest do
     assert css =~ "min-height: 44px"
     assert css =~ "grid-template-columns: repeat(2, minmax(0, 1fr))"
   end
+
+  test "speaker notes use the standalone text-only layout" do
+    conn =
+      build_conn()
+      |> init_test_session(%{talk_notes_authorized: true})
+      |> get("/talk/notes")
+
+    html = html_response(conn, 200)
+
+    assert html =~ ~s(rel="manifest")
+    assert html =~ "/assets/speaker-notes.css"
+    refute html =~ "/assets/presenter-slides.css"
+
+    css = File.read!("priv/static/assets/speaker-notes.css")
+    assert css =~ "background: #ffffff"
+    assert css =~ ".speaker-note.current"
+    refute css =~ "svg"
+  end
 end

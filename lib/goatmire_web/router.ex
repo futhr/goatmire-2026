@@ -42,8 +42,14 @@ defmodule GoatmireWeb.Router do
   scope "/", GoatmireWeb do
     pipe_through :browser
 
+    get "/talk/notes/unlock/:token", SpeakerNotesController, :unlock
+
     live_session :talk, root_layout: {GoatmireWeb.Layouts, :presenter_root} do
       live "/talk", PresenterLive, :index
+    end
+
+    live_session :speaker_notes, root_layout: {GoatmireWeb.Layouts, :speaker_notes_root} do
+      live "/talk/notes", SpeakerNotesLive, :index
     end
   end
 

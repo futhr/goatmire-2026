@@ -1,12 +1,12 @@
 # Stage rig — how the talk is physically delivered
 
-One laptop, two screens, one fullscreen browser tab. The rig is the merged presenter at `/talk`: deck on the left, live panes on the right, timer and controls in the floating chrome. The audience never sees a window switch.
+One laptop, two screens, one iPad, and one fullscreen projector tab. The rig is the merged presenter at `/talk`: deck on the left, live panes on the right, timer and controls in the floating chrome. The private iPad view at `/talk/notes` carries synchronized, text-only speech blocks. The audience never sees a window switch.
 
 Companions: [`demo-setup.md`](./demo-setup.md) for booting the system, [`rehearsal.md`](./rehearsal.md) for the practice procedure.
 
 ## Displays
 
-Extended desktop, never mirrored. The projector gets one fullscreen Chrome window on `/talk`; the laptop screen is the speaker's private side: the manuscript and a terminal with the server log.
+Extended desktop, never mirrored. The projector gets one fullscreen Chrome window on `/talk`; the laptop screen keeps the server log. The iPad is the private manuscript and remote.
 
 One-time macOS settings (System Settings → Desktop & Dock → Mission Control): "Displays have separate Spaces" **on**, so the fullscreen browser on the projector does not black out the laptop screen; "Automatically rearrange Spaces" **off**, so nothing moves between rehearsal and stage. Notifications off is already on the day-of checklist.
 
@@ -19,15 +19,35 @@ The speech is learned as a short story, with the full wording available as a saf
 
 The timer lives in the presenter chrome: per-slide elapsed against budget, cumulative drift, and `ended` once the slot is spent. It starts when you leave slide 1, so the title can sit on screen while the room settles. Double-click the readout to restart the timer in place; the reset button clears the whole talk.
 
+## The iPad: synchronized notes and remote
+
+Use a private Wi-Fi network or dedicated stage router. Venue networks may block device-to-device traffic, and the remote must never be exposed to the public internet.
+
+Start the LAN-enabled server:
+
+```bash
+make talk-stage
+```
+
+The command prints two URLs. Open the `iPad unlock` URL once in Safari. It stores an authorized session and redirects to the clean `/talk/notes` address. Then use Share → Add to Home Screen and open **Speaker Notes** from its icon for the standalone, browser-chrome-free view.
+
+The notes page is deliberately text only:
+
+- the current slide sits near the upper third in large black text on white;
+- the neighbouring text remains visible but faded;
+- tapping any complete text section calls the shared clock and moves the projector;
+- projector keyboard navigation moves and centres the iPad text;
+- only an actual lost connection shows `Reconnecting…`.
+
+Set iPad Auto-Lock to **Never** for the talk and restore it afterwards. Lock orientation to the rehearsed position. The stage token changes every time `make talk-stage` starts; if the Home Screen view says the notes are locked, open the newly printed unlock URL again.
+
+The iPad is optional. If it disconnects, keep presenting with the laptop keyboard; refreshing or reopening the notes restores the server's current slide.
+
 The Marp deck (`deck.md`) is a frozen archive. It carries the speaker-note history but is not part of the rig.
 
 ## The projector: two tabs
 
-```bash
-make talk
-```
-
-opens fullscreen Chrome on `/talk`. Pin one more tab: Livebook (`localhost:8080`, from the support stack). It carries LIVE 04 on stage, and off stage it is the learning surface — the teaching notebooks, the scenario lab, and the "Run in Livebook" path from the GitHub README. That is the whole tab strip.
+With the server already running from `make talk-stage`, run `make talk` in another terminal. It opens fullscreen Chrome on `/talk`. Pin one more tab: Livebook (`localhost:8080`, from the support stack). It carries LIVE 04 on stage, and off stage it is the learning surface — the teaching notebooks, the scenario lab, and the "Run in Livebook" path from the GitHub README. That is the whole tab strip.
 
 | Input | Does |
 |---|---|

@@ -1,0 +1,9 @@
+{
+  "name": "Goatmire Speaker Notes",
+  "short_name": "Speaker Notes",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "start_url": "/talk/notes",
+  "scope": "/talk/notes"
+}

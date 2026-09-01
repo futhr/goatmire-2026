@@ -34,7 +34,7 @@ ollama serve
 make diagnostics-demo
 ```
 
-Open the presenter (`make talk`) and pin one Livebook tab for LIVE 04. Every other demo surface is a pane inside `/talk`.
+Start the private-LAN presenter (`make talk-stage`), unlock the iPad notes URL it prints, then open the projector (`make talk`) and pin one Livebook tab for LIVE 04. Every other demo surface is a pane inside `/talk`.
 
 Reset the talk clock (the reset button in the chrome) and application state, and use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
 
@@ -103,6 +103,8 @@ Use the seven-beat spine and slide anchors from [`../talk/memorize.md`](../talk/
 | prepared talk stops | 25:00–26:00 |
 
 If late, use the hard-cut map in the manuscript. Never cut the three-verdict slide, the Maude/language-model boundary, or the final scope sentence.
+
+Run this phase three ways: with the iPad normally, with a deliberate blank recovered from the current text block, and with Wi-Fi disabled after the talk starts. Losing the notes must not stop projector navigation or the clock.
 
 ## Phase 3b — Recorded performance pass
 
@@ -206,6 +208,7 @@ Use [`../talk/qa-bank.md`](../talk/qa-bank.md) to score the answers. Any answer 
 - [ ] Ask one diagnostic prompt and inspect grounding.
 - [ ] Confirm `unverified` and both-provider failure fallbacks.
 - [ ] Disable notifications, sleep, VPN, and automatic updates.
+- [ ] Disable iPad Auto-Lock, lock the rehearsed orientation, and confirm the Home Screen notes view reconnects at the current slide.
 - [ ] Keep terminal font and browser zoom projector-readable.
 - [ ] Begin the close by 26:00 and stop after the final sentence.
 

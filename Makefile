@@ -5,7 +5,7 @@
         check quality clean install-hooks iex remote \
         bench-eval bench-partition bench-verifier \
         health server scenario storm ai benchmark diagnostics-demo diagnostics-down \
-        simulators rehearse-solo talk preflight learn
+        simulators rehearse-solo talk talk-stage preflight learn
 
 setup:
 	@mix setup
@@ -104,6 +104,19 @@ test-soak:
 talk:
 	@open -na "Google Chrome" --args --new-window --start-fullscreen \
 		"http://localhost:4000/talk"
+
+# Private-LAN stage server for the synchronized iPad notes view. The unlock
+# token lives only for this process and is replaced on every start.
+talk-stage:
+	@stage_token=$$(openssl rand -hex 16); \
+	stage_ip="$${STAGE_IP:-$$(ipconfig getifaddr en0)}"; \
+	if [ -z "$$stage_ip" ]; then \
+		echo "No stage IP found. Set STAGE_IP to the Mac address visible from the iPad."; \
+		exit 1; \
+	fi; \
+	echo "Projector: http://localhost:4000/talk"; \
+	echo "iPad unlock: http://$$stage_ip:4000/talk/notes/unlock/$$stage_token"; \
+	GOATMIRE_TALK_REMOTE=1 GOATMIRE_TALK_REMOTE_TOKEN="$$stage_token" mix phx.server
 
 # Talk-day gate: clean compile, the regular suite, then chaos and starvation
 # against the real tree, then provider health.
