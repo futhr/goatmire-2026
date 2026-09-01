@@ -7,7 +7,7 @@ defmodule GoatmireWeb.PresenterE2ETest do
   import Wallaby.Query
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.Clock
+  alias Goatmire.Talk.{Clock, Deck}
 
   @moduletag :e2e
   @moduletag timeout: 60_000
@@ -88,6 +88,44 @@ defmodule GoatmireWeb.PresenterE2ETest do
     assert layout["minSize"] >= 44
     assert layout["fits"]
     assert layout["text"] == ""
+  end
+
+  feature "every current iPad script is pinned at the top and clears the controls", %{
+    session: session
+  } do
+    session =
+      session
+      |> resize_window(1024, 1509)
+      |> visit("/talk/notes/unlock/test-speaker-notes")
+
+    Enum.each(1..Deck.count(), fn slide ->
+      Clock.goto(slide)
+      session = assert_has(session, css("#speaker-note-#{slide}.current"))
+
+      {:ok, layout} =
+        Wallaby.Chrome.execute_script(
+          session,
+          """
+          const current = document.querySelector('.speaker-note.current');
+          const controls = document.getElementById('speaker-controls');
+          const currentBox = current.getBoundingClientRect();
+          const controlsBox = controls.getBoundingClientRect();
+
+          return {
+            top: Math.round(currentBox.top),
+            bottom: Math.round(currentBox.bottom),
+            controlsTop: Math.round(controlsBox.top)
+          };
+          """,
+          []
+        )
+
+      assert layout["top"] in 20..28,
+             "slide #{slide} starts at #{layout["top"]}px instead of the top"
+
+      assert layout["bottom"] <= layout["controlsTop"] - 12,
+             "slide #{slide} ends behind the controls"
+    end)
   end
 
   feature "typing in an embedded form does not advance the deck", %{session: session} do

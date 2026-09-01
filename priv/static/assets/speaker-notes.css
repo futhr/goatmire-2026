@@ -67,7 +67,10 @@ html {
 }
 
 .speaker-note.adjacent { opacity: 0.2; }
-.speaker-note.current { opacity: 1; }
+.speaker-note.current {
+  padding-block: clamp(1.25rem, 2.5svh, 2rem);
+  opacity: 1;
+}
 
 .speaker-note-label {
   display: block;
@@ -89,7 +92,7 @@ html {
 }
 
 .speaker-note.current .speaker-note-paragraph {
-  font-size: clamp(1.8rem, 4.25vw, 2.8rem);
+  font-size: var(--speaker-current-font-size, clamp(1.8rem, 4.25vw, 2.8rem));
 }
 
 .speaker-note:focus-visible {
@@ -225,7 +228,9 @@ html {
   }
 
   .speaker-note-paragraph { font-size: clamp(1.3rem, 2.35vw, 2.1rem); }
-  .speaker-note.current .speaker-note-paragraph { font-size: clamp(1.65rem, 3vw, 2.45rem); }
+  .speaker-note.current .speaker-note-paragraph {
+    font-size: var(--speaker-current-font-size, clamp(1.65rem, 3vw, 2.45rem));
+  }
 }
 
 @media (max-width: 800px) {
