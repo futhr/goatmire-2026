@@ -3,6 +3,7 @@ defmodule Goatmire.Talk.ClockTest do
 
   use ExUnit.Case, async: false
 
+  alias Goatmire.Talk
   alias Goatmire.Talk.{Clock, Deck}
 
   setup do
@@ -101,6 +102,24 @@ defmodule Goatmire.Talk.ClockTest do
     Clock.goto(3)
 
     assert_receive {:talk_clock, %{slide: 3}}, 1_000
+  end
+
+  test "scripted actions advance once across every control surface" do
+    Phoenix.PubSub.subscribe(Goatmire.PubSub, Talk.play_topic())
+    Clock.goto(13)
+
+    assert %{play_done: %{}} = Clock.snapshot()
+    assert %{play_done: %{13 => 1}, panel: :live_full, tab: :rules} = Clock.play_next()
+    assert_receive {:talk_play, :rules, :seed_deployed}
+
+    assert %{play_done: %{13 => 3}} = Clock.play_to(2)
+    assert_receive {:talk_play, :rules, :load_example}
+    assert_receive {:talk_play, :rules, :check}
+
+    Clock.play_to(2)
+    refute_receive {:talk_play, :rules, _}, 50
+
+    assert %{play_done: %{}} = Clock.reset()
   end
 
   test "zoom steps by 0.1 and clamps to 0.7–1.5" do

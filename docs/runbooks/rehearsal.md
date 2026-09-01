@@ -36,7 +36,7 @@ make diagnostics-demo
 
 Start the private-LAN presenter (`make talk-stage`), unlock the iPad notes URL it prints, then open the projector (`make talk`) and pin one Livebook tab for LIVE 04. Every other demo surface is a pane inside `/talk`.
 
-Reset the talk clock (the reset button in the chrome) and application state, and use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
+Reset the talk clock from the confirmed reset icon on the iPad and reset application state. Use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
 
 ## Phase 1 — Technical truth pass
 

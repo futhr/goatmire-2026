@@ -14,9 +14,8 @@ defmodule Goatmire.Talk.Clock do
 
   require Logger
 
-  alias Goatmire.Config
-  alias Goatmire.Talk.Deck
-  alias Goatmire.Talk.Store
+  alias Goatmire.{Config, Talk}
+  alias Goatmire.Talk.{Controls, Deck, Store}
 
   @topic "talk:clock"
   @tick_ms 1_000
@@ -44,6 +43,7 @@ defmodule Goatmire.Talk.Clock do
           slide_tab: tab() | nil,
           reveal_panel: :split | :deck_full | :live_full,
           zoom: float(),
+          play_done: %{optional(pos_integer()) => non_neg_integer()},
           budget_total_s: non_neg_integer(),
           slot_s: pos_integer(),
           warnings: [String.t()]
@@ -104,6 +104,16 @@ defmodule Goatmire.Talk.Clock do
     GenServer.call(__MODULE__, {:zoom, direction})
   end
 
+  @doc "Runs the next scripted action for the current slide."
+  @spec play_next() :: snapshot()
+  def play_next, do: GenServer.call(__MODULE__, :play_next)
+
+  @doc "Runs every unfinished scripted action through a zero-based step index."
+  @spec play_to(non_neg_integer()) :: snapshot()
+  def play_to(target) when is_integer(target) and target >= 0 do
+    GenServer.call(__MODULE__, {:play_to, target})
+  end
+
   @doc "Restarts the timer in place: elapsed cleared, slide and layout kept."
   @spec reset_clock() :: snapshot()
   def reset_clock, do: GenServer.call(__MODULE__, :reset_clock)
@@ -131,7 +141,8 @@ defmodule Goatmire.Talk.Clock do
         accumulated_ms: %{},
         panel: :split,
         tab: :warehouse,
-        zoom: 1.0
+        zoom: 1.0,
+        play_done: %{}
       }
       |> restore_saved()
 
@@ -166,6 +177,12 @@ defmodule Goatmire.Talk.Clock do
     mutate(%{state | zoom: zoom})
   end
 
+  def handle_call(:play_next, _, state) do
+    play_to(state, Map.get(state.play_done, state.slide, 0))
+  end
+
+  def handle_call({:play_to, target}, _, state), do: play_to(state, target)
+
   def handle_call(:reset_clock, _, state) do
     now = if state.slide >= 2, do: now_ms()
     mutate(%{state | started_at_ms: now, entered_at_ms: now, accumulated_ms: %{}})
@@ -187,7 +204,8 @@ defmodule Goatmire.Talk.Clock do
         accumulated_ms: %{},
         panel: :split,
         tab: :warehouse,
-        zoom: 1.0
+        zoom: 1.0,
+        play_done: %{}
     }
     |> apply_timing_defaults()
     |> mutate()
@@ -277,6 +295,7 @@ defmodule Goatmire.Talk.Clock do
       slide_tab: timing.tab,
       reveal_panel: timing.panel,
       zoom: state.zoom,
+      play_done: state.play_done,
       budget_total_s: Enum.sum(Enum.map(Map.values(state.timings), & &1.seconds)),
       slot_s: state.slot_seconds,
       warnings: state.warnings
@@ -331,6 +350,17 @@ defmodule Goatmire.Talk.Clock do
   defp apply_timing_defaults(state) do
     timing = slide_timing(state)
     %{state | panel: :deck_full, tab: timing.tab || state.tab}
+  end
+
+  defp play_to(state, target) do
+    case Controls.claim(state.slide, state.play_done, target) do
+      {:ok, pane, steps, play_done} ->
+        Enum.each(steps, &Talk.play(pane, &1))
+        mutate(%{state | play_done: play_done, tab: pane, panel: slide_timing(state).panel})
+
+      :noop ->
+        {:reply, build_snapshot(state), state}
+    end
   end
 
   defp slide_timing(state), do: Map.get(state.timings, state.slide, default_timing())

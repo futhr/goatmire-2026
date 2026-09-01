@@ -26,21 +26,21 @@ defmodule GoatmireWeb.PresenterLiveTest do
     %{conn: build_conn()}
   end
 
-  test "renders slide 1, the pane tabs, and the chrome", %{conn: conn} do
+  test "the projector renders the deck without visual presenter controls", %{conn: conn} do
     {:ok, _, html} = live(conn, "/talk")
 
-    assert html =~ "1 / 18"
-    assert html =~ "Warehouse"
-    assert html =~ "Metrics"
-    assert html =~ "presenter-chrome"
+    assert html =~ ~s(id="deck-slide-1")
+    refute html =~ "presenter-chrome"
+    refute html =~ "live-tabs"
+    refute html =~ "speaker-controls"
   end
 
-  test "chrome navigation advances the deck and starts the clock", %{conn: conn} do
+  test "arrow-key navigation advances the deck and starts the clock", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    render_click(element(view, "button[phx-value-dir=next]"))
+    render_keydown(view, "key", %{"key" => "ArrowRight"})
 
-    assert render(view) =~ "2 / 18"
+    assert render(view) =~ ~s(id="deck-slide-2")
     assert Clock.snapshot().started?
   end
 
@@ -52,11 +52,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute render(view) =~ "live-tabs"
 
     Clock.reveal()
-
-    assert_eventually(fn ->
-      html = render(view)
-      html =~ ~s(phx-value-tab="rules") and not (html =~ ~s(phx-value-tab="metrics"))
-    end)
+    assert_eventually(fn -> render(view) =~ ~r/class="presenter live-full"/ end)
   end
 
   test "the bracket key reveals the slide's configured layout", %{conn: conn} do
@@ -78,30 +74,25 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert_eventually(fn -> render(view) =~ "code-card" end)
   end
 
-  test "the play dock steps the scripted sequence with labeled buttons", %{conn: conn} do
+  test "p steps the shared scripted sequence without rendering a dock", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(13)
-    Clock.reveal()
-    assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
+    render_keydown(view, "key", %{"key" => "p"})
 
-    view
-    |> element("#play-next")
-    |> render_click()
-
-    html = render(view)
-    assert html =~ ~r/class="done"[^>]*>.*?Deploy rule A/s
-    assert html =~ "Load rule B"
+    assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
+    assert Clock.snapshot().play_done[13] == 1
+    refute render(view) =~ "live-tabs"
   end
 
   test "PageUp and PageDown drive the deck — the clicker path", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     render_keydown(view, "key", %{"key" => "PageDown"})
-    assert render(view) =~ "2 / 18"
+    assert render(view) =~ ~s(id="deck-slide-2")
 
     render_keydown(view, "key", %{"key" => "PageUp"})
-    assert render(view) =~ "1 / 18"
+    assert render(view) =~ ~s(id="deck-slide-1")
   end
 
   test "slide 1 is deck-only: no pane, no pill", %{conn: conn} do
@@ -109,94 +100,6 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
     assert html =~ "deck-full"
     refute html =~ "live-tabs"
-  end
-
-  test "the play button exists only on slides with a code card", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    Clock.goto(11)
-    Clock.reveal()
-    assert_eventually(fn -> render(view) =~ "run-code-dock" end)
-
-    Clock.goto(18)
-    Clock.reveal()
-
-    assert_eventually(fn ->
-      html = render(view)
-      not (html =~ "run-code-dock") and html =~ ~s(phx-value-tab="metrics")
-    end)
-  end
-
-  test "the slide's own pane delegates its actions to the dock", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    # a code slide offers the play button and no pane actions
-    Clock.goto(11)
-    Clock.reveal()
-    assert_eventually(fn -> render(view) =~ "run-code-dock" end)
-    refute render(view) =~ "pane_action"
-
-    # a rules slide offers the rules actions
-    Clock.goto(13)
-    Clock.reveal()
-    assert_eventually(fn -> render(view) =~ "Deploy rule A" end)
-
-    view
-    |> element("#play-next")
-    |> render_click()
-
-    assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
-  end
-
-  test "reset asks for confirmation in-app before clearing the talk", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    render_click(element(view, "button[phx-value-dir=next]"))
-    assert Clock.snapshot().started?
-
-    refute render(view) =~ "presenter-modal"
-
-    render_click(element(view, "button[phx-click=ask_reset]"))
-    html = render(view)
-    assert html =~ "presenter-modal"
-    assert html =~ "Reset the talk?"
-
-    render_click(element(view, "button[phx-click=cancel_reset]", "Cancel"))
-    refute render(view) =~ "presenter-modal"
-    assert Clock.snapshot().slide == 2
-
-    render_click(element(view, "button[phx-click=ask_reset]"))
-
-    view
-    |> element("#confirm-reset")
-    |> render_click()
-
-    refute render(view) =~ "presenter-modal"
-    assert %{slide: 1, started?: false} = Clock.snapshot()
-  end
-
-  test "escape dismisses the reset dialog without resetting", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    Clock.goto(6)
-    render_click(element(view, "button[phx-click=ask_reset]"))
-    assert render(view) =~ "presenter-modal"
-
-    render_keydown(view, "key", %{"key" => "Escape"})
-
-    refute render(view) =~ "presenter-modal"
-    assert Clock.snapshot().slide == 6
-  end
-
-  test "the dialog owns the keyboard while it is open", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    Clock.goto(6)
-    render_click(element(view, "button[phx-click=ask_reset]"))
-
-    render_keydown(view, "key", %{"key" => "ArrowRight"})
-
-    assert Clock.snapshot().slide == 6
   end
 
   test "question mark opens keyboard help and escape closes it", %{conn: conn} do
@@ -207,7 +110,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     html = render(view)
     assert html =~ ~s(id="presenter-shortcuts")
     assert html =~ "Next live action"
-    assert html =~ "Hide / show controls"
+    assert html =~ "Touch controls live on the private speaker-notes screen"
 
     render_keydown(view, "key", %{"key" => "Escape"})
     refute render(view) =~ ~s(id="presenter-shortcuts")
@@ -224,16 +127,6 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
     render_keydown(view, "key", %{"key" => "?"})
     refute render(view) =~ ~s(id="presenter-shortcuts")
-  end
-
-  test "c hides and restores the visual controls", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    render_keydown(view, "key", %{"key" => "c"})
-    assert render(view) =~ ~r/id="presenter"[^>]*class="[^"]*controls-hidden/
-
-    render_keydown(view, "key", %{"key" => "c"})
-    refute render(view) =~ ~r/id="presenter"[^>]*class="[^"]*controls-hidden/
   end
 
   test "every code card is runnable code, not commentary", %{conn: conn} do
@@ -255,31 +148,28 @@ defmodule GoatmireWeb.PresenterLiveTest do
     end
   end
 
-  test "a code card evaluates and renders its result", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
+  test "an iPad action evaluates a projector code card", %{conn: conn} do
+    {:ok, presenter, _} = live(conn, "/talk")
+    {:ok, notes, _} = authorized_live(conn)
 
     Clock.goto(12)
     Clock.reveal()
-    assert_eventually(fn -> render(view) =~ "run-code-card" end)
+    assert_eventually(fn -> render(notes) =~ ~s(id="speaker-run-code") end)
 
-    view
-    |> element("#run-code-dock")
+    notes
+    |> element("#speaker-run-code")
     |> render_click()
 
     assert_eventually(fn ->
-      html = render(view)
-      html =~ "genuinely_low" and html =~ "Reevaluate"
+      render(presenter) =~ "genuinely_low"
     end)
   end
 
-  test "panel override buttons switch the grid class", %{conn: conn} do
-    {:ok, view, _} = live(conn, "/talk")
-
-    render_click(element(view, "button[phx-value-panel=deck_full]"))
-    assert render(view) =~ "deck-full"
-
-    render_click(element(view, "button[phx-value-panel=split]"))
-    refute render(view) =~ "deck-full"
+  defp authorized_live(conn) do
+    conn
+    |> get("/talk/notes/unlock/test-speaker-notes")
+    |> recycle()
+    |> live("/talk/notes")
   end
 
   defp assert_eventually(fun, timeout_ms \\ 3_000) do

@@ -11,43 +11,6 @@ const { Socket } = window.Phoenix;
 const csrfToken = document.querySelector("meta[name='csrf-token']")?.content;
 
 const hooks = {
-  // Fades the floating presenter chrome after a few idle seconds, like video
-  // player controls; any pointer movement brings it back.
-  IdleChrome: {
-    mounted() {
-      this.wake = () => {
-        this.el.classList.remove("idle");
-        clearTimeout(this.idleTimer);
-        this.idleTimer = setTimeout(() => this.el.classList.add("idle"), 3000);
-      };
-
-      this.el.addEventListener("mousemove", this.wake);
-      this.el.addEventListener("touchstart", this.wake);
-      this.wake();
-    },
-    destroyed() {
-      clearTimeout(this.idleTimer);
-      this.el.removeEventListener("mousemove", this.wake);
-      this.el.removeEventListener("touchstart", this.wake);
-    }
-  },
-
-  Fullscreen: {
-    mounted() {
-      this.el.addEventListener("click", () => {
-        document.fullscreenElement
-          ? document.exitFullscreen()
-          : document.documentElement.requestFullscreen();
-      });
-    }
-  },
-
-  TimerReset: {
-    mounted() {
-      this.el.addEventListener("dblclick", () => this.pushEvent("reset_clock", {}));
-    }
-  },
-
   SpeakerNotes: {
     mounted() {
       this.currentSlide = this.el.dataset.currentSlide;
