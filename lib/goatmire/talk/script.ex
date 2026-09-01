@@ -27,7 +27,7 @@ defmodule Goatmire.Talk.Script do
                   |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "*(")))
                   |> Enum.map(fn paragraph ->
                     paragraph
-                    |> String.replace(~r/\*\*|`|(?<!\w)\*(?!\w)/, "")
+                    |> String.replace(~r/[\*`]/, "")
                     |> String.trim()
                   end)
 
