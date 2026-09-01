@@ -5,6 +5,8 @@ defmodule GoatmireWeb.SpeakerNotesController do
 
   alias Goatmire.Config
 
+  @doc "Unlocks the private speaker-notes session when the stage token matches."
+  @spec unlock(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def unlock(conn, %{"token" => provided}) do
     if valid_token?(provided) do
       conn

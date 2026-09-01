@@ -53,15 +53,15 @@ defmodule Goatmire.MixProject do
     [
       {:phoenix, "~> 1.8.11"},
       {:phoenix_html, "~> 4.3"},
-      {:phoenix_live_view, "~> 1.2.9"},
+      {:phoenix_live_view, "~> 1.2.11"},
       {:bandit, "~> 1.12"},
       {:phoenix_live_reload, "~> 1.7", only: :dev},
       {:tortoise311, "~> 0.12"},
-      {:req, "~> 0.7.3"},
+      {:req, "~> 0.7.4"},
       {:finch, "~> 0.23"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.4"},
-      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_metrics, "~> 1.2"},
       # `_core` rather than the full `telemetry_metrics_prometheus`: the latter
       # bundles its own Cowboy server to serve one text endpoint. Bandit is
       # already here for Phoenix, so `Goatmire.Metrics.Exporter` serves the
@@ -91,7 +91,7 @@ defmodule Goatmire.MixProject do
       {:wallaby, "~> 0.31.0", only: :test, runtime: false},
       {:benchee, "~> 1.5", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:oeditus_credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:oeditus_credo, "~> 0.11.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.15.0", only: [:dev, :test], runtime: false},

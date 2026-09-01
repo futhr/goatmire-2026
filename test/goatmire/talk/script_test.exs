@@ -14,7 +14,10 @@ defmodule Goatmire.Talk.ScriptTest do
   end
 
   test "speaker sections exclude stage directions and markdown decoration" do
-    text = Script.sections() |> Enum.flat_map(& &1.paragraphs) |> Enum.join(" ")
+    text =
+      Script.sections()
+      |> Enum.flat_map(& &1.paragraphs)
+      |> Enum.join(" ")
 
     refute text =~ "*("
     refute text =~ "`"
