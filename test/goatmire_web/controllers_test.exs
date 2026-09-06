@@ -35,6 +35,18 @@ defmodule GoatmireWeb.ControllersTest do
     assert body["engine"]["counters"] == %{"alerts" => 0, "events" => 0, "throttled" => 0}
   end
 
+  test "health returns unavailable when the engine cannot answer" do
+    :ok = :sys.suspend(Engine)
+
+    try do
+      conn = get(build_conn(), "/api/health")
+      body = json_response(conn, 503)
+      assert body["engine"]["available"] == false
+    after
+      :ok = :sys.resume(Engine)
+    end
+  end
+
   test "HTTP telemetry ingress reaches the engine" do
     conn =
       build_conn()

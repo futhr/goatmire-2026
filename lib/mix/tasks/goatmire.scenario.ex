@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Goatmire.Scenario do
   use Mix.Task
 
   @shortdoc "Run a Goatmire scenario (1..5), entirely locally"
-  @requirements ["app.start"]
+  @requirements ["compile"]
 
   @switches [
     fleet: :integer,
@@ -74,6 +74,22 @@ defmodule Mix.Tasks.Goatmire.Scenario do
     do: Mix.raise("--mode must be observe or enforce, got #{inspect(other)}")
 
   defp dispatch(number, opts) do
+    unless Process.whereis(Goatmire.Supervisor) do
+      for {key, value} <- [
+            role: :notebook,
+            metrics_enabled: false,
+            autostart_fleet: false,
+            transport: Goatmire.Transport.Local,
+            vda5050_enabled: false,
+            real_devices: [],
+            modbus_sensors: []
+          ] do
+        Application.put_env(:goatmire, key, value)
+      end
+
+      {:ok, _} = Application.ensure_all_started(:goatmire)
+    end
+
     Mix.shell().info(IO.ANSI.bright() <> "Scenario #{number}" <> IO.ANSI.reset())
 
     case Goatmire.ScenarioRunner.run(number, opts) do

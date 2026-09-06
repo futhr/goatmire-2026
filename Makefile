@@ -56,8 +56,7 @@ benchmark:
 # simulators, and raw metrics tools. No Codex credential directory is mounted.
 diagnostics-demo:
 	@docker compose -f docker/docker-compose.diagnostics.yml up --build -d --scale simulator=$(or $(N),2)
-	@mix goatmire.health
-	@mix phx.server
+	@echo "Support containers ready. Start one host server with make talk-stage (or make server)."
 
 diagnostics-down:
 	@docker compose -f docker/docker-compose.diagnostics.yml down

@@ -5,33 +5,15 @@ defmodule GoatmireWeb.HealthController do
   """
   use GoatmireWeb, :controller
 
-  alias Goatmire.{Config, Engine, Fleet, Gate}
+  alias Goatmire.Health
 
-  @doc "Returns separate Maude, transport, fleet, and engine health facts."
+  @doc "Returns separate Maude, transport, fleet, and engine readiness facts."
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _) do
-    {maude_status, maude_detail} =
-      case Gate.health() do
-        {:ok, version} -> {"ok", version}
-        {:error, reason} -> {"unavailable", inspect(reason)}
-      end
-
-    engine = Engine.status()
-
-    payload = %{
-      maude: %{status: maude_status, detail: maude_detail},
-      transport: inspect(Config.transport()),
-      fleet: %{devices: Fleet.count()},
-      engine: %{
-        deployed_rules: engine.deployed_count,
-        withheld_rules: length(engine.withheld),
-        things_seen: engine.things_seen,
-        counters: engine.counters
-      }
-    }
+    payload = Health.snapshot()
 
     conn
-    |> put_status(if maude_status == "ok", do: :ok, else: :service_unavailable)
+    |> put_status(if Health.ready?(payload), do: :ok, else: :service_unavailable)
     |> json(payload)
   end
 end
