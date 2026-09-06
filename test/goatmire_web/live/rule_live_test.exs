@@ -194,6 +194,21 @@ defmodule GoatmireWeb.RuleLiveTest do
     assert Enum.all?(concurrent_rules, &(&1.id in deployed_ids))
   end
 
+  test "editing invalidates a checked candidate", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/rules")
+    render_submit(view, "check", %{"rule" => valid_params()})
+    render_change(view, "validate", %{"rule" => Map.put(valid_params(), "id", "edited")})
+    assert render_click(view, "deploy", %{}) =~ "Run a clean verification"
+    assert Engine.deployed_rules() == []
+  end
+
+  test "seed failure is visible", %{conn: conn} do
+    StubVerifier.set(:unverified)
+    {:ok, view, _} = live(conn, "/rules")
+    assert render_click(view, "seed_deployed", %{}) =~ "gate withheld rule A"
+    assert Engine.deployed_rules() == []
+  end
+
   defp valid_params do
     %{
       "id" => "new-rule",

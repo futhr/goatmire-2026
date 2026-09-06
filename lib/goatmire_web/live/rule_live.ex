@@ -14,6 +14,7 @@ defmodule GoatmireWeb.RuleLive do
   def mount(_, _, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Engine.topic())
     end
 
     {:ok,
@@ -34,19 +35,22 @@ defmodule GoatmireWeb.RuleLive do
     handle_event("check", %{"rule" => socket.assigns.form.params}, socket)
   end
 
+  def handle_info({:engine_deployed, _}, socket), do: {:noreply, assign_deployed_rules(socket)}
+
   def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("validate", %{"rule" => params}, socket) do
-    {:noreply, assign(socket, form: to_form(params))}
+    {:noreply,
+     assign(socket, form: to_form(params), verdict: nil, submitted_rule: nil, deployed: false)}
   end
 
   def handle_event("check", %{"rule" => params}, socket) do
     case build_rule(params) do
       {:ok, rule} ->
         # A rule is only conflict-free relative to the set it is joining.
-        candidate_set = socket.assigns.deployed_rules ++ [rule]
-        {:ok, verdict} = Gate.verify(candidate_set, scenario: :rule_form)
+        candidate_set = Engine.deployed_rules() ++ [rule]
+        {:ok, verdict, _} = Gate.verify_partitioned(candidate_set, scenario: :rule_form)
 
         {:noreply,
          socket
@@ -82,17 +86,26 @@ defmodule GoatmireWeb.RuleLive do
       "action_value" => "off"
     }
 
-    {:noreply, assign(socket, form: to_form(params), verdict: nil, deployed: false)}
+    {:noreply,
+     assign(socket, form: to_form(params), verdict: nil, submitted_rule: nil, deployed: false)}
   end
 
   def handle_event("seed_deployed", _, socket) do
     [first, _] = Rules.research_state_conflict_pair()
-    {:ok, _} = Engine.deploy([first], mode: :enforce, scenario: :rule_form_seed)
+    {:ok, result} = Engine.deploy([first], mode: :enforce, scenario: :rule_form_seed)
 
-    {:noreply,
-     socket
-     |> assign_deployed_rules()
-     |> put_flash(:info, "Deployed the reproduced O3 switch-on rule. Now load O4.")}
+    socket =
+      socket
+      |> assign_deployed_rules()
+      |> assign(verdict: nil, submitted_rule: nil, deployed: false)
+
+    if result.withheld == [] do
+      {:noreply,
+       put_flash(socket, :info, "Deployed the reproduced O3 switch-on rule. Now load O4.")}
+    else
+      {:noreply,
+       put_flash(socket, :error, "The gate withheld rule A. Restore verification and retry.")}
+    end
   end
 
   defp deployable?(socket) do
