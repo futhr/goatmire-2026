@@ -71,13 +71,11 @@ defmodule Goatmire.MixProject do
       {:observer_cli, "~> 2.0"},
       # Exact while the BeamLens web package is beta and its API is evolving.
       {:beamlens, "== 0.3.1"},
-      # Fork of 0.1.0-beta.4 adding consumer theming; PR-able upstream.
-      git_or_local(
-        :beamlens_web,
-        "https://github.com/futhr/beamlens_web.git",
-        "../beamlens_web",
-        ref: "a8bcb2340d9a67cb91265d929f0f286d3425ad24"
-      ),
+      # Upstream main efe1b7f + consumer theme and textarea fixes.
+      {:beamlens_web,
+       git: "https://github.com/futhr/beamlens_web.git",
+       ref: "a8bcb2340d9a67cb91265d929f0f286d3425ad24"},
+      {:mdex, "~> 0.13.5"},
       {:ex_maude, "~> 0.4.1"},
 
       # Renders the verifier's rule terms with Livebook editor colours.
@@ -124,13 +122,5 @@ defmodule Goatmire.MixProject do
         applications: [goatmire: :permanent]
       ]
     ]
-  end
-
-  defp git_or_local(dep, git_url, local_path, opts) do
-    if File.dir?(local_path) do
-      {dep, path: local_path}
-    else
-      {dep, Keyword.merge(opts, git: git_url)}
-    end
   end
 end
