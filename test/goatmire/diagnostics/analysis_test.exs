@@ -5,6 +5,25 @@ defmodule Goatmire.Diagnostics.AnalysisTest do
 
   alias Goatmire.Diagnostics.Analysis
 
+  test "the total deadline cancels a runner that ignores its timeout" do
+    parent = self()
+
+    result =
+      Analysis.run("why?",
+        availability: %{available: true},
+        snapshot: active_snapshot(),
+        timeout: 30,
+        runner: fn _, _ ->
+          send(parent, {:runner, self()})
+          Process.sleep(:infinity)
+        end
+      )
+
+    assert result == {:error, :beamlens_timeout}
+    assert_receive {:runner, pid}
+    refute Process.alive?(pid)
+  end
+
   test "returns deterministic evidence without invoking a runner when no reasoner is available" do
     caller = self()
     snapshot = idle_snapshot()

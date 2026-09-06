@@ -41,14 +41,18 @@ defmodule Goatmire.Diagnostics.Provider do
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
   def complete(messages, opts \\ []) do
     started_at = System.monotonic_time(:millisecond)
+    deadline = started_at + Keyword.get(opts, :timeout, 29_000)
     publish(%{state: :running, provider: :codex, model: nil, reason: nil})
 
     codex_opts =
       opts
-      |> Keyword.put_new(:timeout, Config.diagnostics_codex_timeout_ms())
+      |> Keyword.put(
+        :timeout,
+        min(Config.diagnostics_codex_timeout_ms(), div(max(deadline - started_at, 0), 2))
+      )
       |> Keyword.put_new(:model, Config.diagnostics_codex_model())
 
-    case codex_runner().complete(messages, codex_opts) do
+    case bounded_complete(codex_runner(), messages, codex_opts) do
       {:ok, content, metadata} ->
         finish(:ok, content, metadata, nil, started_at)
 
@@ -60,7 +64,9 @@ defmodule Goatmire.Diagnostics.Provider do
           reason: reason_label(codex_reason)
         })
 
-        case ollama_runner().complete(messages, opts) do
+        remaining = max(deadline - System.monotonic_time(:millisecond), 0)
+
+        case bounded_complete(ollama_runner(), messages, Keyword.put(opts, :timeout, remaining)) do
           {:ok, content, metadata} ->
             finish(:ok, content, metadata, codex_reason, started_at)
 
@@ -79,8 +85,8 @@ defmodule Goatmire.Diagnostics.Provider do
   @doc "Checks both reasoners without consuming a model turn."
   @spec preflight() :: %{codex: term(), ollama: term(), available: boolean()}
   def preflight do
-    codex = codex_runner().preflight()
-    ollama = ollama_runner().preflight()
+    codex = bounded_preflight(codex_runner(), 5_000)
+    ollama = bounded_preflight(ollama_runner(), 2_000)
 
     %{
       codex: codex,
@@ -95,6 +101,20 @@ defmodule Goatmire.Diagnostics.Provider do
     availability = preflight()
     publish(availability_status(availability))
     availability
+  end
+
+  defp bounded_complete(runner, messages, opts) do
+    case Goatmire.Deadline.run(fn -> runner.complete(messages, opts) end, opts[:timeout]) do
+      {:ok, result} -> result
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp bounded_preflight(runner, timeout) do
+    case Goatmire.Deadline.run(fn -> runner.preflight() end, timeout) do
+      {:ok, result} -> result
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp finish(:ok, content, metadata, fallback_reason, started_at) do

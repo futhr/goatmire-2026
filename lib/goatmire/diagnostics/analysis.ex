@@ -42,6 +42,15 @@ defmodule Goatmire.Diagnostics.Analysis do
   @spec run(String.t(), keyword()) :: {:ok, map()} | {:error, error_reason()}
   def run(prompt, opts \\ []) when is_binary(prompt) do
     timeout = Keyword.get(opts, :timeout, 29_000)
+
+    case Goatmire.Deadline.run(fn -> run_bounded(prompt, opts, timeout) end, timeout) do
+      {:ok, result} -> result
+      {:error, :timeout} -> {:error, :beamlens_timeout}
+      {:error, _} -> {:error, :beamlens_failed}
+    end
+  end
+
+  defp run_bounded(prompt, opts, timeout) do
     started_at = System.monotonic_time(:millisecond)
 
     availability =
@@ -117,7 +126,7 @@ defmodule Goatmire.Diagnostics.Analysis do
     :exit, _ -> {:error, :beamlens_failed}
   end
 
-  defp run_operator(%{reason: reason, snapshot: snapshot}, _) do
+  defp run_operator(%{reason: reason, snapshot: snapshot}, opts) do
     messages = [
       %{
         "role" => "system",
@@ -148,6 +157,7 @@ defmodule Goatmire.Diagnostics.Analysis do
     with {:ok, content, _} <-
            Provider.complete(messages,
              output_schema: @response_schema,
+             timeout: Keyword.fetch!(opts, :timeout),
              response_format: response_format
            ),
          {:ok, response} <- Jason.decode(content),
