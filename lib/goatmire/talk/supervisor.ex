@@ -14,8 +14,8 @@ defmodule Goatmire.Talk.Supervisor do
 
   @impl true
   def init(_) do
-    Supervisor.init([Goatmire.Talk.Store, Goatmire.Talk.Clock],
-      strategy: :one_for_one,
+    Supervisor.init([Goatmire.Talk.Store, Goatmire.Talk.Clock, Goatmire.Talk.Actions],
+      strategy: :rest_for_one,
       max_restarts: 20,
       max_seconds: 10
     )

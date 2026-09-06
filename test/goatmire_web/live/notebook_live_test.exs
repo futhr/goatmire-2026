@@ -8,6 +8,8 @@ defmodule GoatmireWeb.NotebookLiveTest do
   @endpoint GoatmireWeb.Endpoint
 
   setup do
+    Goatmire.Talk.Actions.reset()
+    Goatmire.Talk.Actions.get(:notebook)
     %{conn: build_conn()}
   end
 
@@ -45,7 +47,7 @@ defmodule GoatmireWeb.NotebookLiveTest do
 
     render_click(element(view, ~s|button[phx-value-slug="01_iot_state_conflict"]|))
 
-    assert render(view) =~ "Scenario 1"
+    assert_eventually(fn -> render(view) =~ "Scenario 1" end)
   end
 
   test "a scripted step runs the next unevaluated cell", %{conn: conn} do
@@ -56,6 +58,14 @@ defmodule GoatmireWeb.NotebookLiveTest do
     Goatmire.Talk.play(:notebook, :run_next)
 
     assert_eventually(fn -> render(view) =~ "nb-output" end)
+  end
+
+  test "a second browser sees shared notebook results after refresh", %{conn: conn} do
+    {:ok, first, _} = live(conn, "/notebook")
+    Goatmire.Talk.play(:notebook, :run_next)
+    assert_eventually(fn -> render(first) =~ "nb-output" end)
+    {:ok, _, html} = live(build_conn(), "/notebook")
+    assert html =~ "nb-output"
   end
 
   defp assert_eventually(fun, timeout_ms \\ 5_000) do

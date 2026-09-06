@@ -48,6 +48,22 @@ defmodule Goatmire.Talk.Store do
     ArgumentError -> :ok
   end
 
+  @doc "Stores shared pane state independently of the clock checkpoint."
+  @spec put_data(atom(), term()) :: :ok
+  def put_data(key, value) do
+    :ets.insert(@table, {key, value})
+    :ok
+  end
+
+  @doc "Reads shared pane state."
+  @spec get_data(atom()) :: term()
+  def get_data(key) do
+    case :ets.lookup(@table, key) do
+      [{^key, value}] -> value
+      [] -> nil
+    end
+  end
+
   @impl true
   def init(_) do
     :ets.new(@table, [:named_table, :public, :set, read_concurrency: true])

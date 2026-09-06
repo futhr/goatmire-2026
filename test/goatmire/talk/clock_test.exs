@@ -109,15 +109,17 @@ defmodule Goatmire.Talk.ClockTest do
     Clock.goto(13)
 
     assert %{play_done: %{}} = Clock.snapshot()
-    assert %{play_done: %{13 => 1}, panel: :live_full, tab: :rules} = Clock.play_next()
-    assert_receive {:talk_play, :rules, :seed_deployed}
-
-    assert %{play_done: %{13 => 3}} = Clock.play_to(2)
-    assert_receive {:talk_play, :rules, :load_example}
-    assert_receive {:talk_play, :rules, :check}
+    assert %{panel: :live_full, tab: :rules} = Clock.play_next()
+    assert_receive {:talk_state, :rules, _}, 5_000
+    assert_eventually(fn -> Clock.snapshot().play_done[13] == 1 end)
 
     Clock.play_to(2)
-    refute_receive {:talk_play, :rules, _}, 50
+    assert_receive {:talk_state, :rules, _}, 5_000
+    assert_receive {:talk_state, :rules, _}, 5_000
+    assert_eventually(fn -> Clock.snapshot().play_done[13] == 3 end)
+
+    Clock.play_to(2)
+    refute_receive {:talk_state, :rules, _}, 50
 
     assert %{play_done: %{}} = Clock.reset()
   end

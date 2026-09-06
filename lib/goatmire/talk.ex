@@ -15,7 +15,13 @@ defmodule Goatmire.Talk do
 
   @doc "Broadcasts one scripted step to a demo pane."
   @spec play(atom(), atom()) :: :ok
+  def play(:presenter, :run_code),
+    do:
+      Goatmire.Talk.Actions.enqueue([
+        {nil, nil, :presenter, {:run_code, Goatmire.Talk.Clock.snapshot().slide}}
+      ])
+
   def play(pane, step) do
-    Phoenix.PubSub.broadcast(Goatmire.PubSub, @play_topic, {:talk_play, pane, step})
+    Goatmire.Talk.Actions.enqueue([{nil, nil, pane, step}])
   end
 end

@@ -32,7 +32,8 @@ defmodule GoatmireWeb.DiagnosticsLive do
        messages: [],
        provider: Provider.status(),
        snapshot: Snapshot.read(:one_minute)
-     )}
+     )
+     |> restore_script()}
   end
 
   @impl true
@@ -115,7 +116,20 @@ defmodule GoatmireWeb.DiagnosticsLive do
     handle_event("diagnose", %{"diagnostics" => %{"prompt" => socket.assigns.prompt}}, socket)
   end
 
+  def handle_info({:talk_state, :diagnostics, %{result: result}}, socket),
+    do: {:noreply, complete(socket, result)}
+
+  def handle_info({:talk_action_failed, :diagnostics, _}, socket),
+    do: {:noreply, put_flash(socket, :error, "The scripted analysis did not complete. Retry.")}
+
   def handle_info(_, socket), do: {:noreply, socket}
+
+  defp restore_script(socket) do
+    case Goatmire.Talk.Actions.get(:diagnostics) do
+      %{result: result} -> complete(socket, result)
+      _ -> socket
+    end
+  end
 
   defp complete(socket, {:ok, result}) do
     # Markdown is converted once here rather than in render/1 — the snapshot

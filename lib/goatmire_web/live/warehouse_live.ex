@@ -148,6 +148,7 @@ defmodule GoatmireWeb.WarehouseLive do
 
     assign(socket,
       running: scenario.running,
+      storm: socket.assigns.storm || Goatmire.Talk.Actions.get(:warehouse)[:storm],
       devices: devices,
       device_count: max(local_count, engine.things_seen),
       status_counts: status_counts(devices),

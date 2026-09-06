@@ -11,7 +11,7 @@ defmodule GoatmireWeb.PresenterLive do
 
   use GoatmireWeb, :live_view
 
-  alias Goatmire.{Notebook, Talk}
+  alias Goatmire.Talk
   alias Goatmire.Talk.Clock
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
@@ -35,75 +35,19 @@ defmodule GoatmireWeb.PresenterLive do
      socket
      |> assign(page_title: "Talk", panes: @panes)
      |> assign(snap: safe(&Clock.snapshot/0), shortcuts_open: false)
-     |> assign(code_results: %{}, code_task: nil, code_slide: nil), layout: false}
+     |> assign(code_results: Goatmire.Talk.Actions.get(:presenter)[:code_results] || %{}),
+     layout: false}
   end
 
   @impl true
   def handle_info({:talk_clock, snap}, socket), do: {:noreply, assign(socket, :snap, snap)}
 
-  def handle_info({:talk_play, :presenter, :run_code}, socket),
-    do: {:noreply, run_code(socket)}
+  def handle_info({:talk_state, :presenter, state}, socket), do: {:noreply, assign(socket, state)}
 
-  def handle_info({ref, result}, %{assigns: %{code_task: %{ref: ref}}} = socket) do
-    Process.demonitor(ref, [:flush])
-    {:noreply, finish_code(socket, result)}
-  end
-
-  def handle_info(
-        {:DOWN, ref, :process, _, reason},
-        %{assigns: %{code_task: %{ref: ref}}} = socket
-      ) do
-    {:noreply, finish_code(socket, {:error, "card died: #{inspect(reason)}", ""})}
-  end
-
-  def handle_info({:code_timeout, ref}, %{assigns: %{code_task: %{ref: ref} = task}} = socket) do
-    Task.shutdown(task, :brutal_kill)
-    {:noreply, finish_code(socket, {:error, "card exceeded its deadline", ""})}
-  end
+  def handle_info({:talk_action_failed, :presenter, _}, socket),
+    do: {:noreply, put_flash(socket, :error, "The code card did not complete. Retry.")}
 
   def handle_info(_, socket), do: {:noreply, socket}
-
-  # Code cards evaluate in a supervised task, like the notebook pane: a card
-  # that raises or hangs leaves the deck and the clock untouched.
-  defp run_code(%{assigns: %{code_task: nil}} = socket) do
-    slide = socket.assigns.snap.slide
-
-    case CodeExamples.example(slide) do
-      nil ->
-        socket
-
-      example ->
-        socket =
-          socket
-          |> clock(fn -> Clock.set_tab(:code) end)
-          |> clock(&Clock.reveal/0)
-
-        task =
-          Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
-            Notebook.eval(example.code, [])
-          end)
-
-        Process.send_after(self(), {:code_timeout, task.ref}, Notebook.eval_timeout())
-        assign(socket, code_task: task, code_slide: slide)
-    end
-  end
-
-  # a card is already running
-  defp run_code(socket), do: socket
-
-  defp finish_code(socket, result) do
-    entry =
-      case result do
-        {:ok, value, _, _, output} -> %{status: :ok, value: value, output: output}
-        {:error, message, output} -> %{status: :error, error: message, output: output}
-      end
-
-    assign(socket,
-      code_results: Map.put(socket.assigns.code_results, socket.assigns.code_slide, entry),
-      code_task: nil,
-      code_slide: nil
-    )
-  end
 
   @impl true
   def handle_event(_, _, %{assigns: %{snap: nil}} = socket) do

@@ -14,7 +14,7 @@ defmodule Goatmire.Talk.Clock do
 
   require Logger
 
-  alias Goatmire.{Config, Talk}
+  alias Goatmire.Config
   alias Goatmire.Talk.{Controls, Deck, Store}
 
   @topic "talk:clock"
@@ -142,7 +142,8 @@ defmodule Goatmire.Talk.Clock do
         panel: :split,
         tab: :warehouse,
         zoom: 1.0,
-        play_done: %{}
+        play_done: %{},
+        play_requested: %{}
       }
       |> restore_saved()
 
@@ -178,7 +179,10 @@ defmodule Goatmire.Talk.Clock do
   end
 
   def handle_call(:play_next, _, state) do
-    play_to(state, Map.get(state.play_done, state.slide, 0))
+    play_to(
+      state,
+      Map.get(state.play_requested, state.slide, Map.get(state.play_done, state.slide, 0))
+    )
   end
 
   def handle_call({:play_to, target}, _, state), do: play_to(state, target)
@@ -191,6 +195,7 @@ defmodule Goatmire.Talk.Clock do
   # The path is a checked-in config value, not request input.
   # sobelow_skip ["Traversal.FileModule"]
   def handle_call(:reset, _, state) do
+    Goatmire.Talk.Actions.reset()
     Store.clear()
 
     # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
@@ -205,7 +210,8 @@ defmodule Goatmire.Talk.Clock do
         panel: :split,
         tab: :warehouse,
         zoom: 1.0,
-        play_done: %{}
+        play_done: %{},
+        play_requested: %{}
     }
     |> apply_timing_defaults()
     |> mutate()
@@ -222,6 +228,24 @@ defmodule Goatmire.Talk.Clock do
     broadcast(state)
     {:noreply, state}
   end
+
+  def handle_info({:play_completed, slide, index}, state) do
+    next = %{state | play_done: Map.put(state.play_done, slide, index + 1)}
+    persist(next)
+    broadcast(next)
+    {:noreply, next}
+  end
+
+  def handle_info({:play_failed, slide, _}, state) do
+    {:noreply,
+     %{
+       state
+       | play_requested: Map.put(state.play_requested, slide, Map.get(state.play_done, slide, 0))
+     }}
+  end
+
+  def handle_info(:play_reset_pending, state),
+    do: {:noreply, %{state | play_requested: state.play_done}}
 
   def handle_info(_, state), do: {:noreply, state}
 
@@ -353,10 +377,28 @@ defmodule Goatmire.Talk.Clock do
   end
 
   defp play_to(state, target) do
-    case Controls.claim(state.slide, state.play_done, target) do
-      {:ok, pane, steps, play_done} ->
-        Enum.each(steps, &Talk.play(pane, &1))
-        mutate(%{state | play_done: play_done, tab: pane, panel: slide_timing(state).panel})
+    requested = Map.merge(state.play_done, state.play_requested)
+
+    case Controls.claim(state.slide, requested, target) do
+      {:ok, pane, steps, play_requested} ->
+        offset = Map.get(requested, state.slide, 0)
+
+        jobs =
+          Enum.with_index(steps, offset)
+          |> Enum.map(fn {step, index} -> {state.slide, index, pane, step} end)
+
+        case Goatmire.Talk.Actions.enqueue(jobs) do
+          :ok ->
+            mutate(%{
+              state
+              | play_requested: play_requested,
+                tab: pane,
+                panel: slide_timing(state).panel
+            })
+
+          {:error, _} ->
+            {:reply, build_snapshot(state), state}
+        end
 
       :noop ->
         {:reply, build_snapshot(state), state}

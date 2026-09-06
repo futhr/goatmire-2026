@@ -22,7 +22,8 @@ defmodule GoatmireWeb.RuleLive do
      |> assign(page_title: "New rule")
      |> assign(form: to_form(default_params()))
      |> assign(verdict: nil, submitted_rule: nil, deployed: false, running: false)
-     |> assign_deployed_rules()}
+     |> assign_deployed_rules()
+     |> restore_script()}
   end
 
   @impl true
@@ -36,6 +37,12 @@ defmodule GoatmireWeb.RuleLive do
   end
 
   def handle_info({:engine_deployed, _}, socket), do: {:noreply, assign_deployed_rules(socket)}
+
+  def handle_info({:talk_state, :rules, state}, socket),
+    do: {:noreply, apply_script(socket, state)}
+
+  def handle_info({:talk_action_failed, :rules, _}, socket),
+    do: {:noreply, put_flash(socket, :error, "The scripted check did not complete. Retry.")}
 
   def handle_info(_, socket), do: {:noreply, socket}
 
@@ -151,6 +158,17 @@ defmodule GoatmireWeb.RuleLive do
      |> assign(running: false, verdict: nil, submitted_rule: nil)
      |> put_flash(:error, "Verification did not complete. Retry.")}
   end
+
+  defp restore_script(socket), do: apply_script(socket, Goatmire.Talk.Actions.get(:rules))
+
+  defp apply_script(socket, %{params: params} = state),
+    do:
+      socket
+      |> assign(Map.delete(state, :params))
+      |> assign(form: to_form(params), running: false)
+      |> assign_deployed_rules()
+
+  defp apply_script(socket, _), do: socket
 
   defp deployable?(socket) do
     match?(%{status: :clean}, socket.assigns.verdict) and

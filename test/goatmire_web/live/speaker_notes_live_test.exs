@@ -157,7 +157,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     end)
 
     render_click(element(notes, "#speaker-play-step-1"))
-    assert Clock.snapshot().play_done[13] == 2
+    assert_eventually(fn -> Clock.snapshot().play_done[13] == 2 end)
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
   end
 

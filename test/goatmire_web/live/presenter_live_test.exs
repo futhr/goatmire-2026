@@ -81,7 +81,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     render_keydown(view, "key", %{"key" => "p"})
 
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
-    assert Clock.snapshot().play_done[13] == 1
+    assert_eventually(fn -> Clock.snapshot().play_done[13] == 1 end)
     refute render(view) =~ "live-tabs"
   end
 

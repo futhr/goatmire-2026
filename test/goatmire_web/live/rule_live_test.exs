@@ -9,6 +9,8 @@ defmodule GoatmireWeb.RuleLiveTest do
   @endpoint GoatmireWeb.Endpoint
 
   setup do
+    Goatmire.Talk.Actions.reset()
+    Goatmire.Talk.Actions.get(:notebook)
     Application.put_env(:goatmire, :verifier, StubVerifier)
     StubVerifier.reset()
     :ok = Engine.undeploy()

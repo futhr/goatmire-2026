@@ -17,129 +17,64 @@ defmodule GoatmireWeb.NotebookLive do
 
   @impl true
   def mount(_, _, socket) do
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
-    end
+    if connected?(socket),
+      do: Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
 
-    {:ok,
-     socket
-     |> assign(page_title: "Notebook")
-     |> load(@default_slug)}
+    {:ok, socket |> assign(page_title: "Notebook", notebooks: Notebook.list()) |> restore()}
   end
 
   @impl true
-  def handle_event("open", %{"slug" => slug}, socket) do
-    if socket.assigns.running_index, do: {:noreply, socket}, else: {:noreply, load(socket, slug)}
-  end
+  def handle_event("open", %{"slug" => slug}, socket), do: queue(socket, {:open, slug})
 
   def handle_event("run", %{"index" => index}, socket) do
-    {:noreply, run_cell(socket, String.to_integer(index))}
-  end
-
-  def handle_event("run_next", _, socket), do: {:noreply, run_next(socket)}
-
-  def handle_event("reset", _, socket) do
-    if socket.assigns.running_index do
-      {:noreply, socket}
-    else
-      {:noreply, load(socket, socket.assigns.slug)}
+    case Integer.parse(index) do
+      {number, ""} when number >= 0 -> queue(socket, {:run, number})
+      _ -> {:noreply, put_flash(socket, :error, "Unknown cell.")}
     end
   end
 
+  def handle_event("run_next", _, socket), do: queue(socket, :run_next)
+  def handle_event("reset", _, socket), do: queue(socket, :reset)
+
   @impl true
-  def handle_info({:talk_play, :notebook, :run_next}, socket), do: {:noreply, run_next(socket)}
+  def handle_info({:talk_state, :notebook, state}, socket), do: {:noreply, assign(socket, state)}
 
-  def handle_info({:talk_play, :notebook, :reset}, socket),
-    do: {:noreply, load(socket, socket.assigns.slug)}
+  def handle_info({:talk_action_failed, :notebook, _}, socket),
+    do:
+      {:noreply,
+       socket
+       |> assign(running_index: nil)
+       |> put_flash(:error, "The cell did not complete. Retry or reset the notebook.")}
 
-  def handle_info({ref, result}, %{assigns: %{task: %{ref: ref}}} = socket) do
-    Process.demonitor(ref, [:flush])
-    {:noreply, complete(socket, result)}
-  end
-
-  def handle_info({:DOWN, ref, :process, _, reason}, %{assigns: %{task: %{ref: ref}}} = socket) do
-    {:noreply, complete(socket, {:error, "cell died: #{inspect(reason)}", ""})}
-  end
-
-  def handle_info({:cell_timeout, ref}, %{assigns: %{task: %{ref: ref} = task}} = socket) do
-    Task.shutdown(task, :brutal_kill)
-    {:noreply, complete(socket, {:error, "cell exceeded #{Notebook.eval_timeout()} ms", ""})}
-  end
-
+  def handle_info(:talk_reset, socket), do: {:noreply, restore(socket)}
   def handle_info(_, socket), do: {:noreply, socket}
 
-  defp load(socket, slug) do
-    assign(socket,
-      slug: slug,
-      notebooks: Notebook.list(),
-      title: Notebook.title(slug),
-      cells: Notebook.cells(slug),
+  defp restore(socket) do
+    state = Goatmire.Talk.Actions.get(:notebook)
+
+    defaults = %{
+      slug: @default_slug,
+      title: Notebook.title(@default_slug),
+      cells: Notebook.cells(@default_slug),
       bindings: [],
       env: Notebook.fresh_env(),
       results: %{},
       running_index: nil,
       task: nil,
       started_at: nil
-    )
+    }
+
+    assign(socket, Map.merge(defaults, state))
   end
 
-  defp run_next(socket) do
-    next =
-      socket.assigns.cells
-      |> Enum.filter(&(&1.type == :code))
-      |> Enum.find(&(not Map.has_key?(socket.assigns.results, &1.index)))
+  defp queue(socket, action) do
+    case Goatmire.Talk.Actions.enqueue([{nil, nil, :notebook, action}]) do
+      :ok ->
+        {:noreply, assign(socket, running_index: -1)}
 
-    if next, do: run_cell(socket, next.index), else: socket
-  end
-
-  defp run_cell(%{assigns: %{running_index: nil}} = socket, index) do
-    case Enum.find(socket.assigns.cells, &(&1.index == index and &1.type == :code)) do
-      nil ->
-        socket
-
-      cell ->
-        bindings = socket.assigns.bindings
-        env = socket.assigns.env
-
-        task =
-          Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
-            Notebook.eval(cell.source, bindings, env)
-          end)
-
-        Process.send_after(self(), {:cell_timeout, task.ref}, Notebook.eval_timeout())
-
-        assign(socket,
-          running_index: index,
-          task: task,
-          started_at: System.monotonic_time(:millisecond)
-        )
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "The presenter queue is full. Wait and retry.")}
     end
-  end
-
-  # a cell is already running
-  defp run_cell(socket, _), do: socket
-
-  defp complete(socket, result) do
-    index = socket.assigns.running_index
-    duration = System.monotonic_time(:millisecond) - (socket.assigns.started_at || 0)
-
-    {entry, bindings, env} =
-      case result do
-        {:ok, value, bindings, env, output} ->
-          {%{status: :ok, value: value, output: output, ms: duration}, bindings, env}
-
-        {:error, message, output} ->
-          {%{status: :error, error: message, output: output, ms: duration},
-           socket.assigns.bindings, socket.assigns.env}
-      end
-
-    assign(socket,
-      results: Map.put(socket.assigns.results, index, entry),
-      bindings: bindings,
-      env: env,
-      running_index: nil,
-      task: nil
-    )
   end
 
   # Notebook prose is repository content, and MDEx escapes embedded HTML, so

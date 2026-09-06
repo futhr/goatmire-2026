@@ -18,13 +18,21 @@ defmodule GoatmireWeb.VerifyLive do
     {:ok,
      socket
      |> assign(page_title: "Verify")
-     |> assign(results: %{}, running: nil, policy: nil, maude: maude_health())}
+     |> assign(
+       results: %{},
+       running: nil,
+       policy: Goatmire.Talk.Actions.get(:verify)[:policy],
+       maude: maude_health()
+     )}
   end
 
   @impl true
   def handle_info({:talk_play, :verify, :run_policy}, socket) do
     handle_event("run_policy", %{}, socket)
   end
+
+  def handle_info({:talk_state, :verify, %{policy: policy}}, socket),
+    do: {:noreply, assign(socket, policy: policy)}
 
   def handle_info(_, socket), do: {:noreply, socket}
 
