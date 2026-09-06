@@ -28,6 +28,12 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
         *'"method":"account/rateLimits/read"'*)
           printf '%s\n' '{"id":3,"result":{"rateLimits":{"primary":{"usedPercent":12,"resetsAt":123},"rateLimitReachedType":null,"spendControlReached":false}}}'
           ;;
+        *'"method":"config/read"'*)
+          printf '%s\n' '{"id":7,"result":{"config":{"mcp_servers":{"example":{"enabled":true}},"plugins":{}}}}'
+          ;;
+        *'"method":"mcpServerStatus/list"'*)
+          printf '%s\n' '{"id":6,"result":{"data":[]}}'
+          ;;
         *'"method":"thread/start"'*)
           printf '%s\n' '{"id":4,"result":{"thread":{"id":"thread-1"},"model":"gpt-test"}}'
           ;;
@@ -51,6 +57,16 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
     {:ok, executable: script}
   end
 
+  test "diagnostic processes disable execution, connectors and inherited MCP servers" do
+    args = CodexRunner.launch_args()
+    assert "shell_tool" in args
+    assert "apps" in args
+    assert "browser_use" in args
+    assert "mcp_servers={}" in args
+    assert "plugins={}" in args
+    assert "project_doc_max_bytes=0" in args
+  end
+
   test "runs one ephemeral app-server completion and returns compact usage", %{executable: script} do
     assert {:ok, ~s({"summary":"grounded"}), metadata} =
              CodexRunner.complete(
@@ -65,6 +81,20 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
     assert metadata.plan_type == "pro"
     assert metadata.quota.used_percent == 12
     assert metadata.usage == %{input_tokens: 20, cached_input_tokens: 5, output_tokens: 7}
+  end
+
+  test "refuses a remaining MCP capability before starting a model turn", %{executable: script} do
+    contents =
+      File.read!(script)
+      |> String.replace(
+        ~s({"data":[]}),
+        ~s({"data":[{"tools":{"danger":{}},"resources":[],"resourceTemplates":[]}]})
+      )
+
+    File.write!(script, contents)
+
+    assert {:error, :diagnostic_tools_available} =
+             CodexRunner.complete([], executable: script, timeout: 1_000)
   end
 
   test "preflight reads plan auth and quota without starting a turn", %{executable: script} do

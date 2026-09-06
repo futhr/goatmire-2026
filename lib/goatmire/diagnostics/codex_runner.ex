@@ -77,15 +77,27 @@ defmodule Goatmire.Diagnostics.CodexRunner do
            {:ok, rate_result} <-
              request(port, 3, "account/rateLimits/read", %{}, deadline),
            {:ok, quota} <- authorize_quota(rate_result),
+           {:ok, config_result} <-
+             request(
+               port,
+               7,
+               "config/read",
+               %{includeLayers: false, cwd: working_directory},
+               deadline
+             ),
+           {:ok, restrictions} <- disabled_integrations(config_result),
            {:ok, thread_result} <-
              request(
                port,
                4,
                "thread/start",
-               thread_params(working_directory, opts),
+               thread_params(working_directory, Keyword.put(opts, :restrictions, restrictions)),
                deadline
              ),
            {:ok, thread_id, resolved_model} <- thread_identity(thread_result),
+           {:ok, inventory} <-
+             request(port, 6, "mcpServerStatus/list", %{threadId: thread_id}, deadline),
+           :ok <- check_inventory(inventory),
            {:ok, _} <-
              request(
                port,
@@ -113,6 +125,34 @@ defmodule Goatmire.Diagnostics.CodexRunner do
     :exit, reason -> {:error, {:codex_port_exit, sanitize(reason)}}
   end
 
+  # Empty TOML tables merge with user config; explicitly disable each entry.
+  # Only names are retained. Configuration values are neither logged nor sent to the model.
+  defp disabled_integrations(%{"config" => config}) when is_map(config) do
+    restrictions =
+      Map.new(["mcp_servers", "plugins"], fn key ->
+        entries = Map.get(config, key) || %{}
+        {key, Map.new(entries, fn {name, _} -> {name, %{"enabled" => false}} end)}
+      end)
+
+    {:ok, restrictions}
+  end
+
+  defp disabled_integrations(_), do: {:error, :invalid_codex_config}
+
+  defp check_inventory(%{"data" => entries} = inventory) when is_list(entries) do
+    if is_nil(inventory["nextCursor"]) and Enum.all?(entries, &empty_capabilities?/1),
+      do: :ok,
+      else: {:error, :diagnostic_tools_available}
+  end
+
+  defp check_inventory(_), do: {:error, :invalid_codex_inventory}
+
+  # Disabled servers can still appear in the status list, with no capabilities.
+  defp empty_capabilities?(%{"tools" => tools, "resources" => [], "resourceTemplates" => []}),
+    do: tools == %{}
+
+  defp empty_capabilities?(_), do: false
+
   defp initialize_params do
     %{
       clientInfo: %{name: "goatmire", title: "Goatmire Diagnostics", version: "0.2.0"},
@@ -127,15 +167,36 @@ defmodule Goatmire.Diagnostics.CodexRunner do
         :binary,
         :exit_status,
         {:line, @max_line_bytes},
-        {:args, ["app-server", "--listen", "stdio://"]}
+        {:args, launch_args()}
       ]
     )
+  end
+
+  @doc "Process-local restrictions for diagnostic completions; user configuration is unchanged."
+  @spec launch_args() :: [String.t()]
+  def launch_args do
+    disabled =
+      ~w(shell_tool unified_exec apps browser_use browser_use_external computer_use image_generation code_mode code_mode_host multi_agent memories hooks goals remote_plugin skill_mcp_dependency_install)
+
+    ["app-server", "--listen", "stdio://"] ++
+      Enum.flat_map(disabled, &["--disable", &1]) ++
+      Enum.flat_map(
+        [
+          "mcp_servers={}",
+          "plugins={}",
+          "web_search=\"disabled\"",
+          "tools.view_image=false",
+          "project_doc_max_bytes=0"
+        ],
+        &["-c", &1]
+      )
   end
 
   defp thread_params(working_directory, opts) do
     %{
       cwd: working_directory,
       ephemeral: true,
+      config: Keyword.fetch!(opts, :restrictions),
       sandbox: "read-only",
       approvalPolicy: "never",
       baseInstructions: """
@@ -360,6 +421,8 @@ defmodule Goatmire.Diagnostics.CodexRunner do
     }
   end
 
+  # Cryptographically random basename under the OS temporary directory; no user path.
+  # sobelow_skip ["Traversal.FileModule"]
   defp diagnostic_directory do
     suffix = Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)
     directory = Path.join(System.tmp_dir!(), "goatmire-diagnostics-empty-#{suffix}")
