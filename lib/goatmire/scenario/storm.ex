@@ -15,6 +15,8 @@ defmodule Goatmire.Scenario.Storm do
   rate — not a benchmark, not an incident. Read the screen on the day.
   """
 
+  alias Goatmire.Scenario.Coordinator
+
   alias Goatmire.{Engine, Fleet, Rules}
 
   @pubsub Goatmire.PubSub
@@ -60,7 +62,7 @@ defmodule Goatmire.Scenario.Storm do
   @spec run(keyword()) :: {:ok, summary()} | {:error, term()}
   def run(opts \\ []) do
     validate_run!(opts)
-    Goatmire.Scenario.Coordinator.exclusive(fn -> run_exclusive(opts) end)
+    Coordinator.exclusive(fn -> run_exclusive(opts) end)
   end
 
   defp validate_run!(opts) do
@@ -138,7 +140,7 @@ defmodule Goatmire.Scenario.Storm do
            }}
   def compare(opts \\ []) do
     validate_run!(opts)
-    Goatmire.Scenario.Coordinator.exclusive(fn -> compare_exclusive(opts) end)
+    Coordinator.exclusive(fn -> compare_exclusive(opts) end)
   end
 
   defp compare_exclusive(opts) do

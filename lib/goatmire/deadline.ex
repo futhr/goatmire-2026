@@ -19,16 +19,20 @@ defmodule Goatmire.Deadline do
     end
   end
 
+  # The guardian owns this linked task, traps exits, and always shuts it down.
+  # A supervisor-owned unlinked task would outlive a killed caller here.
   defp supervise(owner, token, callers, fun, timeout) do
     Process.flag(:trap_exit, true)
     Process.put(:"$callers", callers)
     owner_monitor = Process.monitor(owner)
+    # credo:disable-for-next-line OeditusCredo.Check.Warning.UnmanagedTask
     task = Task.async(fun)
+    task_ref = task.ref
 
     result =
       receive do
-        {ref, value} when ref == task.ref -> {:ok, value}
-        {:DOWN, ref, :process, _, reason} when ref == task.ref -> {:error, reason}
+        {^task_ref, value} -> {:ok, value}
+        {:DOWN, ^task_ref, :process, _, reason} -> {:error, reason}
         {:DOWN, ^owner_monitor, :process, _, _} -> {:error, :caller_down}
       after
         timeout -> {:error, :timeout}

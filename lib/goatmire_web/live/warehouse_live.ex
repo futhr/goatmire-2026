@@ -5,14 +5,16 @@ defmodule GoatmireWeb.WarehouseLive do
   Every dot is a simulated or transport-observed device. Storm counters are
   read from the engine, not the scenario.
   """
+
   use GoatmireWeb, :live_view
 
   alias Goatmire.{Engine, Fleet, Warehouse}
-  alias Goatmire.Scenario.Storm
+  alias Goatmire.Scenario.{Coordinator, Storm}
+  alias Goatmire.Talk.Actions
 
   @refresh_ms 1_000
   @device_render_limit 500
-  @max_fleet_size 6_000
+  @max_fleet_size 4_000
   @max_duration_seconds 300
 
   @impl true
@@ -120,7 +122,7 @@ defmodule GoatmireWeb.WarehouseLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   defp fleet_mutation(socket, fun) do
-    case Goatmire.Scenario.Coordinator.exclusive(fun) do
+    case Coordinator.exclusive(fun) do
       {:error, :busy} -> {:noreply, put_flash(socket, :error, "A scenario is already running.")}
       _ -> {:noreply, refresh(socket)}
     end
@@ -136,7 +138,7 @@ defmodule GoatmireWeb.WarehouseLive do
   end
 
   defp refresh(socket) do
-    scenario = Goatmire.Scenario.Coordinator.status()
+    scenario = Coordinator.status()
     engine = Engine.status()
     local_count = Fleet.count()
 
@@ -148,7 +150,7 @@ defmodule GoatmireWeb.WarehouseLive do
 
     assign(socket,
       running: scenario.running,
-      storm: socket.assigns.storm || Goatmire.Talk.Actions.get(:warehouse)[:storm],
+      storm: socket.assigns.storm || Actions.get(:warehouse)[:storm],
       devices: devices,
       device_count: max(local_count, engine.things_seen),
       status_counts: status_counts(devices),

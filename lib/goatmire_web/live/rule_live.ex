@@ -6,9 +6,11 @@ defmodule GoatmireWeb.RuleLive do
   existing, against the rules already deployed. The measured duration is shown
   on every result, including failures.
   """
+
   use GoatmireWeb, :live_view
 
   alias Goatmire.{Engine, Gate, Rules}
+  alias Goatmire.Talk.Actions
 
   @impl true
   def mount(_, _, socket) do
@@ -133,7 +135,10 @@ defmodule GoatmireWeb.RuleLive do
   end
 
   def handle_async(:rule_operation, {:ok, {kind, {:ok, result}}}, socket) do
-    socket = socket |> assign(running: false) |> assign_deployed_rules()
+    socket =
+      socket
+      |> assign(running: false)
+      |> assign_deployed_rules()
 
     if result.withheld == [] do
       message =
@@ -141,7 +146,10 @@ defmodule GoatmireWeb.RuleLive do
           do: "Deployed the reproduced O3 switch-on rule. Now load O4.",
           else: "Deployed."
 
-      {:noreply, socket |> assign(deployed: kind == :deployed) |> put_flash(:info, message)}
+      {:noreply,
+       socket
+       |> assign(deployed: kind == :deployed)
+       |> put_flash(:info, message)}
     else
       message =
         if kind == :seeded,
@@ -159,7 +167,7 @@ defmodule GoatmireWeb.RuleLive do
      |> put_flash(:error, "Verification did not complete. Retry.")}
   end
 
-  defp restore_script(socket), do: apply_script(socket, Goatmire.Talk.Actions.get(:rules))
+  defp restore_script(socket), do: apply_script(socket, Actions.get(:rules))
 
   defp apply_script(socket, %{params: params} = state),
     do:

@@ -35,10 +35,10 @@ defmodule GoatmireWeb.WarehouseLiveTest do
     |> form("#storm-configuration", %{"fleet_size" => "999999", "duration" => "30"})
     |> render_change()
 
-    assert has_element?(live, "#fleet-size[value=\"6000\"]")
+    assert has_element?(live, "#fleet-size[value=\"4000\"]")
 
     live
-    |> form("#storm-configuration", %{"fleet_size" => "6000", "duration" => "999999"})
+    |> form("#storm-configuration", %{"fleet_size" => "4000", "duration" => "999999"})
     |> render_change()
 
     assert has_element?(live, "#storm-duration[value=\"300\"]")
@@ -47,10 +47,10 @@ defmodule GoatmireWeb.WarehouseLiveTest do
     |> form("#storm-configuration", %{"fleet_size" => "42devices", "duration" => "300"})
     |> render_change()
 
-    assert has_element?(live, "#fleet-size[value=\"6000\"]")
+    assert has_element?(live, "#fleet-size[value=\"4000\"]")
 
     live
-    |> form("#storm-configuration", %{"fleet_size" => "6000", "duration" => "0"})
+    |> form("#storm-configuration", %{"fleet_size" => "4000", "duration" => "0"})
     |> render_change()
 
     assert has_element?(live, "#storm-duration[value=\"1\"]")
@@ -113,14 +113,14 @@ defmodule GoatmireWeb.WarehouseLiveTest do
 
   @tag :stress
   @tag timeout: 120_000
-  test "a 6000-device fleet keeps the LiveView payload bounded", %{conn: conn} do
+  test "a 4000-device fleet keeps the LiveView payload bounded", %{conn: conn} do
     {:ok, 6_000} = Fleet.start_simulated_fleet(6_000, tick_ms: 0)
 
     {:ok, live, _} = live(conn, "/warehouse")
     html = render(live)
 
-    assert html =~ "6000 Thing(s) tracked"
-    assert html =~ "Showing 500 of 6000 devices"
+    assert html =~ "4000 Thing(s) tracked"
+    assert html =~ "Showing 500 of 4000 devices"
     assert length(Regex.scan(~r/<circle\b/, html)) == 500
     assert byte_size(html) < 500_000
   end

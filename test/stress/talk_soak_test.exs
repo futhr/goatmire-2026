@@ -1,21 +1,21 @@
 defmodule Goatmire.TalkSoakTest do
   @moduledoc """
-  Talk-length wear test: repeated event storms, fleet churn, verifications,
+  Timed real-interpreter wear test: repeated event storms, fleet churn, verifications,
   and slide navigation must not leak memory or processes. Excluded by
-  default; run with `mix test.soak` (SOAK_ITERATIONS overrides the length).
+  default; run with `mix test.soak` (SOAK_SECONDS overrides the duration).
   """
 
   use ExUnit.Case, async: false
 
-  alias Goatmire.{Engine, Fleet, Gate, Rules, StubVerifier, Transport}
+  alias Goatmire.{Engine, Fleet, Gate, Rules, Transport}
   alias Goatmire.Talk.Clock
 
   @moduletag :soak
   @moduletag timeout: 3_600_000
 
   setup do
-    Application.put_env(:goatmire, :verifier, StubVerifier)
-    StubVerifier.reset()
+    Application.delete_env(:goatmire, :verifier)
+    assert {:ok, _} = Gate.health()
     Fleet.stop_all()
     :ok = Engine.undeploy()
     :ok = Engine.reset()
@@ -24,7 +24,6 @@ defmodule Goatmire.TalkSoakTest do
     on_exit(fn ->
       Fleet.stop_all()
       Application.delete_env(:goatmire, :verifier)
-      StubVerifier.reset()
       Clock.reset()
     end)
 
@@ -32,21 +31,23 @@ defmodule Goatmire.TalkSoakTest do
   end
 
   test "repeated demo cycles hold memory and process count flat" do
-    iterations = String.to_integer(System.get_env("SOAK_ITERATIONS", "20"))
-    warmup = min(5, iterations)
+    seconds = String.to_integer(System.get_env("SOAK_SECONDS", "30"))
+    assert seconds >= 1
+    Enum.each(1..5, &cycle/1)
+    Fleet.stop_all()
+    drain(Engine)
+    baseline = measure()
+    deadline = System.monotonic_time(:millisecond) + seconds * 1_000
+    run_until(deadline, 6)
+    check(baseline)
+  end
 
-    baseline =
-      Enum.reduce(1..iterations, nil, fn iteration, baseline ->
-        cycle(iteration)
-
-        cond do
-          iteration == warmup -> measure()
-          iteration == iterations -> check(baseline)
-          true -> baseline
-        end
-      end)
-
-    assert baseline != nil
+  defp run_until(deadline, iteration) do
+    if System.monotonic_time(:millisecond) < deadline do
+      cycle(iteration)
+      Process.sleep(100)
+      run_until(deadline, iteration + 1)
+    end
   end
 
   defp cycle(iteration) do
@@ -61,7 +62,7 @@ defmodule Goatmire.TalkSoakTest do
     end
 
     Enum.each(1..10, fn _ ->
-      {:ok, _} = Gate.verify(Rules.clean_set(), scenario: :soak)
+      {:ok, %{status: :clean}} = Gate.verify(Rules.clean_set(), scenario: :soak)
     end)
 
     Clock.goto(rem(iteration, 18) + 1)
@@ -101,7 +102,7 @@ defmodule Goatmire.TalkSoakTest do
         :ok
 
       System.monotonic_time(:millisecond) >= deadline ->
-        :ok
+        flunk("engine mailbox did not drain within 30 seconds")
 
       true ->
         Process.sleep(25)

@@ -65,7 +65,7 @@ defmodule GoatmireWeb.PresenterE2ETest do
     assert %{slide: 2, panel: :live_full} = Clock.snapshot()
 
     Clock.goto(17)
-    session = assert_has(session, css(".speaker-controls-dynamic button", count: 5))
+    session = assert_has(session, css(".speaker-controls-dynamic button", count: 7))
 
     {:ok, layout} =
       Wallaby.Chrome.execute_script(

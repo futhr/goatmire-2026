@@ -139,17 +139,20 @@ defmodule Mix.Tasks.Goatmire.Benchmark do
     }
   end
 
+  # Paths come only from the installed dependency directory, never request input.
   defp model_hashes do
     :ex_maude
     |> :code.priv_dir()
     |> to_string()
     |> Path.join("maude/*.maude")
     |> Path.wildcard()
+    # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
     |> Map.new(fn path -> {Path.basename(path), digest(File.read!(path))} end)
   end
 
   defp digest(data), do: :crypto.hash(:sha256, data) |> Base.encode16(case: :lower)
 
+  # OTP provides both path components; no caller can choose a file.
   defp otp_version do
     path =
       Path.join([
@@ -159,6 +162,7 @@ defmodule Mix.Tasks.Goatmire.Benchmark do
         "OTP_VERSION"
       ])
 
+    # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
     case File.read(path) do
       {:ok, version} -> String.trim(version)
       _ -> to_string(:erlang.system_info(:otp_release))

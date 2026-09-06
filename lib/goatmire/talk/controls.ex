@@ -19,7 +19,7 @@ defmodule Goatmire.Talk.Controls do
     17 =>
       {:notebook,
        [
-         {:run_next, "Initialize"},
+         {:initialize_policy, "Initialize"},
          {:run_next, "Check interpreter"},
          {:run_next, "Define policy"},
          {:run_next, "Missing approval"},

@@ -3,7 +3,7 @@ defmodule GoatmireWeb.MetricsLive do
   The engine and verifier as series, read from the diagnostics sampler.
 
   The same in-memory ring buffer the BeamLens answers cite, so the charts and
-  the prose can never disagree. Five minutes deep and gone with the node: for
+  the evidence comes from the same source. Model prose can still be wrong. Five minutes deep and gone with the node: for
   a talk that bound is the point, not a limitation to apologise for.
   """
 

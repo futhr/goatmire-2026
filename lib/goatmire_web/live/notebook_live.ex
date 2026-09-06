@@ -12,6 +12,7 @@ defmodule GoatmireWeb.NotebookLive do
   use GoatmireWeb, :live_view
 
   alias Goatmire.Notebook
+  alias Goatmire.Talk.Actions
 
   @default_slug "05_agent_policy_proof"
 
@@ -20,7 +21,10 @@ defmodule GoatmireWeb.NotebookLive do
     if connected?(socket),
       do: Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
 
-    {:ok, socket |> assign(page_title: "Notebook", notebooks: Notebook.list()) |> restore()}
+    {:ok,
+     socket
+     |> assign(page_title: "Notebook", notebooks: Notebook.list())
+     |> restore()}
   end
 
   @impl true
@@ -36,7 +40,7 @@ defmodule GoatmireWeb.NotebookLive do
   def handle_event("run_next", _, socket), do: queue(socket, :run_next)
 
   def handle_event("reset", _, socket) do
-    :ok = Goatmire.Talk.Actions.reset_notebook()
+    :ok = Actions.reset_notebook()
     {:noreply, restore(socket)}
   end
 
@@ -54,7 +58,7 @@ defmodule GoatmireWeb.NotebookLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   defp restore(socket) do
-    state = Goatmire.Talk.Actions.get(:notebook)
+    state = Actions.get(:notebook)
 
     defaults = %{
       slug: @default_slug,
@@ -72,7 +76,7 @@ defmodule GoatmireWeb.NotebookLive do
   end
 
   defp queue(socket, action) do
-    case Goatmire.Talk.Actions.enqueue([{nil, nil, :notebook, action}]) do
+    case Actions.enqueue([{nil, nil, :notebook, action}]) do
       :ok ->
         {:noreply, assign(socket, running_index: -1)}
 

@@ -1,12 +1,14 @@
 defmodule Goatmire.Diagnostics.Provider do
   @moduledoc """
-  Chooses the no-extra-billing diagnostic reasoner.
+  Chooses ChatGPT-plan diagnostics with a local Ollama fallback.
 
   Codex authenticated through the user's ChatGPT plan is primary. Any missing
   login, API-key auth, exhausted quota, timeout, or app-server failure falls
   back to the fixed local Ollama model. Provider selection is broadcast so a
   stage audience never sees a silent switch.
   """
+
+  alias Goatmire.Diagnostics.Status
 
   alias Goatmire.Config
   @topic "goatmire:diagnostics"
@@ -17,11 +19,11 @@ defmodule Goatmire.Diagnostics.Provider do
 
   @doc "Last published provider state, or an idle state before the first request."
   @spec status() :: map()
-  def status, do: Goatmire.Diagnostics.Status.get()
+  def status, do: Status.get()
 
   @doc false
   @spec reset() :: :ok
-  def reset, do: Goatmire.Diagnostics.Status.reset()
+  def reset, do: Status.reset()
 
   @doc "Completes through Codex plan access, falling back visibly to local Ollama."
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
@@ -153,8 +155,12 @@ defmodule Goatmire.Diagnostics.Provider do
   end
 
   defp publish(status) do
-    status = status |> Map.put_new(:completed_at, nil) |> Map.put(:request_id, inspect(self()))
-    Goatmire.Diagnostics.Status.put(status)
+    status =
+      status
+      |> Map.put_new(:completed_at, nil)
+      |> Map.put(:request_id, inspect(self()))
+
+    Status.put(status)
 
     Phoenix.PubSub.broadcast(Goatmire.PubSub, @topic, {:diagnostics_provider, status})
     :ok

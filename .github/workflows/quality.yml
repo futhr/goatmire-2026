@@ -52,6 +52,11 @@ jobs:
       - name: Run the canonical repository gate
         run: mix check --no-retry
 
+      - name: Exercise local peer boot and a real-interpreter wear interval
+        run: |
+          mix test --include manual test/goatmire/local_cluster_test.exs
+          SOAK_SECONDS=30 mix test.soak
+
       - name: Publish coverage to Coveralls
         run: mix coveralls.github
         env:
@@ -105,3 +110,9 @@ jobs:
         run: |
           docker build -f docker/Dockerfile --target engine -t goatmire-engine:check .
           docker build -f docker/Dockerfile --target simulator -t goatmire-simulator:check .
+      - name: Boot releases against a real broker
+        run: scripts/smoke-containers.sh
+      - name: Build and exercise the independent notebook runtime
+        run: |
+          docker build -f docker/Dockerfile --target livebook -t goatmire-livebook:check .
+          scripts/smoke-livebook.sh

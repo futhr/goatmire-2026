@@ -66,6 +66,44 @@ defmodule Goatmire.EngineTest do
     end
   end
 
+  defmodule SlowVerifier do
+    @moduledoc false
+    @behaviour Goatmire.Gate
+    @impl true
+    def verify_partitioned(rules, opts) do
+      send(Keyword.fetch!(opts, :observer), {:checking, self()})
+      Process.sleep(500)
+      StubVerifier.verify_partitioned(rules, opts)
+    end
+
+    @impl true
+    defdelegate verify(rules, opts), to: StubVerifier
+    @impl true
+    defdelegate split_on_verdict(rules, verdict), to: StubVerifier
+    @impl true
+    defdelegate health(), to: StubVerifier
+  end
+
+  test "slow verification leaves ingestion responsive and cannot activate after its deadline" do
+    Application.put_env(:goatmire, :verifier, SlowVerifier)
+    parent = self()
+    task = Task.async(fn -> Engine.deploy(Rules.clean_set(), timeout: 150, observer: parent) end)
+    assert_receive {:checking, worker}
+    monitor = Process.monitor(worker)
+
+    send(
+      Engine,
+      {:goatmire_publish, Transport.telemetry_topic("responsive"),
+       %{thing_id: "responsive", property: "battery", value: 12}}
+    )
+
+    assert Engine.properties("responsive")["battery"] == 12
+    assert Engine.status().deployed_count == 0
+    assert {:ok, %{verdict: %{status: :unverified}}} = Task.await(task)
+    assert_receive {:DOWN, ^monitor, :process, ^worker, _}
+    assert Engine.deployed_rules() == []
+  end
+
   test "concurrent admissions retain every accepted addition" do
     rules = Rules.clean_set()
     results = Task.async_stream(rules, &Engine.admit([&1]), max_concurrency: 5) |> Enum.to_list()
@@ -83,6 +121,7 @@ defmodule Goatmire.EngineTest do
 
   defmodule FailingTransport do
     @moduledoc false
+    @spec publish(term(), term()) :: {:error, :disconnected}
     def publish(_, _), do: {:error, :disconnected}
   end
 

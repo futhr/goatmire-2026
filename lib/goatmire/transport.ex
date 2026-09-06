@@ -43,15 +43,17 @@ defmodule Goatmire.Transport do
   @doc "Publishes a device telemetry reading."
   @spec publish_telemetry(String.t(), String.t(), term()) :: :ok | {:error, term()}
   def publish_telemetry(thing_id, property, value) do
-    with {:ok, _} <- decode_event(%{thing_id: thing_id, property: property, value: value}) do
-      impl().publish(telemetry_topic(thing_id), %{
-        "thing_id" => thing_id,
-        "property" => property,
-        "value" => value,
-        "ts" => System.system_time(:millisecond)
-      })
-    else
-      :error -> {:error, :invalid_telemetry}
+    case decode_event(%{thing_id: thing_id, property: property, value: value}) do
+      {:ok, _} ->
+        impl().publish(telemetry_topic(thing_id), %{
+          "thing_id" => thing_id,
+          "property" => property,
+          "value" => value,
+          "ts" => System.system_time(:millisecond)
+        })
+
+      :error ->
+        {:error, :invalid_telemetry}
     end
   end
 

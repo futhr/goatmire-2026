@@ -179,6 +179,8 @@ defmodule Goatmire.Diagnostics.Sampler do
         &{&1, max(Map.fetch!(totals, &1) - Map.fetch!(state.previous_totals, &1), 0)}
       )
 
+    deltas = current_run_counts(state.history, engine[:run_id], deltas)
+
     rates = Map.new(deltas, fn {key, value} -> {key, value / elapsed} end)
 
     sample = %{
@@ -218,6 +220,11 @@ defmodule Goatmire.Diagnostics.Sampler do
         previous_scheduler: scheduler
     }
   end
+
+  defp current_run_counts([%{run_id: previous} | _], current, _) when previous != current,
+    do: zero_totals()
+
+  defp current_run_counts(_, _, deltas), do: deltas
 
   defp summarize([]) do
     %{

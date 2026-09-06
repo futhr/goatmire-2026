@@ -4,12 +4,19 @@ defmodule Goatmire.Talk.ClockTest do
   use ExUnit.Case, async: false
 
   alias Goatmire.Talk
-  alias Goatmire.Talk.{Clock, Deck}
+  alias Goatmire.Talk.{Clock, Deck, Store}
 
   setup do
     Clock.reset()
     on_exit(fn -> Clock.reset() end)
     :ok
+  end
+
+  test "late acknowledgements cannot complete a step after reset" do
+    generation = :sys.get_state(Clock).play_generation[17]
+    Clock.reset()
+    send(Clock, {:play_completed, 17, {generation, 0}})
+    refute Map.has_key?(Clock.snapshot().play_done, 17)
   end
 
   test "loads budgets that fit the slot with no warnings" do
@@ -184,7 +191,7 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "malformed checkpoints do not crash clock recovery" do
-    Goatmire.Talk.Store.put(%{slide: 5, zoom: "huge", started_at_ms: %{}})
+    Store.put(%{slide: 5, zoom: "huge", started_at_ms: %{}})
     kill_and_await_restart()
     assert Clock.snapshot().slide == 1
     assert Clock.snapshot().zoom == 1.0

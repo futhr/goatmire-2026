@@ -8,7 +8,7 @@ defmodule Goatmire.Application do
   def start(_, _) do
     # Two branches under the root: talk-critical (clock, endpoint) and the
     # demo domain. A demo crash-loop burns Goatmire.Demo.Supervisor's restart
-    # budget, never the deck's.
+    # budget before consuming the root restart budget.
     children =
       [
         {Phoenix.PubSub, name: Goatmire.PubSub},

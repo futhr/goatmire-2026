@@ -1,16 +1,18 @@
 defmodule GoatmireWeb.RuleLiveTest do
   @moduledoc false
+
   use ExUnit.Case, async: false
 
   import Phoenix.{ConnTest, LiveViewTest}
 
   alias Goatmire.{Engine, StubVerifier, Verifier}
+  alias Goatmire.Talk.Actions
 
   @endpoint GoatmireWeb.Endpoint
 
   setup do
-    Goatmire.Talk.Actions.reset()
-    Goatmire.Talk.Actions.get(:notebook)
+    Actions.reset()
+    Actions.get(:notebook)
     Application.put_env(:goatmire, :verifier, StubVerifier)
     StubVerifier.reset()
     :ok = Engine.undeploy()

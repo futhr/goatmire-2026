@@ -25,7 +25,7 @@ defmodule GoatmireWeb.VerifyLiveTest do
 
     assert html =~ "Two rules, one property"
     assert html =~ "Five unrelated rules"
-    assert html =~ "The five-rule loop"
+    assert html =~ "Model dependencies"
     assert html =~ "An agent policy"
   end
 

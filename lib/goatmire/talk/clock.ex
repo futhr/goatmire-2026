@@ -1,12 +1,12 @@
 defmodule Goatmire.Talk.Clock do
   @moduledoc """
-  Wall-clock authority for the `/talk` presenter.
+  Monotonic timer authority for the `/talk` presenter.
 
   Owns slide position, per-slide elapsed time, panel state, and the budget
   table from `priv/talk/timings.exs`. It lives in its own supervision branch
   and checkpoints position to `Goatmire.Talk.Store` plus an optional file, so
-  a LiveView crash, a browser refresh, or a full node restart resumes the
-  talk exactly where it stopped. One snapshot per second is broadcast on
+  browser reconnects recover the current state. Valid checkpoints restore
+  position and completed steps after restart, excluding offline elapsed time. One snapshot per second is broadcast on
   `topic/0`; every mutation broadcasts immediately.
   """
 
@@ -15,7 +15,7 @@ defmodule Goatmire.Talk.Clock do
   require Logger
 
   alias Goatmire.Config
-  alias Goatmire.Talk.{Controls, Deck, Store}
+  alias Goatmire.Talk.{Actions, Controls, Deck, Store}
 
   @topic "talk:clock"
   @tick_ms 1_000
@@ -143,7 +143,8 @@ defmodule Goatmire.Talk.Clock do
         tab: :warehouse,
         zoom: 1.0,
         play_done: %{},
-        play_requested: %{}
+        play_requested: %{},
+        play_generation: generations()
       }
       |> restore_saved()
 
@@ -195,7 +196,7 @@ defmodule Goatmire.Talk.Clock do
   # The path is a checked-in config value, not request input.
   # sobelow_skip ["Traversal.FileModule"]
   def handle_call(:reset, _, state) do
-    Goatmire.Talk.Actions.reset()
+    Actions.reset()
     Store.clear()
 
     # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
@@ -211,7 +212,8 @@ defmodule Goatmire.Talk.Clock do
         tab: :warehouse,
         zoom: 1.0,
         play_done: %{},
-        play_requested: %{}
+        play_requested: %{},
+        play_generation: generations()
     }
     |> apply_timing_defaults()
     |> mutate()
@@ -229,26 +231,36 @@ defmodule Goatmire.Talk.Clock do
     {:noreply, state}
   end
 
-  def handle_info({:play_completed, slide, index}, state) do
-    next = %{state | play_done: Map.put(state.play_done, slide, index + 1)}
-    persist(next)
-    broadcast(next)
-    {:noreply, next}
+  def handle_info({:play_completed, slide, {generation, index}}, state) do
+    if state.play_generation[slide] == generation do
+      next = %{state | play_done: Map.put(state.play_done, slide, index + 1)}
+      persist(next)
+      broadcast(next)
+      {:noreply, next}
+    else
+      {:noreply, state}
+    end
   end
 
-  def handle_info({:play_failed, slide, _}, state) do
-    {:noreply,
-     %{
-       state
-       | play_requested: Map.put(state.play_requested, slide, Map.get(state.play_done, slide, 0))
-     }}
+  def handle_info({:play_failed, slide, {generation, _}}, state) do
+    if state.play_generation[slide] == generation do
+      {:noreply,
+       %{
+         state
+         | play_requested:
+             Map.put(state.play_requested, slide, Map.get(state.play_done, slide, 0))
+       }}
+    else
+      {:noreply, state}
+    end
   end
 
   def handle_info({:play_clear_slide, slide}, state) do
     next = %{
       state
       | play_done: Map.delete(state.play_done, slide),
-        play_requested: Map.delete(state.play_requested, slide)
+        play_requested: Map.delete(state.play_requested, slide),
+        play_generation: Map.put(state.play_generation, slide, make_ref())
     }
 
     persist(next)
@@ -397,7 +409,7 @@ defmodule Goatmire.Talk.Clock do
 
       restored =
         Enum.reduce([:started_at_ms, :entered_at_ms], restored, fn key, values ->
-          Map.update!(values, key, fn value -> if value, do: value + shift end)
+          Map.update!(values, key, &shift_time(&1, shift))
         end)
 
       state = Map.merge(state, restored)
@@ -406,6 +418,10 @@ defmodule Goatmire.Talk.Clock do
       apply_timing_defaults(state)
     end
   end
+
+  defp shift_time(nil, _), do: nil
+  defp shift_time(value, shift), do: value + shift
+  defp valid_zoom?(zoom), do: is_number(zoom) and zoom >= 0.7 and zoom <= 1.5
 
   defp valid_saved?(%{
          version: 2,
@@ -420,7 +436,7 @@ defmodule Goatmire.Talk.Clock do
          play_done: done
        }) do
     slide in 1..@slide_count and is_integer(saved_at) and panel in @panels and tab in @tabs and
-      is_number(zoom) and zoom >= 0.7 and zoom <= 1.5 and
+      valid_zoom?(zoom) and
       valid_times?(started, entered, saved_at) and valid_durations?(accumulated) and
       valid_progress?(done)
   end
@@ -456,6 +472,8 @@ defmodule Goatmire.Talk.Clock do
     %{state | panel: :deck_full, tab: timing.tab || state.tab}
   end
 
+  defp generations, do: Map.new(1..@slide_count, &{&1, make_ref()})
+
   defp play_to(state, target) do
     requested = Map.merge(state.play_done, state.play_requested)
 
@@ -465,9 +483,11 @@ defmodule Goatmire.Talk.Clock do
 
         jobs =
           Enum.with_index(steps, offset)
-          |> Enum.map(fn {step, index} -> {state.slide, index, pane, step} end)
+          |> Enum.map(fn {step, index} ->
+            {state.slide, {state.play_generation[state.slide], index}, pane, step}
+          end)
 
-        case Goatmire.Talk.Actions.enqueue(jobs) do
+        case Actions.enqueue(jobs) do
           :ok ->
             mutate(%{
               state

@@ -5,9 +5,11 @@ defmodule GoatmireWeb.VerifyLive do
 
   Needs no fleet, no transport, and no network.
   """
+
   use GoatmireWeb, :live_view
 
   alias Goatmire.{Gate, Rules, VerificationDemo}
+  alias Goatmire.Talk.Actions
 
   @impl true
   def mount(_, _, socket) do
@@ -21,7 +23,7 @@ defmodule GoatmireWeb.VerifyLive do
      |> assign(
        results: %{},
        running: nil,
-       policy: Goatmire.Talk.Actions.get(:verify)[:policy],
+       policy: Actions.get(:verify)[:policy],
        maude: maude_health()
      )}
   end
@@ -58,7 +60,9 @@ defmodule GoatmireWeb.VerifyLive do
 
   def handle_event("run_policy", _, socket) do
     {:noreply,
-     socket |> assign(running: "policy") |> start_async(:policy, &VerificationDemo.run/0)}
+     socket
+     |> assign(running: "policy")
+     |> start_async(:policy, &VerificationDemo.run/0)}
   end
 
   @impl true
@@ -124,8 +128,8 @@ defmodule GoatmireWeb.VerifyLive do
              "The reproduced O3/O4 shape writes one switch to opposing states."},
             {"clean", "Five unrelated rules",
              "Different Things, no shared writes. The gate has to be able to say nothing is wrong."},
-            {"cascade", "The five-rule loop",
-             "Cool, vent, suspect, lock, disable. Nobody designed the cycle."}
+            {"cascade", "Model dependencies",
+             "Shared property names link five rules in the model; this is not a runtime cycle."}
           ]
         }
         class="card"

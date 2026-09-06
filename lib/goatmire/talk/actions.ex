@@ -1,8 +1,13 @@
 defmodule Goatmire.Talk.Actions do
   @moduledoc "Executes shared presenter commands in order and acknowledges completed steps."
+
   use GenServer
+
+  alias Goatmire.Diagnostics.Analysis
   alias Goatmire.{Engine, Gate, Notebook, Rules, Talk}
+  alias Goatmire.Scenario.{Coordinator, Storm}
   alias Goatmire.Talk.{Clock, Store}
+  alias GoatmireWeb.Presenter.CodeExamples
 
   @doc "Starts the shared command owner."
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -71,6 +76,12 @@ defmodule Goatmire.Talk.Actions do
   end
 
   @impl true
+  def terminate(_, state) do
+    if state.task, do: Task.shutdown(state.task, :brutal_kill)
+    :ok
+  end
+
+  @impl true
   def handle_info({ref, {:ok, {:ok, pane_state}}}, %{task: %{ref: ref}} = state) do
     Process.demonitor(ref, [:flush])
     {slide, index, pane, _} = state.current
@@ -102,9 +113,11 @@ defmodule Goatmire.Talk.Actions do
     {:noreply, advance(%{state | jobs: jobs, task: nil, current: nil})}
   end
 
+  # This linked task must die with its owner; normal stops explicitly cancel it.
   defp advance(%{task: nil, jobs: [{_, _, pane, action} = job | jobs]} = state) do
     panes = state.panes
 
+    # credo:disable-for-lines:2 OeditusCredo.Check.Warning.UnmanagedTask
     task =
       Task.async(fn -> Goatmire.Deadline.run(fn -> execute(pane, action, panes) end, 330_000) end)
 
@@ -114,7 +127,7 @@ defmodule Goatmire.Talk.Actions do
   defp advance(state), do: state
 
   defp execute(:presenter, {:run_code, slide}, panes) do
-    with %{code: code} <- GoatmireWeb.Presenter.CodeExamples.example(slide),
+    with %{code: code} <- CodeExamples.example(slide),
          {:ok, {:ok, value, _, _, output}} <-
            Goatmire.Deadline.run(fn -> Notebook.eval(code, []) end, Notebook.eval_timeout()) do
       results = get_in(panes, [:presenter, :code_results]) || %{}
@@ -157,7 +170,7 @@ defmodule Goatmire.Talk.Actions do
 
   defp execute(:warehouse, mode, _) when mode in [:observe, :enforce] do
     with {:ok, summary} <-
-           Goatmire.Scenario.Storm.run(
+           Storm.run(
              mode: mode,
              fleet_size: 60,
              duration_seconds: 30,
@@ -168,7 +181,7 @@ defmodule Goatmire.Talk.Actions do
   end
 
   defp execute(:warehouse, :clear, _) do
-    case Goatmire.Scenario.Coordinator.exclusive(&Goatmire.Fleet.stop_all/0) do
+    case Coordinator.exclusive(&Goatmire.Fleet.stop_all/0) do
       {:error, _} = error -> error
       _ -> {:ok, %{}}
     end
@@ -176,14 +189,16 @@ defmodule Goatmire.Talk.Actions do
 
   defp execute(:diagnostics, :diagnose, _) do
     with {:ok, result} <-
-           Goatmire.Diagnostics.Analysis.run(
-             "Explain the recorded alerts and verdict. Cite the supplied fields."
-           ) do
+           Analysis.run("Explain the recorded alerts and verdict. Cite the supplied fields.") do
       {:ok, %{result: {:ok, result}}}
     end
   end
 
   defp execute(:verify, :run_policy, _), do: {:ok, %{policy: Goatmire.VerificationDemo.run()}}
+
+  defp execute(:notebook, :initialize_policy, _) do
+    execute(:notebook, :run_next, %{notebook: notebook("05_agent_policy_proof")})
+  end
 
   defp execute(:notebook, {:open, slug}, _) do
     if slug in Notebook.list(), do: {:ok, notebook(slug)}, else: {:error, :unknown_notebook}

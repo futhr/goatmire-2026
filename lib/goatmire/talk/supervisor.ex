@@ -1,7 +1,7 @@
 defmodule Goatmire.Talk.Supervisor do
   @moduledoc """
-  Talk-critical branch: the presenter clock must outlive any demo meltdown,
-  so it supervises separately from the demo domain.
+  Presenter state and commands are supervised separately from the demo domain.
+  A demo-branch restart preserves them; exhausting the root budget does not.
   """
 
   use Supervisor

@@ -5,11 +5,13 @@ defmodule GoatmireWeb.NotebookLiveTest do
 
   import Phoenix.{ConnTest, LiveViewTest}
 
+  alias Goatmire.Talk.{Actions, Clock}
+
   @endpoint GoatmireWeb.Endpoint
 
   setup do
-    Goatmire.Talk.Actions.reset()
-    Goatmire.Talk.Actions.get(:notebook)
+    Actions.reset()
+    Actions.get(:notebook)
     %{conn: build_conn()}
   end
 
@@ -70,13 +72,15 @@ defmodule GoatmireWeb.NotebookLiveTest do
 
   @tag :maude
   test "the final slide reaches all three policy outcomes" do
-    Goatmire.Talk.Clock.reset()
-    Goatmire.Talk.Clock.goto(17)
-    Goatmire.Talk.Clock.play_to(5)
-    assert_eventually(fn -> Goatmire.Talk.Clock.snapshot().play_done[17] == 6 end)
-    results = Goatmire.Talk.Actions.get(:notebook).results
+    Clock.reset()
+    :ok = Actions.enqueue([{nil, nil, :notebook, {:open, "01_iot_state_conflict"}}])
+    assert_eventually(fn -> Actions.get(:notebook)[:slug] == "01_iot_state_conflict" end)
+    Clock.goto(17)
+    Clock.play_to(5)
+    assert_eventually(fn -> Clock.snapshot().play_done[17] == 6 end)
+    results = Actions.get(:notebook).results
     assert Enum.all?([6, 8, 10], &(results[&1].status == :ok))
-    Goatmire.Talk.Clock.reset()
+    Clock.reset()
   end
 
   defp assert_eventually(fun, timeout_ms \\ 5_000) do

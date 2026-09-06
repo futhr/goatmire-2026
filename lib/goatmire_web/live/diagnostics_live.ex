@@ -11,6 +11,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
   use GoatmireWeb, :live_view
 
   alias Goatmire.Diagnostics.{Analysis, Provider, Snapshot}
+  alias Goatmire.Talk.Actions
 
   @analysis_timeout 30_000
 
@@ -104,7 +105,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
     do: {:noreply, complete(socket, {:error, :beamlens_failed})}
 
   defp restore_script(socket) do
-    case Goatmire.Talk.Actions.get(:diagnostics) do
+    case Actions.get(:diagnostics) do
       %{result: result} -> complete(socket, result)
       _ -> socket
     end

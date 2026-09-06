@@ -1,15 +1,15 @@
 defmodule Goatmire.Talk do
   @moduledoc """
-  Play-step broadcast for the presenter.
+  Shared action dispatch for the presenter.
 
-  One scripted step per press: the presenter broadcasts, the target pane's
-  LiveView performs the same handler a click would have, visibly. Steps go
-  through PubSub so a pane crash never touches the presenter process.
+  The server command owner executes each scripted step once and broadcasts
+  its resulting pane state. Connected views render the shared result.
   """
+  alias Goatmire.Talk.{Actions, Clock}
 
   @play_topic "talk:play"
 
-  @doc "PubSub topic carrying `{:talk_play, pane, step}` messages."
+  @doc "PubSub topic carrying shared pane results and action failures."
   @spec play_topic() :: String.t()
   def play_topic, do: @play_topic
 
@@ -17,11 +17,11 @@ defmodule Goatmire.Talk do
   @spec play(atom(), atom()) :: :ok
   def play(:presenter, :run_code),
     do:
-      Goatmire.Talk.Actions.enqueue([
-        {nil, nil, :presenter, {:run_code, Goatmire.Talk.Clock.snapshot().slide}}
+      Actions.enqueue([
+        {nil, nil, :presenter, {:run_code, Clock.snapshot().slide}}
       ])
 
   def play(pane, step) do
-    Goatmire.Talk.Actions.enqueue([{nil, nil, pane, step}])
+    Actions.enqueue([{nil, nil, pane, step}])
   end
 end

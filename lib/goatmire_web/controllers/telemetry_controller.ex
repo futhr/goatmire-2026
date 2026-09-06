@@ -18,10 +18,14 @@ defmodule GoatmireWeb.TelemetryController do
         json(conn, %{status: "accepted", thing_id: thing_id, property: property})
 
       {:error, :invalid_telemetry} ->
-        conn |> put_status(:unprocessable_entity) |> json(%{error: "invalid telemetry"})
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "invalid telemetry"})
 
       {:error, _} ->
-        conn |> put_status(:service_unavailable) |> json(%{error: "transport unavailable"})
+        conn
+        |> put_status(:service_unavailable)
+        |> json(%{error: "transport unavailable"})
     end
   end
 

@@ -288,7 +288,12 @@ defmodule Goatmire.Engine do
     {revision, active} = GenServer.call(__MODULE__, :deployment_snapshot)
     rules = if kind == :append, do: active ++ additions, else: additions
     remaining = max(deadline - System.monotonic_time(:millisecond), 0)
-    opts = opts |> Keyword.put(:admission, kind == :append) |> Keyword.put(:timeout, remaining)
+
+    opts =
+      opts
+      |> Keyword.put(:admission, kind == :append)
+      |> Keyword.put(:timeout, remaining)
+
     {:ok, verdict, stats} = Gate.verify_partitioned(rules, opts)
 
     case GenServer.call(__MODULE__, {:commit, revision, deadline, rules, opts, verdict, stats}) do
@@ -387,6 +392,7 @@ defmodule Goatmire.Engine do
   defp throttle(state, thing_id) do
     now = System.monotonic_time(:millisecond)
     cutoff = now - state.window_ms
+    state = prune_command_log(state, cutoff)
 
     recent =
       state.command_log
@@ -400,6 +406,13 @@ defmodule Goatmire.Engine do
       {:ok, %{state | command_log: Map.put(state.command_log, thing_id, [now | recent])}}
     end
   end
+
+  defp prune_command_log(state, cutoff) when map_size(state.command_log) >= 4096 do
+    log = Map.reject(state.command_log, fn {_, times} -> times == [] or hd(times) <= cutoff end)
+    %{state | command_log: log}
+  end
+
+  defp prune_command_log(state, _), do: state
 
   defp put_bounded_reading(world, thing, property, value) do
     properties = Map.get(world, thing, %{})
