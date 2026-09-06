@@ -93,3 +93,15 @@ jobs:
 
       - name: Exercise the connected responsive dashboards
         run: mix test.e2e
+
+  container-build:
+    name: release container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build engine and simulator releases
+        run: |
+          docker build -f docker/Dockerfile --target engine -t goatmire-engine:check .
+          docker build -f docker/Dockerfile --target simulator -t goatmire-simulator:check .

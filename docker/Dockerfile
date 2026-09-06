@@ -4,7 +4,7 @@
 
 ARG ELIXIR_VERSION=1.19.6
 ARG OTP_VERSION=28.5.0.6
-ARG DEBIAN_VERSION=bookworm-20260610-slim
+ARG DEBIAN_VERSION=bookworm-20260824-slim
 
 FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION} AS build
 
@@ -21,21 +21,21 @@ ENV MIX_ENV=prod ERL_AFLAGS="+JMsingle true"
 RUN mix local.hex --force && mix local.rebar --force
 
 COPY mix.exs mix.lock ./
+COPY config config
 RUN mix deps.get --only prod && mix deps.compile
 RUN mix maude.install --version 3.5.1
 
-COPY config config
-COPY assets assets
+COPY docs/talk/manuscript.md docs/talk/manuscript.md
+COPY rel rel
 COPY priv priv
 COPY lib lib
 
-RUN mix assets.setup && mix assets.deploy
 RUN mix compile && mix phx.digest && mix release
 
 FROM debian:${DEBIAN_VERSION} AS engine
 
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales curl ca-certificates \
+  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 libgmp10 locales curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=C.UTF-8 MIX_ENV=prod ERL_AFLAGS="+JMsingle true"
@@ -50,7 +50,7 @@ CMD ["/app/bin/goatmire", "start"]
 FROM debian:${DEBIAN_VERSION} AS simulator
 
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales curl ca-certificates \
+  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 libgmp10 locales curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=C.UTF-8 MIX_ENV=prod ERL_AFLAGS="+JMsingle true"
@@ -59,7 +59,7 @@ WORKDIR /app
 COPY --from=build /app/_build/prod/rel/goatmire ./
 COPY docker/config/simulator.exs /app/goatmire.runtime.exs
 
-RUN rm -rf /app/lib/ex_maude-*/priv
+RUN rm -rf /app/lib/ex_maude-*/priv/maude
 
 EXPOSE 9568
 CMD ["/app/bin/goatmire", "start"]
