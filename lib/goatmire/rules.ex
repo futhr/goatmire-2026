@@ -108,7 +108,9 @@ defmodule Goatmire.Rules do
   end
 
   @doc """
-  A five-rule cycle: heat → cool → vent → intrusion → lock → HVAC off → heat.
+  A five-rule model dependency example using the shared property name `state`.
+  The runtime reads per-Thing properties, so this corpus does not demonstrate
+  an executable cross-device cycle or temperature feedback.
   """
   @spec cascade_chain() :: [rule()]
   def cascade_chain do

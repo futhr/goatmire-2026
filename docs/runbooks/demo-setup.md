@@ -14,21 +14,21 @@ host Phoenix/BEAM ───┼─ ExMaude/Maude (the formal decision)
           │           ├─ Codex app-server (ChatGPT-plan explanation)
           │           └─ Ollama (fixed local fallback explanation)
           │
-containers ──────────┴─ MQTT + simulators + Livebook
+containers ──────────┴─ MQTT + simulators (optional independent Livebook)
 ```
 
 The model is not in the actuation path. BeamLens can call only three read-only diagnostic callbacks over a bounded telemetry snapshot. It cannot deploy rules, operate devices, change the Maude verdict, or widen its scope.
 
 ## Prerequisites
 
-- the repository's Erlang, Elixir, and Node versions (`mise install`)
+- the repository's Erlang and Elixir versions (`mise install`)
 - Docker with Compose
 - the Maude interpreter (`mix maude.install`)
 - one diagnostic explanation provider:
   - preferred: installed Codex CLI already signed in with a ChatGPT plan; or
   - fallback: Ollama with `qwen3.5:4b-q4_K_M`
 
-No OpenAI API key is used. Codex consumes included ChatGPT-plan usage and the bridge refuses API-key accounts. Ollama keeps diagnostic prompts and metric snapshots local.
+No OpenAI API key is used. Codex consumes the signed-in account’s usage. The bridge refuses API-key accounts and exhausted or unknown quota; review purchased-credit controls in the account before rehearsal. Ollama keeps diagnostic prompts and metric snapshots local.
 
 ## First setup
 
@@ -54,10 +54,11 @@ ollama serve
 Then start the support stack and host application:
 
 ```bash
-make diagnostics-demo
+make diagnostics-demo       # support containers only
+make talk-stage             # one foreground host server
 ```
 
-That command starts MQTT, simulator containers, and Livebook, runs the application health check, and then starts Phoenix/ExMaude/BeamLens on the host. The host arrangement lets Codex use the existing desktop login without mounting credentials.
+The first command starts MQTT and simulator containers. The second starts Phoenix, ExMaude, and BeamLens on the host and prints the notes unlock URL. Use `make server` instead if no LAN notes device is needed. The host arrangement lets Codex use the existing desktop login without mounting credentials.
 
 Useful URLs:
 
@@ -65,7 +66,7 @@ Useful URLs:
 |---|---|---|
 | Presenter | <http://localhost:4000/talk> | the stage surface — deck, panes, timer |
 | Speaker notes | printed by `make talk-stage` | private synchronized iPad text and slide remote |
-| Livebook | <http://localhost:8080> | LIVE 04, the teaching notebooks, and the lab |
+| Livebook (optional: `make notebooks`) | <http://localhost:8080> | independent teaching runtime |
 | Warehouse | <http://localhost:4000/warehouse> | simulated load and counters |
 | Rule editor | <http://localhost:4000/rules> | formal gate |
 | Diagnostics | <http://localhost:4000/diagnostics> | primary operational explanation |
@@ -102,12 +103,12 @@ Open `/diagnostics` and verify the provider badge before sending a prompt. There
 4. Reset and run the same staged load in **enforce** mode. Conflicting rules are withheld; read this run's counters instead of quoting rehearsal data.
 5. Open `/diagnostics` and ask:
 
-> Why did alerts rise in the last minute, what formal verdict accompanies > the run, and what should I inspect next?
+> Why did alerts rise in the last minute, what formal verdict accompanies the run, and what should I inspect next?
 
 6. Point out the cited metric fields, observations versus inference, confidence/grounding, and provider badge. Say: “Maude made the deterministic conflict decision; the model explained the bounded telemetry snapshot.”
 7. If challenged, corroborate one raw series on the Metrics pane.
 
-The stage-facing path sends one schema-constrained provider completion over the Goatmire BeamLens skill's already-bounded snapshot, with one 30-second task timeout. Exact evidence lines come from the snapshot, not model prose. The iterative BeamLens coordinator remains available in the inspector with a six-turn cap; its history window is limited to five minutes.
+The stage-facing path sends one schema-constrained provider completion over the Goatmire BeamLens skill's already-bounded snapshot, with one 29-second deadline covering preflight, snapshot capture, and both provider attempts. Exact evidence lines come from the snapshot, not model prose. The iterative BeamLens coordinator remains available in the inspector with a six-turn cap; its history window is limited to five minutes.
 
 ## Failure matrix
 
@@ -134,7 +135,7 @@ Never present a generated explanation as a proof. If the explanation conflicts w
 - [ ] Confirm Maude, Codex account/quota state, and the Ollama model with `mix goatmire.health`.
 - [ ] Run one observe/enforce pair with the final fleet size.
 - [ ] Ask one BeamLens prompt and confirm the answer cites snapshot fields.
-- [ ] Open Scenario 5 in the Livebook container once so its project cache is warm.
+- [ ] On slide 17, run all six embedded notebook steps and inspect missing approval, added approval, and wrong-region results.
 - [ ] Store the final benchmark artifact with the rehearsal notes.
 - [ ] Rehearse both-model-failure and Maude-`unverified` fallbacks aloud.
 - [ ] If any live number differs from rehearsal, read the live result and discard the prepared number.
@@ -145,4 +146,4 @@ Never present a generated explanation as a proof. If the explanation conflicts w
 make diagnostics-down
 ```
 
-The diagnostics topology defines no persistent volumes; stopping it loses nothing that matters. No stage hardware or hardware packing procedure exists for this version of the talk.
+Stop the foreground host server with Ctrl+C as well. Container runtime caches are disposable; presenter clock checkpoints remain in the configured host state path. No stage hardware or hardware packing procedure exists for this version of the talk.

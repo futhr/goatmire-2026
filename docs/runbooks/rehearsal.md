@@ -34,7 +34,7 @@ ollama serve
 make diagnostics-demo
 ```
 
-Start the private-LAN presenter (`make talk-stage`), unlock the iPad notes URL it prints, then open the projector (`make talk`) and pin one Livebook tab for LIVE 04. Every other demo surface is a pane inside `/talk`.
+Start the private-LAN presenter (`make talk-stage`), unlock the iPad notes URL it prints, then open the projector (`make talk`) and use the embedded notebook pane for LIVE 04. Every stage demo surface is inside `/talk`.
 
 Reset the talk clock from the confirmed reset icon on the iPad and reset application state. Use the recorded rehearsal fleet size, tick rate, and duration. Confirm the provider badge before sending a prompt; page load itself should not consume model usage.
 
@@ -193,7 +193,7 @@ Use [`../talk/qa-bank.md`](../talk/qa-bank.md) to score the answers. Any answer 
 - [ ] Freeze the final commit and run the complete quality gate.
 - [ ] Choose and record the final Scenario 2 fleet size, tick rate, and duration.
 - [ ] Run one full Codex-primary rehearsal and one offline Ollama-only rehearsal with the exact fixed model.
-- [ ] Open Scenario 5 in the Livebook container once so it caches the compiled project.
+- [ ] Run all six Scenario 5 steps in the embedded notebook pane.
 
 
 ## Final day checklist
@@ -204,7 +204,7 @@ Use [`../talk/qa-bank.md`](../talk/qa-bank.md) to score the answers. Any answer 
 - [ ] Confirm the exact Ollama model is already present.
 - [ ] Confirm Codex account type/quota or choose Ollama-only deliberately.
 - [ ] Run one SOTERIA-derived conflict and one clean set.
-- [ ] Run one observe/enforce comparison with the final seed.
+- [ ] Run one observe/enforce comparison with the final fleet, tick, and shift settings.
 - [ ] Ask one diagnostic prompt and inspect grounding.
 - [ ] Confirm `unverified` and both-provider failure fallbacks.
 - [ ] Disable notifications, sleep, VPN, and automatic updates.

@@ -180,7 +180,7 @@ First is observe mode. The checker records the conflict but allows it to run so 
 
 Those are measurements from this simulator, on this laptop, with the settings on screen. They are not a customer incident or a universal benchmark.
 
-Now we reset and run the same load in enforce mode.
+Now we reset and run with the same fleet, tick, and shift settings in enforce mode. Scheduling and random readings can differ between runs.
 
 *(Run Enforce. Read the withheld rules and alert count.)*
 

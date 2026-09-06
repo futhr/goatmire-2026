@@ -29,3 +29,31 @@ Updates reviewed for this audit:
 
 Lua remains on BeamLens's compatible 0.4 series. Upgrade that constraint through
 BeamLens rather than overriding it in this application.
+
+The optional [Livebook 0.19.9 release](https://github.com/livebook-dev/livebook/releases/tag/v0.19.9)
+fixes notebook import path traversal, widget event forwarding, shell escaping,
+and Teams authentication issues. Its image stays loopback-only and now includes
+the pinned Maude interpreter. It is built from pinned upstream source on the
+same patched Elixir/OTP runtime as the demo. `docker/livebook.mix.lock` records
+its production dependency updates, and the build rejects Hex advisories.
+Bun 1.3.10 is confined to that container build and regenerates the assets against
+the locked Phoenix libraries.
+
+The small `docker/livebook-security.patch` widens two upstream constraints:
+
+- [Protobuf 0.17.0](https://github.com/elixir-protobuf/protobuf/blob/main/CHANGELOG.md)
+  includes the nested decode limit introduced in 0.16.1. Livebook does not call
+  the deprecated constructors removed in 0.15.
+- [Req 0.6.3](https://github.com/wojtekmach/req/blob/main/CHANGELOG.md)
+  includes multipart escaping and safer response decoding defaults. The notebook
+  setup and local server checks do not depend on automatic archive decoding.
+
+The patch does not change Livebook's source version. It is a locally maintained
+security build; repeat its container and notebook checks when changing this lock.
+
+Integration references reviewed include [ExMaude’s usage rules](https://github.com/futhr/ex_maude/blob/main/usage-rules.md),
+[Elixir process anti-patterns](https://elixir.hexdocs.pm/process-anti-patterns.html),
+[LiveView async operations](https://phoenix-live-view.hexdocs.pm/Phoenix.LiveView.html#module-async-operations),
+and the [Codex app-server protocol](https://learn.chatgpt.com/docs/app-server).
+Codex tool restrictions are checked against the installed CLI protocol; the
+integration refuses an unexpected MCP inventory before starting a model turn.

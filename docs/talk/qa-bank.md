@@ -22,13 +22,13 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 **“What if Maude crashes or times out?”** The application returns `unverified`, records telemetry, and enforce mode deploys nothing. Observe mode also fails closed for `unverified`. It deploys `clean` sets normally and — unlike enforce — also deploys a known `conflicts` set, which is what enables the controlled comparison. Pool workers are replaced after uncertain failures.
 
-**“Why have observe mode at all?”** It lets us measure identical synthetic load while recording what the gate would have rejected. It is useful for a rehearsal comparison or carefully controlled shadow deployment. Enforce is the intended gate behavior.
+**“Why have observe mode at all?”** It lets us compare live runs with the same fleet, tick, and shift settings; random readings and scheduling can differ while recording what the gate would have rejected. It is useful for a rehearsal comparison or carefully controlled shadow deployment. Enforce is the intended gate behavior.
 
 **“Does clean mean safe?”** No. Say “no encoded conflict was found in this input.” A clean verifier that checks four predicates is not a safety case for a physical system.
 
-**“Why is the check synchronous, inside the request?”** Because the property is about the set the rule is joining, and that set is only known at deployment time. The check runs between “submit” and “exists,” its measured duration is printed on every result, and a slow answer is still an answer — a timeout becomes `unverified` and deploys nothing.
+**“Does checking block the engine or browser?”** Verification runs in bounded tasks while ingestion and status remain responsive. Activation compares the checked revision with the current active set. A stale admission retries within the original deadline; a timeout becomes `unverified` and does not activate the candidate.
 
-**“Couldn't you write these four predicates in plain Elixir?”** For the direct state conflict, honestly, yes. The value is the discipline around it: the same validated term goes to an independent decision procedure, cascade witnesses come from search rather than hand-rolled graph traversal, and the runtime evaluator stays a separate implementation from the checker. When checker and runtime share code, they share bugs.
+**“Couldn't you write these four predicates in plain Elixir?”** For the direct state conflict, honestly, yes. The value is the discipline around it: the same validated term goes to an independent decision procedure, the equational detector computes witnesses for its encoded interaction predicates, and the runtime evaluator stays a separate implementation from the checker. When checker and runtime share code, they share bugs.
 
 **“Why refuse instead of resolving with priorities?”** A priority picks a winner without knowing intent. The rule shape carries a priority field, but the reproduced pair has equal priority and different authors — and at runtime, action order would silently make the last write win, which is exactly the behavior the check exists to surface. The gate refuses and asks a human to resolve intent.
 
@@ -50,9 +50,9 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 ## Running it on the BEAM
 
-**“Isn't a single GenServer engine a bottleneck?”** It serializes deploys and event ingestion on purpose: an activation decision needs a consistent view of the deployed set. The stress suite drains 20,000 concurrent transport events through it without mailbox growth on the bench machine. That is a measured demo bound, not a throughput claim.
+**“Isn't a single GenServer engine a bottleneck?”** It serializes activation commits and event ingestion: an activation decision needs a consistent view of the deployed set. The stress suite drains 20,000 concurrent transport events through it without mailbox growth on the bench machine. That is a measured demo bound, not a throughput claim.
 
-**“Two operators submit conflicting rules at the same time?”** Admissions serialize through the engine process, so each candidate is verified against the set it actually joins. There is no window where both pass against a stale set on one node. Multi-node admission coordination is not claimed.
+**“Two operators submit conflicting rules at the same time?”** Verification runs outside the engine; revision-checked activation commits serialize through it. A changed active set requires another check within the original deadline. There is no window where both pass against a stale set on one node. Multi-node admission coordination is not claimed.
 
 **“Does it cluster?”** The fleet does; the gate deliberately does not. `Goatmire.LocalCluster` boots up to sixteen peer BEAM nodes on one machine over Erlang distribution, each running the simulator role with its own fleet partition — its own docs say it shows the partitions, not that anything survives a datacentre. The container swarm distributes simulators with a real broker between them. In both, verification and admission stay on the single engine node, because serialized admission is what makes “checked against the set it joins” true. A distributed gate would need admission coordination that is neither built nor claimed here.
 
@@ -64,7 +64,7 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 **“Poolboy? Why not NimblePool?”** The pool is ExMaude's; the consumer contract is a child spec and named, isolated pools. Which pool library sits underneath is the library's implementation detail, and the demo depends only on the contract.
 
-**“Does a demo crash take down the talk?”** The supervision tree splits a talk-critical branch from the demo domain. A crash-looping demo component exhausts its own branch's restart budget, that branch restarts, and the endpoint and presenter clock hold position. That property is chaos-tested, not asserted.
+**“Does a demo crash take down the talk?”** The supervision tree splits a talk-critical branch from the demo domain. A crash-looping demo component exhausts its own branch's restart budget, that branch restarts, and the endpoint and presenter clock hold position. The tests cover that isolated restart. Repeated branch failures can still exhaust the root restart budget and stop the application.
 
 **“What telemetry does it actually emit?”** Verification stop events with duration, status, and scenario; engine event, alert, throttle, and deploy counters; ExMaude pool checkout and server lifecycle events. The Prometheus exporter and the in-app diagnostic sampler read the same events, so the charts and the BeamLens answers cite the same evidence.
 
@@ -82,9 +82,9 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 **“Can the model hallucinate?”** Yes. That is why the answer labels observations versus inference, cites fields, shows grounding/confidence, and keeps the structured snapshot visible. If prose conflicts with fields or the Maude verdict, the prose is wrong.
 
-**“Why Codex?”** The installed Codex app-server exposes structured account, quota, thread, turn, and event APIs and can use the speaker's existing ChatGPT-plan login. The bridge starts an ephemeral read-only turn with no workspace or network access and extracts only the final structured diagnostic answer.
+**“Why Codex?”** The installed Codex app-server exposes structured account, quota, thread, turn, and event APIs and can use the speaker's existing ChatGPT-plan login. The bridge starts an ephemeral read-only turn in an empty working directory, with shell, browser, image, app, agent, and memory tools disabled, no MCP servers, and sandbox network access disabled and extracts only the final structured diagnostic answer.
 
-**“Does this use an API key or incur token charges?”** No API-key account is accepted, so the demo has no pay-per-token OpenAI API path. Codex requests still consume usage included in the signed-in ChatGPT plan. If plan auth or quota is unavailable, the dashboard shows the reason and uses local Ollama.
+**“Does this use an API key or incur token charges?”** No API-key account is accepted, so the demo has no pay-per-token OpenAI API path. Codex requests consume the signed-in account’s usage. The application checks reported quota and spend controls; account billing and purchased-credit settings remain outside its control. If plan auth or quota is unavailable, the dashboard shows the reason and uses local Ollama.
 
 **“What data goes to OpenAI?”** With Codex, the operator's question and bounded diagnostic snapshot go to the signed-in service. The bridge does not send the repository workspace and disables network access for the turn. With Ollama, the prompt and snapshot stay on the laptop. The provider badge makes that boundary visible before prompting.
 
@@ -98,7 +98,7 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 ## Simulation and adapters
 
-**“Are those actual robots or sensors?”** No. Every stage device is simulated, and the counters are simulator counters. Generic MQTT, HTTP, Modbus, VDA 5050, and declared-device adapters remain in the repository as off-stage integration examples; they are not exercised or claimed as hardware support in the talk.
+**“Are those actual robots or sensors?”** No. Every stage device is simulated, and the counters are simulator counters. MQTT carries the stage simulator traffic. HTTP, Modbus, VDA 5050, and declared-device adapters are off-stage examples and make no hardware support claim.
 
 **“Why MQTT if the stage is simulated?”** The container rehearsal can preserve serialization, broker, and back-pressure boundaries while keeping every device simulated. If the support stack fails, local transport provides a simpler fallback without changing the formal rule term or deployment policy.
 

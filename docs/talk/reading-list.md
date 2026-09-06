@@ -4,7 +4,7 @@ Read the primary sources before rehearsing the “published conflict pattern” 
 
 | Source | Read | What it supports | What it does not support |
 |---|---|---|---|
-| [SOTERIA: Automated IoT Safety and Security Analysis (USENIX ATC 2018)](https://www.usenix.org/conference/atc18/presentation/celik) | Table 1, multi-app results, G.1 discussion | O3/O4 use the same contact-open event and set a switch to conflicting values; compositional checking matters | that this repository runs SOTERIA, reproduces a real household incident, or would prevent every safety outcome |
+| [SOTERIA: Automated IoT Safety and Security Analysis (USENIX ATC 2018)](https://www.usenix.org/conference/atc18/presentation/celik) | Table 4 (p. 156), multi-app results, G.1 discussion | O3/O4 use the same contact-open event and set a switch to conflicting values; compositional checking matters | that this repository runs SOTERIA, reproduces a real household incident, or would prevent every safety outcome |
 | [SOTERIA paper PDF](https://www.usenix.org/system/files/conference/atc18/atc18-celik.pdf) | pp. 154–157 | the exact primary text behind the reproduced rule pair | a production or physical-fleet claim |
 | [HOMEGUARD, DSN 2020](https://ieeexplore.ieee.org/document/9153388/) | abstract, threat model, design | apps can be individually secured yet interfere collectively; installation-time checking is a credible pattern | equivalence between its SMT threat models and ExMaude's equations |
 | [AutoIoT](https://arxiv.org/abs/2411.10665) | abstract, architecture, conflict-detection sections | LLM-produced automation benefits from a separate automated conflict check | that an LLM supplies formal assurance or that this repository implements AutoIoT |

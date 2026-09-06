@@ -48,9 +48,9 @@ The iPad is optional. If it disconnects, keep presenting with the laptop keyboar
 
 The Marp deck (`deck.md`) is a frozen archive. It carries the speaker-note history but is not part of the rig.
 
-## The projector: two tabs
+## The projector: one tab
 
-With the server already running from `make talk-stage`, run `make talk` in another terminal. It opens fullscreen Chrome on `/talk`. Pin one more tab: Livebook (`localhost:8080`, from the support stack). It carries LIVE 04 on stage, and off stage it is the learning surface — the teaching notebooks, the scenario lab, and the "Run in Livebook" path from the GitHub README. That is the whole tab strip.
+With the server already running from `make talk-stage`, run `make talk` in another terminal. It opens fullscreen Chrome on `/talk`. LIVE 04 uses the embedded notebook pane. The optional Livebook container is for independent study after the talk.
 
 | Input | Does |
 |---|---|
@@ -66,11 +66,11 @@ With the server already running from `make talk-stage`, run `make talk` in anoth
 
 Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: press `]` or tap an iPad layout icon. The blue live actions change with the current slide and stay at the right edge of the same bottom row.
 
-Slide state, panel, zoom, and the clock all live in the server, so a browser refresh lands exactly where you were. That is the recovery move: Cmd+R, not window juggling.
+Slide, panel, zoom, completed steps, and timer state live in the server. Browser refresh restores that state and the shared pane results. Versioned clock checkpoints also survive application restart, excluding time spent offline; malformed or older checkpoint schemas start from slide 1. In-memory pane results survive clock or action-worker restart, but a full application restart clears them. That is the recovery move: Cmd+R, not window juggling.
 
 ## The laptop: server terminal
 
-One terminal beside the manuscript, running `mix phx.server`. Deploy and verify log lines appear there first when a scenario misbehaves; `mix goatmire.health` in a second pane answers "is it me or the rig" in two seconds. Scenarios 1–5 can always run headless from a shell: `mix goatmire.scenario N`.
+One terminal beside the manuscript, running `mix phx.server`. Deploy and verify log lines appear there first when a scenario misbehaves; `mix goatmire.health` in a second pane answers "is it me or the rig" with bounded interpreter, broker, and provider checks. Scenarios 1–5 can run headless from a shell: `mix goatmire.scenario N`.
 
 ## The fallback ladder
 
@@ -78,4 +78,6 @@ One terminal beside the manuscript, running `mix phx.server`. Deploy and verify 
 2. The command line: every scenario runs headless (`mix goatmire.scenario N`), and a spoken verdict from the terminal is still a real verdict.
 3. If Maude itself is gone, say "unverified" — that is the talk's own rule.
 
-The presenter itself is not on this ladder: its supervision tree keeps the deck and clock alive through demo crashes (chaos-tested), and a refresh restores everything.
+A single demo-branch restart preserves the endpoint and presenter clock. Repeated branch failures can exhaust the root restart budget and stop the application. Restart the server, reconnect the notes with the new credential, and inspect the restored checkpoint before continuing.
+
+Scripted actions run once on the server, even with multiple browsers connected. Blue step progress advances after successful completion. The rule script uses the fixed O3/O4 example; manual form edits belong to the separate rule-editor workflow.

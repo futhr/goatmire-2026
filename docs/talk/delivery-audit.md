@@ -72,7 +72,7 @@ Rates are occurrences per thousand spoken tokens. `Audience` counts `you`, `we`,
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Goatmire | 32 | 16.1 | 148,085 | 36.40 | 9.57 | 1.62 | 6.12 | 2.37 |
 | ElixirConf | 12 | 8.8 | 93,090 | 40.71 | 9.84 | 2.20 | 6.75 | 2.48 |
-| Current stage manuscript | 1 | — | 1,348 | 18.55 | 10.39 | 1.48 | 4.45 | 10.39 |
+| Stage manuscript, 2026-09-06 | 1 | — | 1,361 | 18.37 | 10.29 | 1.47 | 4.41 | 10.29 |
 
 The manuscript row is a snapshot; rerun `scripts/analyze-conference-captions.rb` after any manuscript edit so the table matches the text being rehearsed.
 
@@ -87,7 +87,7 @@ The plain-language manuscript deliberately keeps necessary scope language while 
 5. Use shared directional language (`we`, `you`, `now`, `let's`, `watch`) to move the room through technical transitions.
 6. Put resources before the takeaways and let the narrow formal-method claim, not a URL or disclaimer, be the final sound.
 
-These patterns produced the current 18-slide, 1,348-token manuscript with explicit recovery cuts and at least four minutes of contingency.
+These patterns produced the current 18-slide manuscript (1,361 spoken tokens as revised on 2026-09-06) with explicit recovery cuts and at least four minutes of contingency.
 
 ## What remains
 

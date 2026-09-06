@@ -76,11 +76,9 @@ cascading = rules ++ [
 {broken.status, Enum.map(broken.conflicts, & &1[:type])}
 ```
 
-## The five-rule loop from the horror-story slide
+## A model dependency example
 
-Temperature rises → HVAC cools → vent opens → security suspects intrusion → doors lock → locked doors disable HVAC → temperature rises.
-
-Each rule is sane on its own. Nobody designed the cycle.
+Five rules reuse the property name `state`. The detector sees dependency edges; the runtime reads each rule’s own Thing, so this corpus does not demonstrate an executable cross-device cycle. It also omits temperature feedback from HVAC-off. Read the witness as a model interaction.
 
 ```elixir
 {:ok, %{verdict: cascade_verdict}} = Goatmire.ScenarioRunner.cascade_example()

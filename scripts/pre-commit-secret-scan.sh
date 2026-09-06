@@ -20,7 +20,7 @@ hits=$(
 
 if [ -n "$hits" ]; then
     echo "ERROR: credential-shaped string in staged changes:" >&2
-    echo "$hits" >&2
+    echo "Matched values are omitted to keep credentials out of logs." >&2
     echo >&2
     echo "Revoke it and remove it from the commit." >&2
     exit 1
