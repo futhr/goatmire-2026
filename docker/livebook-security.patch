@@ -1,0 +1,19 @@
+diff --git a/mix.exs b/mix.exs
+index 244e940..40f6f1f 100644
+--- a/mix.exs
++++ b/mix.exs
+@@ -132,12 +132,12 @@ defmodule Livebook.MixProject do
+       {:phoenix_ecto, "~> 4.4"},
+       {:aws_credentials, "~> 0.3.0", runtime: false},
+       {:mint_web_socket, "~> 1.0.0"},
+-      {:protobuf, "~> 0.13.0"},
++      {:protobuf, "~> 0.17.0"},
+       {:dns_cluster, "~> 0.1.2"},
+       {:kubereq, "~> 0.4.0"},
+       {:yaml_elixir, "~> 2.11"},
+       {:logger_json, "~> 6.1"},
+-      {:req, "~> 0.5.8"},
++      {:req, "~> 0.6.3"},
+       {:nimble_zta, "~> 0.1.0"},
+       {:bun, "~> 1.6", runtime: Mix.env() == :dev},
+       # Dev tools

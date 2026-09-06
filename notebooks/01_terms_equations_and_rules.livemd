@@ -6,21 +6,28 @@ By the end of this notebook you will be able to explain the difference between `
 
 ```elixir
 unless Code.ensure_loaded?(Goatmire.Verifier) do
+  repo = System.get_env("LIVEBOOK_GOATMIRE_DIR") || Path.expand("..", __DIR__)
+  unless File.regular?(Path.join(repo, "mix.exs")) do
+    raise "Open this notebook from a full Goatmire clone, or set LIVEBOOK_GOATMIRE_DIR to that clone. See notebooks/README.md."
+  end
+  maude = System.get_env("MAUDE_PATH") || System.find_executable("maude") ||
+    Path.join(repo, "deps/ex_maude/priv/maude/bin/maude")
+  unless File.regular?(maude) do
+    raise "Install Maude in the clone with mix deps.get and mix maude.install --version 3.5.1, or set MAUDE_PATH."
+  end
   Mix.start()
   Mix.env(:prod)
   Mix.install(
-    [{:goatmire, path: Path.expand("..", __DIR__)}],
-    config: [
-      goatmire: [
-        role: :notebook,
-        transport: Goatmire.Transport.Local,
-        metrics_enabled: false,
-        vda5050_enabled: false
-      ]
-    ],
+    [{:goatmire, path: repo, env: :prod}],
+    config: [ex_maude: [maude_path: maude]],
     config_path: :goatmire,
-    lockfile: :goatmire
+    lockfile: :goatmire,
+    start_applications: false
   )
+  Application.put_all_env(goatmire: [role: :notebook, transport: Goatmire.Transport.Local,
+    metrics_enabled: false, vda5050_enabled: false, autostart_fleet: false,
+    real_devices: [], modbus_sensors: []])
+  {:ok, _} = Application.ensure_all_started(:goatmire)
 end
 
 Goatmire.Verifier.health()

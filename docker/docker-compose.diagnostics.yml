@@ -27,11 +27,14 @@ services:
     mem_limit: 384m
     cpus: 2.0
 
-  # The repo is mounted read-only so the notebooks' Mix.install path resolves
-  # in-container; the first notebook run fetches and compiles into the
-  # container's cache, so warm it during rehearsal, not on stage.
+  # Optional independent notebook runtime with Maude already installed.
   livebook:
-    image: ghcr.io/livebook-dev/livebook:0.19.9
+    profiles: [notebooks]
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: livebook
     environment:
       LIVEBOOK_TOKEN_ENABLED: "false"
       LIVEBOOK_IP: 0.0.0.0

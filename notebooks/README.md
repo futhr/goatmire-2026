@@ -13,8 +13,21 @@ The shorter notebooks in `priv/livebooks/` are stage scenarios. They optimise fo
 
 ## Running them
 
-The Docker stack opens Livebook at <http://localhost:8080> and exposes this directory as `tutorials/`. It attaches to the running Goatmire node, so the application and its four-worker ExMaude pool are already available.
+For the container runtime, run `make notebooks` from the clone. Open
+<http://localhost:8080>, then open a file under `/data/goatmire/notebooks/` or
+`/data/goatmire/priv/livebooks/`. This image includes Maude 3.5.1. Each notebook
+uses its own runtime and installs the pinned project into Livebook's cache;
+it does not attach to the stage application's node. Run the setup cell during
+rehearsal because dependency download and compilation need network access.
 
-From a local Livebook, open a notebook from this repository and connect a runtime. Its setup cell installs the local Goatmire project only when the modules are not already loaded.
+For a local Livebook runtime, first run `mise install`, `mise exec -- mix deps.get`,
+and `mise exec -- mix maude.install --version 3.5.1` in the clone. Open the notebook
+from that directory. If your Livebook copies it elsewhere, set
+`LIVEBOOK_GOATMIRE_DIR` to the clone's absolute path in the runtime environment.
+`MAUDE_PATH` can point to a separately installed interpreter.
+
+Downloading a `.livemd` file alone does not include this project. The setup cell
+reports a missing clone or interpreter before attempting to start the application.
+The embedded `/talk` notebook pane uses the already running stage application.
 
 No notebook requires physical hardware. The interpreter is real; the fleet is simulated; every clean verdict is explicitly limited to the detector's model.

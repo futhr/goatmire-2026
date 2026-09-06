@@ -63,3 +63,20 @@ RUN rm -rf /app/lib/ex_maude-*/priv/maude
 
 EXPOSE 9568
 CMD ["/app/bin/goatmire", "start"]
+
+# Build Livebook on the patched runtime rather than inheriting the older OTP
+# and Elixir bundled in its upstream image. Keep its source release pinned.
+FROM build AS livebook
+WORKDIR /opt/livebook
+RUN git init && git remote add origin https://github.com/livebook-dev/livebook.git \
+  && git fetch --depth 1 origin 782dc5ecfe103e953c8157df1b47613896aa2c1e \
+  && git checkout --detach FETCH_HEAD
+COPY docker/livebook-security.patch docker/livebook.mix.lock ./
+RUN git apply livebook-security.patch && mv livebook.mix.lock mix.lock \
+  && mix deps.get --only prod --check-locked && mix hex.audit
+RUN mix assets.setup
+RUN mix escript.build
+ENV MAUDE_PATH=/app/deps/ex_maude/priv/maude/bin/maude
+WORKDIR /data
+EXPOSE 8080
+CMD ["/opt/livebook/livebook", "server", "--ip", "0.0.0.0", "--port", "8080"]

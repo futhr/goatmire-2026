@@ -24,20 +24,19 @@ The demo makes one narrow argument: check interacting automation rules **before*
 
 The teaching notebooks are executable tutorials, not extra documentation pages. They build the Maude mental model from terms to the deployment gate — follow them in order:
 
-[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Ffuthr%2Fgoatmire-2026%2Fblob%2Fmain%2Fnotebooks%2F01_terms_equations_and_rules.livemd)
+Clone the repository and follow [the notebook setup instructions](notebooks/README.md).
+Open the files from the clone so their pinned project and model files are available:
 
-- **[Terms, equations, and rules](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Ffuthr%2Fgoatmire-2026%2Fblob%2Fmain%2Fnotebooks%2F01_terms_equations_and_rules.livemd)** — Build the mental model from the ground up, without a fleet or a broker in the way.
-- **[Conflicts are about composition](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Ffuthr%2Fgoatmire-2026%2Fblob%2Fmain%2Fnotebooks%2F02_conflicts_are_about_composition.livemd)** — Read real automation rules and detect direct and cascading interactions between them.
-- **[The deployment gate](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Ffuthr%2Fgoatmire-2026%2Fblob%2Fmain%2Fnotebooks%2F03_the_deployment_gate.livemd)** — Turn a verdict into a fail-closed deployment decision, including `unverified`.
-- **[Different policy, same mechanism](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Ffuthr%2Fgoatmire-2026%2Fblob%2Fmain%2Fnotebooks%2F04_agent_policy_same_mechanism.livemd)** — Apply the same method to structured agent policies instead of physical devices.
+- [Terms, equations, and rules](notebooks/01_terms_equations_and_rules.livemd)
+- [Conflicts are about composition](notebooks/02_conflicts_are_about_composition.livemd)
+- [The deployment gate](notebooks/03_the_deployment_gate.livemd)
+- [Different policy, same mechanism](notebooks/04_agent_policy_same_mechanism.livemd)
 
-The setup cell installs the local project only when the modules are not already loaded, so a notebook also runs attached to the Goatmire node. The shorter scenarios in [`priv/livebooks/`](./priv/livebooks) are the stage set: they optimise for a predictable live demonstration, these optimise for understanding.
-
----
+The five shorter scenarios in `priv/livebooks/` also run in the presenter's embedded notebook pane.
 
 ## The deployment gate
 
-`Goatmire.Rules` produces a rule term, `Goatmire.Verifier` passes that term to `ExMaude.IoT`, and `Goatmire.Engine.RuleEval` executes it — one representation, two consumers, so the verifier and the runtime can never drift apart. The verifier never turns backend failure into permission:
+`Goatmire.Rules` produces a rule term, `Goatmire.Verifier` passes that term to `ExMaude.IoT`, and `Goatmire.Engine.RuleEval` executes it — one representation with separate model and runtime implementations. Shared data reduces translation risk; tests still need to check their semantic differences. The verifier never turns backend failure into permission:
 
 | Verdict | Meaning | Enforce mode |
 |---|---|---|
@@ -76,7 +75,7 @@ mix phx.server
 |---|---|
 | [`/talk`](http://localhost:4000/talk) | the presenter: deck, live panes, timer, scripted steps |
 | [`/warehouse`](http://localhost:4000/warehouse) | simulated fleet, floor plan, and storm controls |
-| [`/rules`](http://localhost:4000/rules) | rule creation with an in-request check |
+| [`/rules`](http://localhost:4000/rules) | rule creation with a bounded asynchronous admission check |
 | [`/verify`](http://localhost:4000/verify) | verifier detail — term, verdict, measured cost |
 | [`/diagnostics`](http://localhost:4000/diagnostics) | prompt-driven BeamLens diagnostics |
 | [`/metrics`](http://localhost:4000/metrics) | in-app series from the diagnostics sampler |
@@ -91,7 +90,7 @@ ollama pull qwen3.5:4b-q4_K_M
 ollama serve
 ```
 
-No OpenAI API key is accepted and the demo creates no pay-per-token charges. The dashboard makes the active provider and any fallback reason visible.
+The bridge refuses API-key accounts and exhausted or unknown plan quota. Codex still consumes account usage; billing and purchased-credit controls belong to the signed-in account. The dashboard makes the active provider and any fallback reason visible.
 
 ---
 
@@ -169,13 +168,13 @@ lib/goatmire/rules.ex      research-derived and synthetic rule corpus
 lib/goatmire/diagnostics/  bounded snapshot, BeamLens skill, Codex/Ollama bridge
 ```
 
-The repository also contains generic MQTT, HTTP, Modbus, VDA 5050, and declared-device adapters as off-stage integration examples. They are not used by the stage path and are not hardware support claims.
+MQTT carries the host/container stage traffic. HTTP ingress, Modbus, VDA 5050, and declared-device adapters are off-stage integration examples; they make no hardware support or protocol conformance claim.
 
 ---
 
 ## Configuration
 
-This is a fixed local demonstration, so its settings are checked in rather than parsed from environment variables: [`config/config.exs`](./config/config.exs) holds fleet, model, timeout, and diagnostic defaults; [`config/dev.exs`](./config/dev.exs) selects the host MQTT demo; [`docker/config/`](./docker/config) configures the container roles. There is no `.env` loader and no API-key configuration.
+This is a fixed local demonstration, so most settings are checked in: [`config/config.exs`](./config/config.exs) holds fleet, model, timeout, and diagnostic defaults; [`config/dev.exs`](./config/dev.exs) selects the host MQTT demo; [`docker/config/`](./docker/config) configures the container roles. `config/runtime.exs` reads the stage host and rotating token, plus an optional session signing key. There is no `.env` loader or API-key configuration.
 
 ---
 
@@ -192,7 +191,7 @@ mix test --include maude     # the default suite plus live-interpreter tests
 
 ## What this is not
 
-This is not a production platform or a physical-fleet benchmark. State is in-memory; the support broker is anonymous; the simulated devices are not a model of a particular vehicle; and the formal result covers only encoded conflict predicates. Run everything only on a trusted machine or isolated network — none of the exposed services (dashboard, broker, metrics, Livebook, Ollama) carries authentication.
+This is not a production platform or a physical-fleet benchmark. State is in-memory; the support broker is anonymous; the simulated devices are not a model of a particular vehicle; and the formal result covers only encoded conflict predicates. The dashboard is local by default; LAN access requires the current stage credential. Speaker notes require that credential on loopback too. Broker, optional Livebook, metrics, and Ollama are local support services without application authentication. Use a trusted machine and a private stage network.
 
 ---
 

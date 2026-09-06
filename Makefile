@@ -5,7 +5,7 @@
         check quality clean install-hooks iex remote \
         bench-eval bench-partition bench-verifier \
         health server scenario storm ai benchmark diagnostics-demo diagnostics-down \
-        simulators rehearse-solo talk talk-stage preflight learn
+        notebooks simulators rehearse-solo talk talk-stage preflight learn
 
 setup:
 	@mix setup
@@ -58,6 +58,9 @@ diagnostics-demo:
 	@docker compose -f docker/docker-compose.diagnostics.yml up --build -d --scale simulator=$(or $(N),2)
 	@echo "Support containers ready. Start one host server with make talk-stage (or make server)."
 
+notebooks:
+	@docker compose -f docker/docker-compose.diagnostics.yml --profile notebooks up --build -d livebook
+
 diagnostics-down:
 	@docker compose -f docker/docker-compose.diagnostics.yml down
 
@@ -94,7 +97,7 @@ test-e2e:
 test-stress:
 	@mix test.stress
 
-# Talk-length wear test; SOAK_ITERATIONS=60 for a longer run.
+# Real-Maude wear test: 30 seconds by default; SOAK_SECONDS=1800 for a talk-length run.
 test-soak:
 	@mix test.soak
 
