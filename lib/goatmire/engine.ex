@@ -70,6 +70,12 @@ defmodule Goatmire.Engine do
     GenServer.call(__MODULE__, {:deploy, rules, opts}, 60_000)
   end
 
+  @doc "Atomically checks new rules against the active set, retaining it on rejection."
+  @spec admit([map()], keyword()) :: {:ok, map()}
+  def admit(rules, opts \\ []) do
+    GenServer.call(__MODULE__, {:admit, rules, opts}, 60_000)
+  end
+
   @doc "Removes every deployed rule. Devices keep running; nothing actuates them."
   @spec undeploy() :: :ok
   def undeploy, do: GenServer.call(__MODULE__, :undeploy)
@@ -123,6 +129,11 @@ defmodule Goatmire.Engine do
   end
 
   @impl true
+  def handle_call({:admit, rules, opts}, from, state) do
+    opts = opts |> Keyword.put(:mode, :enforce) |> Keyword.put(:admission, true)
+    handle_call({:deploy, state.rules ++ rules, opts}, from, state)
+  end
+
   def handle_call({:deploy, rules, opts}, _, state) do
     mode = deployment_mode(opts)
     scenario = Keyword.get(opts, :scenario, :deploy)
@@ -142,6 +153,13 @@ defmodule Goatmire.Engine do
           :unverified -> %{admitted: [], withheld: rules}
           _ -> %{admitted: rules, withheld: []}
         end
+      end
+
+    %{admitted: admitted, withheld: withheld} =
+      if Keyword.get(opts, :admission, false) and verdict.status != :clean do
+        %{admitted: state.rules, withheld: rules -- state.rules}
+      else
+        %{admitted: admitted, withheld: withheld}
       end
 
     verification = %{

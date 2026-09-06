@@ -101,12 +101,7 @@ defmodule GoatmireWeb.RuleLive do
   end
 
   defp deploy_current_candidate(socket) do
-    # Re-read the active set at the point of deployment. A second operator may
-    # have deployed since this LiveView checked its candidate; the engine must
-    # verify the current composition rather than overwrite it with stale state.
-    rules = Engine.deployed_rules() ++ [socket.assigns.submitted_rule]
-
-    case Engine.deploy(rules, mode: :enforce, scenario: :rule_form) do
+    case Engine.admit([socket.assigns.submitted_rule], scenario: :rule_form) do
       {:ok, %{withheld: []}} ->
         {:noreply,
          socket

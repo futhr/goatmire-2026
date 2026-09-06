@@ -66,6 +66,21 @@ defmodule Goatmire.EngineTest do
     end
   end
 
+  test "concurrent admissions retain every accepted addition" do
+    rules = Rules.clean_set()
+    results = Task.async_stream(rules, &Engine.admit([&1]), max_concurrency: 5) |> Enum.to_list()
+    assert Enum.all?(results, &match?({:ok, {:ok, %{withheld: []}}}, &1))
+    assert MapSet.new(Engine.deployed_rules()) == MapSet.new(rules)
+  end
+
+  test "a rejected addition preserves the active rules" do
+    [first, second] = Rules.state_conflict_pair()
+    {:ok, _} = Engine.deploy([first])
+    StubVerifier.set(:unverified)
+    assert {:ok, %{withheld: [_]}} = Engine.admit([second])
+    assert Engine.deployed_rules() == [first]
+  end
+
   describe "ingest" do
     test "a reading that satisfies no trigger produces no alert" do
       StubVerifier.set(:clean)
