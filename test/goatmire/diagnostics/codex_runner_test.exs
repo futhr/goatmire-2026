@@ -93,6 +93,21 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
     assert {:error, :rate_limits_unavailable} = CodexRunner.authorize_quota(%{})
   end
 
+  test "rejects unknown, secondary-exhausted and bucket-exhausted quota" do
+    available = %{"primary" => %{"usedPercent" => 10}}
+
+    for payload <- [
+          %{"rateLimits" => %{}},
+          %{"rateLimits" => Map.put(available, "secondary", %{"usedPercent" => 100})},
+          %{
+            "rateLimits" => available,
+            "rateLimitsByLimitId" => %{"other" => %{"primary" => %{"usedPercent" => 100}}}
+          }
+        ] do
+      assert {:error, _} = CodexRunner.authorize_quota(payload)
+    end
+  end
+
   test "rejects depleted plan quota and accepts available quota" do
     assert {:error, :chatgpt_plan_quota_unavailable} =
              CodexRunner.authorize_quota(%{

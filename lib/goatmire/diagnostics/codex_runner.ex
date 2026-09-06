@@ -55,6 +55,8 @@ defmodule Goatmire.Diagnostics.CodexRunner do
           if Port.info(port), do: Port.close(port)
         end
     end
+  rescue
+    _ -> {:error, :invalid_codex_response}
   catch
     :exit, reason -> {:error, {:codex_port_exit, sanitize(reason)}}
   end
@@ -105,6 +107,8 @@ defmodule Goatmire.Diagnostics.CodexRunner do
     after
       if Port.info(port), do: Port.close(port)
     end
+  rescue
+    _ -> {:error, :invalid_codex_response}
   catch
     :exit, reason -> {:error, {:codex_port_exit, sanitize(reason)}}
   end
@@ -247,7 +251,7 @@ defmodule Goatmire.Diagnostics.CodexRunner do
   defp decode_line(line) do
     case Jason.decode(line) do
       {:ok, message} when is_map(message) -> {:ok, message}
-      {:error, _} -> {:error, :invalid_codex_response}
+      _ -> {:error, :invalid_codex_response}
     end
   end
 
@@ -264,23 +268,48 @@ defmodule Goatmire.Diagnostics.CodexRunner do
 
   @doc "Rejects exhausted or unavailable ChatGPT plan quota."
   @spec authorize_quota(map()) :: {:ok, map()} | {:error, atom()}
-  def authorize_quota(%{"rateLimits" => rate_limits}) when is_map(rate_limits) do
-    used_percent = get_in(rate_limits, ["primary", "usedPercent"])
-    reached = rate_limits["rateLimitReachedType"]
-    spend_control = rate_limits["spendControlReached"] == true
+  def authorize_quota(payload) when is_map(payload) do
+    legacy =
+      case payload["rateLimits"] do
+        %{} = limits -> [limits]
+        _ -> []
+      end
 
-    if reached || spend_control || (is_number(used_percent) and used_percent >= 100) do
-      {:error, :chatgpt_plan_quota_unavailable}
-    else
-      {:ok,
-       %{
-         used_percent: used_percent,
-         resets_at: get_in(rate_limits, ["primary", "resetsAt"])
-       }}
+    buckets =
+      case payload["rateLimitsByLimitId"] do
+        %{} = limits -> Map.values(limits)
+        _ -> []
+      end
+
+    limits = legacy ++ buckets
+
+    cond do
+      limits == [] ->
+        {:error, :rate_limits_unavailable}
+
+      Enum.all?(limits, &available_limit?/1) ->
+        primary = hd(limits)["primary"]
+        {:ok, %{used_percent: primary["usedPercent"], resets_at: primary["resetsAt"]}}
+
+      true ->
+        {:error, :chatgpt_plan_quota_unavailable}
     end
   end
 
   def authorize_quota(_), do: {:error, :rate_limits_unavailable}
+
+  defp available_limit?(%{"primary" => primary} = limit) do
+    available_window?(primary) and
+      (is_nil(limit["secondary"]) or available_window?(limit["secondary"])) and
+      is_nil(limit["rateLimitReachedType"]) and limit["spendControlReached"] != true
+  end
+
+  defp available_limit?(_), do: false
+
+  defp available_window?(%{"usedPercent" => used}),
+    do: is_number(used) and used >= 0 and used < 100
+
+  defp available_window?(_), do: false
 
   defp thread_identity(%{"thread" => %{"id" => thread_id}} = result) do
     {:ok, thread_id, result["model"] || "codex-default"}
@@ -332,12 +361,16 @@ defmodule Goatmire.Diagnostics.CodexRunner do
   end
 
   defp diagnostic_directory do
-    suffix = System.unique_integer([:positive, :monotonic])
+    suffix = Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)
     directory = Path.join(System.tmp_dir!(), "goatmire-diagnostics-empty-#{suffix}")
 
     case :file.make_dir(String.to_charlist(directory)) do
-      :ok -> {:ok, directory}
-      {:error, reason} -> {:error, {:diagnostic_directory, reason}}
+      :ok ->
+        :ok = File.chmod(directory, 0o700)
+        {:ok, directory}
+
+      {:error, reason} ->
+        {:error, {:diagnostic_directory, reason}}
     end
   end
 
