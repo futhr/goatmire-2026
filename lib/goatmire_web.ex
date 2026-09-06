@@ -49,6 +49,7 @@ defmodule GoatmireWeb do
   def live_view do
     quote do
       use Phoenix.LiveView, layout: {GoatmireWeb.Layouts, :app}
+      on_mount {GoatmireWeb.RemoteAccess, :default}
 
       unquote(html_helpers())
     end

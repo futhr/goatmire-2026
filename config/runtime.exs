@@ -21,3 +21,16 @@ if File.regular?(profile) do
     config application, values
   end
 end
+
+# A fresh signing key invalidates cookies on restart. A deliberate external
+# key can be supplied for deployments that need session continuity.
+config :goatmire, GoatmireWeb.Endpoint,
+  secret_key_base:
+    System.get_env("GOATMIRE_SECRET_KEY_BASE") || Base.encode64(:crypto.strong_rand_bytes(64))
+
+if talk_remote? do
+  stage_host = System.fetch_env!("GOATMIRE_TALK_HOST")
+
+  config :goatmire, GoatmireWeb.Endpoint,
+    check_origin: ["//localhost", "//127.0.0.1", "//" <> stage_host]
+end

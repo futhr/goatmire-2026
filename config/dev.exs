@@ -6,10 +6,9 @@ config :goatmire,
 
 config :goatmire, GoatmireWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
-  check_origin: false,
+  check_origin: true,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: String.duplicate("goatmire-dev-secret-not-for-production", 2),
   live_reload: [
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",

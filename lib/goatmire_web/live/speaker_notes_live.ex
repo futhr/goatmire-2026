@@ -14,7 +14,13 @@ defmodule GoatmireWeb.SpeakerNotesLive do
   alias GoatmireWeb.Presenter.CodeExamples
 
   @impl true
-  def mount(_, %{"talk_notes_authorized" => true}, socket) do
+  def mount(_, session, socket) do
+    if GoatmireWeb.RemoteAccess.authorized?(session),
+      do: mount_authorized(socket),
+      else: {:ok, assign(socket, page_title: "Speaker notes", authorized?: false), layout: false}
+  end
+
+  defp mount_authorized(socket) do
     if connected?(socket), do: Phoenix.PubSub.subscribe(Goatmire.PubSub, Clock.topic())
 
     snap = Clock.snapshot()
@@ -27,10 +33,6 @@ defmodule GoatmireWeb.SpeakerNotesLive do
        confirm_reset: false,
        sections: Script.sections()
      ), layout: false}
-  end
-
-  def mount(_, _, socket) do
-    {:ok, assign(socket, page_title: "Speaker notes", authorized?: false), layout: false}
   end
 
   @impl true

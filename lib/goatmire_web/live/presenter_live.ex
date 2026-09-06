@@ -12,7 +12,7 @@ defmodule GoatmireWeb.PresenterLive do
   use GoatmireWeb, :live_view
 
   alias Goatmire.Talk
-  alias Goatmire.Talk.Clock
+  alias Goatmire.Talk.{Actions, Clock}
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
   @panes %{
@@ -35,8 +35,7 @@ defmodule GoatmireWeb.PresenterLive do
      socket
      |> assign(page_title: "Talk", panes: @panes)
      |> assign(snap: safe(&Clock.snapshot/0), shortcuts_open: false)
-     |> assign(code_results: Goatmire.Talk.Actions.get(:presenter)[:code_results] || %{}),
-     layout: false}
+     |> assign(code_results: Actions.get(:presenter)[:code_results] || %{}), layout: false}
   end
 
   @impl true
@@ -180,7 +179,7 @@ defmodule GoatmireWeb.PresenterLive do
               :for={{tab, module} <- @panes}
               class={effective_tab(@snap.tab, @snap.slide) != tab && "hidden-pane"}
             >
-              {live_render(@socket, module, id: "pane-#{tab}")}
+              {live_render(@socket, module, id: "pane-#{tab}", session: @stage_session)}
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ defmodule GoatmireWeb.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]],
+    websocket: [connect_info: [:peer_data, session: @session_options]],
     longpoll: false
 
   plug Plug.Static,
@@ -36,5 +36,7 @@ defmodule GoatmireWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug :fetch_session
+  plug GoatmireWeb.RemoteAccess
   plug GoatmireWeb.Router
 end

@@ -116,7 +116,7 @@ talk-stage:
 	fi; \
 	echo "Projector: http://localhost:4000/talk"; \
 	echo "iPad unlock: http://$$stage_ip:4000/talk/notes/unlock/$$stage_token"; \
-	GOATMIRE_TALK_REMOTE=1 GOATMIRE_TALK_REMOTE_TOKEN="$$stage_token" mix phx.server
+	GOATMIRE_TALK_HOST="$$stage_ip" GOATMIRE_TALK_REMOTE=1 GOATMIRE_TALK_REMOTE_TOKEN="$$stage_token" mix phx.server
 
 # Talk-day gate: clean compile, the regular suite, then chaos and starvation
 # against the real tree, then provider health.

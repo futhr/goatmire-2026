@@ -30,7 +30,7 @@ defmodule GoatmireWeb.ResponsiveLayoutTest do
   test "speaker notes use the standalone text-only layout" do
     conn =
       build_conn()
-      |> init_test_session(%{talk_notes_authorized: true})
+      |> init_test_session(%{talk_credential: GoatmireWeb.RemoteAccess.credential()})
       |> get("/talk/notes")
 
     html = html_response(conn, 200)

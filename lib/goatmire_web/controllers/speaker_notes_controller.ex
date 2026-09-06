@@ -11,7 +11,7 @@ defmodule GoatmireWeb.SpeakerNotesController do
     if valid_token?(provided) do
       conn
       |> configure_session(renew: true)
-      |> put_session(:talk_notes_authorized, true)
+      |> put_session(:talk_credential, GoatmireWeb.RemoteAccess.credential())
       |> redirect(to: ~p"/talk/notes")
     else
       send_resp(conn, 404, "Not found")

@@ -52,6 +52,22 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     refute html =~ "<img"
   end
 
+  test "token rotation revokes an already connected notes session", %{conn: conn} do
+    conn = get(conn, "/talk/notes/unlock/test-speaker-notes") |> recycle()
+    {:ok, view, _} = live(conn, "/talk/notes")
+    original = Goatmire.Config.talk_remote_token()
+    on_exit(fn -> Application.put_env(:goatmire, :talk_remote_token, original) end)
+    Application.put_env(:goatmire, :talk_remote_token, "a-new-stage-token")
+    render_hook(view, "nav", %{"dir" => "next"})
+    assert Clock.snapshot().slide == 1
+    assert render(view) =~ "Speaker notes are locked."
+  end
+
+  test "remote control routes require a stage credential" do
+    conn = %{build_conn() | remote_ip: {192, 0, 2, 10}} |> get("/talk")
+    assert response(conn, 403) =~ "Unlock the stage session"
+  end
+
   test "the bottom control row is icon-only and touch-labelled", %{conn: conn} do
     {:ok, view, _} = authorized_live(conn)
 

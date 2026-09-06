@@ -19,6 +19,5 @@ config :goatmire,
 
 config :goatmire, GoatmireWeb.Endpoint,
   http: [ip: {0, 0, 0, 0}, port: 4000],
-  secret_key_base: String.duplicate("goatmire-local-docker-demo", 3),
-  check_origin: false,
+  check_origin: true,
   server: true

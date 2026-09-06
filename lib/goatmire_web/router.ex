@@ -57,7 +57,7 @@ defmodule GoatmireWeb.Router do
   # `GoatmireWeb`-aliased scope because the dependency owns its modules.
   scope "/" do
     pipe_through :browser
-    beamlens_web("/beamlens")
+    beamlens_web("/beamlens", on_mount: [{GoatmireWeb.RemoteAccess, :default}])
   end
 
   # Devices that speak HTTP rather than MQTT post readings here — same event
