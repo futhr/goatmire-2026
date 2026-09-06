@@ -10,6 +10,7 @@
     {:sobelow, command: "mix sobelow --config --compact"},
     {:mix_audit, command: "mix deps.audit"},
     {:hex_audit, command: "mix hex.audit"},
+    {:vendor, command: "scripts/check-vendor.sh"},
     {:unused_deps, command: "mix deps.unlock --check-unused"},
     {:secret_scan, command: "scripts/pre-commit-secret-scan.sh"},
     {:ex_unit, command: "mix coveralls --warnings-as-errors"},
