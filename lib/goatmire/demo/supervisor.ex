@@ -21,7 +21,7 @@ defmodule Goatmire.Demo.Supervisor do
   def init(_) do
     children =
       [Transport.impl()] ++
-        [Goatmire.FleetSupervisor] ++
+        [Goatmire.Scenario.Coordinator, Goatmire.FleetSupervisor] ++
         engine_children() ++
         diagnostics_children() ++
         metrics_children()

@@ -56,8 +56,24 @@ defmodule Goatmire.Scenario.Storm do
     * `:drain_pct` — battery level the fleet is dropped to (default `#{@default_drain_pct}`)
     * `:keep_fleet` — leave the devices running afterwards (default `false`)
   """
-  @spec run(keyword()) :: {:ok, summary()}
+  @spec run(keyword()) :: {:ok, summary()} | {:error, term()}
   def run(opts \\ []) do
+    validate_run!(opts)
+    Goatmire.Scenario.Coordinator.exclusive(fn -> run_exclusive(opts) end)
+  end
+
+  defp validate_run!(opts) do
+    mode_from_opts(opts)
+
+    validate_options!(
+      Keyword.get(opts, :fleet_size, @default_fleet),
+      Keyword.get(opts, :duration_seconds, @default_duration),
+      Keyword.get(opts, :tick_ms, @default_tick_ms),
+      Keyword.get(opts, :drain_pct, @default_drain_pct)
+    )
+  end
+
+  defp run_exclusive(opts) do
     mode = mode_from_opts(opts)
     fleet_size = Keyword.get(opts, :fleet_size, @default_fleet)
     duration = Keyword.get(opts, :duration_seconds, @default_duration)
@@ -117,8 +133,13 @@ defmodule Goatmire.Scenario.Storm do
              ratio: float() | nil
            }}
   def compare(opts \\ []) do
-    {:ok, observed} = run(Keyword.put(opts, :mode, :observe))
-    {:ok, enforced} = run(Keyword.put(opts, :mode, :enforce))
+    validate_run!(opts)
+    Goatmire.Scenario.Coordinator.exclusive(fn -> compare_exclusive(opts) end)
+  end
+
+  defp compare_exclusive(opts) do
+    {:ok, observed} = run_exclusive(Keyword.put(opts, :mode, :observe))
+    {:ok, enforced} = run_exclusive(Keyword.put(opts, :mode, :enforce))
 
     ratio =
       case enforced.alerts do

@@ -33,16 +33,18 @@ defmodule GoatmireWeb.WarehouseLive do
 
   @impl true
   def handle_event("start_fleet", _, socket) do
-    Fleet.stop_all()
-    {:ok, _} = Fleet.start_simulated_fleet(socket.assigns.fleet_size, tick_ms: 500)
-    {:noreply, refresh(socket)}
+    size = socket.assigns.fleet_size
+
+    fleet_mutation(socket, fn ->
+      Fleet.stop_all()
+      Fleet.start_simulated_fleet(size, tick_ms: 500)
+    end)
   end
 
   def handle_event("stop_fleet", _, %{assigns: %{running: true}} = socket), do: {:noreply, socket}
 
   def handle_event("stop_fleet", _, socket) do
-    Fleet.stop_all()
-    {:noreply, refresh(socket)}
+    fleet_mutation(socket, &Fleet.stop_all/0)
   end
 
   def handle_event("storm", _, %{assigns: %{running: true}} = socket), do: {:noreply, socket}
@@ -117,6 +119,13 @@ defmodule GoatmireWeb.WarehouseLive do
 
   def handle_info(_, socket), do: {:noreply, socket}
 
+  defp fleet_mutation(socket, fun) do
+    case Goatmire.Scenario.Coordinator.exclusive(fun) do
+      {:error, :busy} -> {:noreply, put_flash(socket, :error, "A scenario is already running.")}
+      _ -> {:noreply, refresh(socket)}
+    end
+  end
+
   defp run_storm(view, opts) do
     {:ok, _} = Storm.run(opts)
     :ok
@@ -127,6 +136,7 @@ defmodule GoatmireWeb.WarehouseLive do
   end
 
   defp refresh(socket) do
+    scenario = Goatmire.Scenario.Coordinator.status()
     engine = Engine.status()
     local_count = Fleet.count()
 
@@ -137,6 +147,7 @@ defmodule GoatmireWeb.WarehouseLive do
       |> Enum.take(@device_render_limit)
 
     assign(socket,
+      running: scenario.running,
       devices: devices,
       device_count: max(local_count, engine.things_seen),
       status_counts: status_counts(devices),
