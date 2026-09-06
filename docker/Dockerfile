@@ -2,8 +2,8 @@
 # package; it is fetched at image-build time by `mix maude.install`. If you
 # publish an image built from this file, that licence travels with it.
 
-ARG ELIXIR_VERSION=1.19.4
-ARG OTP_VERSION=28.5
+ARG ELIXIR_VERSION=1.19.6
+ARG OTP_VERSION=28.5.0.6
 ARG DEBIAN_VERSION=bookworm-20260610-slim
 
 FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION} AS build
