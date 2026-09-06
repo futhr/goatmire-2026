@@ -23,7 +23,10 @@ defmodule Goatmire.Fleet do
   @spec children() :: [Supervisor.child_spec() | {module(), term()}]
   def children do
     [
-      {Registry, keys: :unique, name: @registry},
+      %{
+        Registry.child_spec(keys: :unique, name: @registry)
+        | start: {Goatmire.FleetRegistry, :start_link, [[keys: :unique, name: @registry]]}
+      },
       {DynamicSupervisor, strategy: :one_for_one, name: @supervisor}
     ]
   end

@@ -2,15 +2,14 @@ defmodule Goatmire.Demo.Supervisor do
   @moduledoc """
   Demo-domain branch: transport, fleet, engine, diagnostics, and metrics.
 
-  Everything that can melt down during a live demo restarts inside this
-  branch with its own restart budget, so a crash-looping component exhausts
-  this supervisor — never the root — and the endpoint plus presenter clock
-  stay up.
+  The branch has its own restart budget. A single branch restart preserves
+  the endpoint and presenter clock. A sustained failure can exhaust the root
+  budget and stop the application.
   """
 
   use Supervisor
 
-  alias Goatmire.{Config, Fleet, Transport}
+  alias Goatmire.{Config, Transport}
 
   @doc "Starts the demo-domain supervision branch."
   @spec start_link(keyword()) :: Supervisor.on_start()
@@ -22,12 +21,12 @@ defmodule Goatmire.Demo.Supervisor do
   def init(_) do
     children =
       [Transport.impl()] ++
-        Fleet.children() ++
+        [Goatmire.FleetSupervisor] ++
         engine_children() ++
         diagnostics_children() ++
         metrics_children()
 
-    Supervisor.init(children, strategy: :one_for_one, max_restarts: 10, max_seconds: 10)
+    Supervisor.init(children, strategy: :rest_for_one, max_restarts: 10, max_seconds: 10)
   end
 
   defp engine_children do
