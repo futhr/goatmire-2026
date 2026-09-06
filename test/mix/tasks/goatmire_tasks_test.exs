@@ -106,8 +106,10 @@ defmodule Goatmire.MixTasksTest do
 
       contents = File.read!(output)
       artifact = Jason.decode!(contents)
-      assert artifact["schema_version"] == 1
+      assert artifact["schema_version"] == 2
       assert artifact["measured_runs"] == 1
+      assert Enum.all?(artifact["cases"], &(length(&1["runs"]) == 1))
+      assert Enum.all?(artifact["cases"], &(byte_size(&1["corpus_sha256"]) == 64))
       assert length(artifact["cases"]) == 4
       assert Enum.all?(artifact["cases"], &(&1["durations_us"] == [42]))
       assert Enum.all?(artifact["cases"], &is_integer(&1["stats"]["partitions"]))

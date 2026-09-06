@@ -4,7 +4,8 @@ defmodule Goatmire.Scenario.Storm do
 
   Boots devices, deploys a rule set through `Goatmire.Engine`, stages a shift
   change, and reads the engine's counters. Run twice — observe, then enforce —
-  the only difference is which rules were allowed to deploy.
+  both runs use the same configuration. Random station readings and concurrent
+  device scheduling produce different event traces; the ratio is descriptive.
 
   A shift change is two things at once: the clock rolls into shift hours
   (arming the Zone-7 rule) and a batch of AGVs crosses the low-battery
@@ -112,7 +113,10 @@ defmodule Goatmire.Scenario.Storm do
       events: status.counters.events,
       alerts: status.counters.alerts,
       throttled: status.counters.throttled,
-      wall_clock_ms: wall_clock_ms
+      wall_clock_ms: wall_clock_ms,
+      stimulus: %{tick_ms: tick_ms, drain_pct: drain_pct, shift_hour: @default_shift_hour},
+      comparison_scope: :same_configuration_live_scheduling,
+      exact_replay: false
     }
 
     broadcast({:storm_finished, summary})
