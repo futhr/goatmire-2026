@@ -43,12 +43,16 @@ defmodule Goatmire.Transport do
   @doc "Publishes a device telemetry reading."
   @spec publish_telemetry(String.t(), String.t(), term()) :: :ok | {:error, term()}
   def publish_telemetry(thing_id, property, value) do
-    impl().publish(telemetry_topic(thing_id), %{
-      "thing_id" => thing_id,
-      "property" => property,
-      "value" => value,
-      "ts" => System.system_time(:millisecond)
-    })
+    with {:ok, _} <- decode_event(%{thing_id: thing_id, property: property, value: value}) do
+      impl().publish(telemetry_topic(thing_id), %{
+        "thing_id" => thing_id,
+        "property" => property,
+        "value" => value,
+        "ts" => System.system_time(:millisecond)
+      })
+    else
+      :error -> {:error, :invalid_telemetry}
+    end
   end
 
   @doc "Publishes an actuation command to a device."
@@ -82,12 +86,56 @@ defmodule Goatmire.Transport do
   """
   @spec decode_event(map()) :: {:ok, map()} | :error
   def decode_event(%{"thing_id" => thing_id, "property" => property, "value" => value}) do
-    {:ok, %{thing_id: thing_id, property: property, value: value}}
+    decode_event(%{thing_id: thing_id, property: property, value: value})
   end
 
   def decode_event(%{thing_id: thing_id, property: property, value: value}) do
-    {:ok, %{thing_id: thing_id, property: property, value: value}}
+    if valid_identifier?(thing_id) and valid_identifier?(property) and valid_value?(value),
+      do: {:ok, %{thing_id: thing_id, property: property, value: value}},
+      else: :error
   end
 
   def decode_event(_), do: :error
+
+  @doc "Validates a payload and binds its identity to the telemetry topic."
+  @spec decode_event(term(), String.t()) :: {:ok, map()} | :error
+  def decode_event(payload, topic) do
+    with {:ok, event} <- decode_event(payload),
+         true <- topic == telemetry_topic(event.thing_id) do
+      {:ok, event}
+    else
+      _ -> :error
+    end
+  end
+
+  defp valid_identifier?(value) when is_binary(value) and byte_size(value) in 1..128,
+    do: String.valid?(value) and Regex.match?(~r/\A[a-zA-Z0-9_.:-]+\z/, value)
+
+  defp valid_identifier?(_), do: false
+
+  defp valid_value?(value) when is_binary(value),
+    do: byte_size(value) <= 1024 and String.valid?(value)
+
+  defp valid_value?(value) when is_map(value) or is_list(value) do
+    case Jason.encode(value) do
+      {:ok, json} -> byte_size(json) <= 1024 and bounded_json?(value, 4)
+      _ -> false
+    end
+  end
+
+  defp valid_value?(value), do: is_number(value) or is_boolean(value) or is_nil(value)
+
+  defp bounded_json?(_, 0), do: false
+
+  defp bounded_json?(map, depth) when is_map(map),
+    do:
+      map_size(map) <= 32 and
+        Enum.all?(map, fn {key, value} ->
+          (is_binary(key) or is_atom(key)) and bounded_json?(value, depth - 1)
+        end)
+
+  defp bounded_json?(list, depth) when is_list(list),
+    do: length(list) <= 32 and Enum.all?(list, &bounded_json?(&1, depth - 1))
+
+  defp bounded_json?(value, _), do: valid_value?(value)
 end

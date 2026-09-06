@@ -13,8 +13,16 @@ defmodule GoatmireWeb.TelemetryController do
   @doc "Publishes one validated HTTP reading onto the configured device transport."
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"thing_id" => thing_id, "property" => property, "value" => value}) do
-    :ok = Transport.publish_telemetry(thing_id, property, value)
-    json(conn, %{status: "accepted", thing_id: thing_id, property: property})
+    case Transport.publish_telemetry(thing_id, property, value) do
+      :ok ->
+        json(conn, %{status: "accepted", thing_id: thing_id, property: property})
+
+      {:error, :invalid_telemetry} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{error: "invalid telemetry"})
+
+      {:error, _} ->
+        conn |> put_status(:service_unavailable) |> json(%{error: "transport unavailable"})
+    end
   end
 
   def create(conn, _) do

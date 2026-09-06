@@ -30,8 +30,13 @@ defmodule Goatmire.Transport.Local do
 
   @impl Goatmire.Transport
   def subscribe(filter) do
-    with :ok <- Phoenix.PubSub.subscribe(@pubsub, @fanout) do
-      filters = Process.get(__MODULE__, MapSet.new())
+    filters = Process.get(__MODULE__, MapSet.new())
+
+    with :ok <-
+           if(MapSet.size(filters) == 0,
+             do: Phoenix.PubSub.subscribe(@pubsub, @fanout),
+             else: :ok
+           ) do
       Process.put(__MODULE__, MapSet.put(filters, filter))
       :ok
     end
@@ -44,10 +49,12 @@ defmodule Goatmire.Transport.Local do
   """
   @spec topic_match?(String.t(), String.t()) :: boolean()
   def topic_match?(topic, filter) do
-    match_levels(String.split(topic, "/"), String.split(filter, "/"))
+    not (String.starts_with?(topic, "$SYS") and not String.starts_with?(filter, "$SYS")) and
+      match_levels(String.split(topic, "/"), String.split(filter, "/"))
   end
 
-  defp match_levels(_, ["#" | _]), do: true
+  defp match_levels(_, ["#"]), do: true
+  defp match_levels(_, ["#" | _]), do: false
   defp match_levels([], []), do: true
   defp match_levels([], _), do: false
   defp match_levels(_, []), do: false

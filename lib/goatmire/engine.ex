@@ -202,7 +202,7 @@ defmodule Goatmire.Engine do
   @impl true
   def handle_info({:goatmire_publish, _, _} = message, state) do
     case Local.accept(message) do
-      {:ok, _, payload} -> {:noreply, ingest(payload, state)}
+      {:ok, topic, payload} -> {:noreply, ingest(payload, topic, state)}
       :ignore -> {:noreply, state}
     end
   end
@@ -297,8 +297,8 @@ defmodule Goatmire.Engine do
     end
   end
 
-  defp ingest(payload, state) do
-    case Transport.decode_event(payload) do
+  defp ingest(payload, topic, state) do
+    case Transport.decode_event(payload, topic) do
       {:ok, event} -> handle_event(event, state)
       :error -> state
     end
@@ -307,7 +307,7 @@ defmodule Goatmire.Engine do
   defp handle_event(%{thing_id: thing_id, property: property, value: value}, state) do
     :telemetry.execute([:goatmire, :engine, :event], %{count: 1}, %{thing_id: thing_id})
 
-    world = RuleEval.put_reading(state.world, thing_id, property, value)
+    world = put_bounded_reading(state.world, thing_id, property, value)
     state = %{state | world: world, counters: bump(state.counters, :events)}
 
     {fired, actions} = RuleEval.evaluate(state.index, thing_id, world)
@@ -329,7 +329,7 @@ defmodule Goatmire.Engine do
   end
 
   defp perform({:set_env, property, value}, _, state) do
-    world = RuleEval.put_reading(state.world, "__env__", property, value)
+    world = put_bounded_reading(state.world, "__env__", property, value)
     alert(%{state | world: world}, "__env__", property, value)
   end
 
@@ -344,7 +344,7 @@ defmodule Goatmire.Engine do
       {:ok, state} ->
         case Transport.publish_command(thing_id, property, value) do
           :ok ->
-            world = RuleEval.put_reading(state.world, thing_id, property, value)
+            world = put_bounded_reading(state.world, thing_id, property, value)
             alert(%{state | world: world}, thing_id, property, value)
 
           {:error, reason} ->
@@ -393,10 +393,22 @@ defmodule Goatmire.Engine do
       |> Map.get(thing_id, [])
       |> Enum.take_while(&(&1 > cutoff))
 
-    if length(recent) >= state.max_commands do
-      {:throttled, %{state | command_log: Map.put(state.command_log, thing_id, recent)}}
+    if length(recent) >= state.max_commands or
+         (not Map.has_key?(state.command_log, thing_id) and map_size(state.command_log) >= 4096) do
+      {:throttled, state}
     else
       {:ok, %{state | command_log: Map.put(state.command_log, thing_id, [now | recent])}}
+    end
+  end
+
+  defp put_bounded_reading(world, thing, property, value) do
+    properties = Map.get(world, thing, %{})
+
+    if (Map.has_key?(world, thing) or map_size(world) < 4096) and
+         (Map.has_key?(properties, property) or map_size(properties) < 64) do
+      RuleEval.put_reading(world, thing, property, value)
+    else
+      world
     end
   end
 
