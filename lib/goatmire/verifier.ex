@@ -180,7 +180,23 @@ defmodule Goatmire.Verifier do
     case validate_rule_set(rules) do
       :ok ->
         partitions = Rules.partition(rules)
-        results = Enum.map(partitions, &safe_detect(&1, maude_opts))
+        deadline = System.monotonic_time(:millisecond) + Keyword.get(maude_opts, :timeout, 15_000)
+
+        results =
+          Enum.reduce_while(partitions, [], fn partition, results ->
+            remaining = deadline - System.monotonic_time(:millisecond)
+
+            result =
+              if remaining > 0,
+                do: safe_detect(partition, Keyword.put(maude_opts, :timeout, remaining)),
+                else: {:error, :timeout}
+
+            case result do
+              {:ok, _} -> {:cont, [result | results]}
+              {:error, _} -> {:halt, [result | results]}
+            end
+          end)
+
         {merge_results(results, total), partition_stats(partitions, total)}
 
       {:error, reason} ->

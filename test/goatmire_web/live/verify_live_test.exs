@@ -45,7 +45,8 @@ defmodule GoatmireWeb.VerifyLiveTest do
 
     {:ok, live, _} = live(conn, "/verify")
     conflict_button = element(live, "#verify-conflict")
-    html = render_click(conflict_button)
+    render_click(conflict_button)
+    html = render_async(live)
 
     assert html =~ "conflict found"
     assert html =~ "opposing writes"

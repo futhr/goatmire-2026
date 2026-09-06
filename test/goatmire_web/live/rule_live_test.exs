@@ -56,11 +56,12 @@ defmodule GoatmireWeb.RuleLiveTest do
     StubVerifier.set(:clean)
     {:ok, live, _} = live(conn, "/rules")
 
-    html =
+    _ =
       live
       |> form("#rule-form", rule: valid_params())
       |> render_submit()
 
+    html = render_async(live)
     assert html =~ "no modeled conflict"
     assert html =~ "Deploy"
   end
@@ -80,11 +81,12 @@ defmodule GoatmireWeb.RuleLiveTest do
 
     {:ok, live, _} = live(conn, "/rules")
 
-    html =
+    _ =
       live
       |> form("#rule-form", rule: valid_params())
       |> render_submit()
 
+    html = render_async(live)
     assert html =~ "conflict found"
     assert html =~ "state_conflict"
     assert html =~ "both write destination"
@@ -94,11 +96,12 @@ defmodule GoatmireWeb.RuleLiveTest do
     StubVerifier.set(:unverified)
     {:ok, live, _} = live(conn, "/rules")
 
-    html =
+    _ =
       live
       |> form("#rule-form", rule: valid_params())
       |> render_submit()
 
+    html = render_async(live)
     assert html =~ "unverified"
     assert html =~ "The detector did not run"
     assert html =~ "Nothing was deployed"
@@ -122,11 +125,12 @@ defmodule GoatmireWeb.RuleLiveTest do
     StubVerifier.set(:clean)
     {:ok, live, _} = live(conn, "/rules")
 
-    html =
+    _ =
       live
       |> element("button", "Deploy rule A")
       |> render_click()
 
+    html = render_async(live)
     assert html =~ "soteria-o3-contact-open-turn-on"
     assert html =~ "against the 1 rule(s) already deployed"
   end
@@ -140,15 +144,18 @@ defmodule GoatmireWeb.RuleLiveTest do
     |> element("button", "Deploy rule A")
     |> render_click()
 
+    render_async(live)
+
     live
     |> element("button", "Load rule B")
     |> render_click()
 
-    html =
+    _ =
       live
       |> form("#rule-form")
       |> render_submit()
 
+    html = render_async(live)
     assert html =~ "conflict found"
     assert html =~ "soteria-o3-contact-open-turn-on"
     assert html =~ "soteria-o4-contact-open-turn-off"
@@ -182,11 +189,13 @@ defmodule GoatmireWeb.RuleLiveTest do
     |> form("#rule-form", rule: valid_params())
     |> render_submit()
 
+    render_async(live)
     concurrent_rules = Goatmire.Rules.clean_set()
     assert {:ok, %{deployed: 5}} = Engine.deploy(concurrent_rules)
 
     deploy_button = element(live, "#deploy-checked-rule")
     render_click(deploy_button)
+    render_async(live)
 
     deployed_rules = Engine.deployed_rules()
     deployed_ids = Enum.map(deployed_rules, & &1.id)
@@ -205,7 +214,8 @@ defmodule GoatmireWeb.RuleLiveTest do
   test "seed failure is visible", %{conn: conn} do
     StubVerifier.set(:unverified)
     {:ok, view, _} = live(conn, "/rules")
-    assert render_click(view, "seed_deployed", %{}) =~ "gate withheld rule A"
+    render_click(view, "seed_deployed", %{})
+    assert render_async(view) =~ "gate withheld rule A"
     assert Engine.deployed_rules() == []
   end
 

@@ -47,7 +47,18 @@ defmodule Goatmire.Gate do
   @doc "Delegates partitioned verification to the configured gate."
   @spec verify_partitioned([map()], keyword()) ::
           {:ok, Verdict.t(), stats()}
-  def verify_partitioned(rules, opts \\ []), do: impl().verify_partitioned(rules, opts)
+  def verify_partitioned(rules, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 15_000)
+
+    case Goatmire.Deadline.run(fn -> impl().verify_partitioned(rules, opts) end, timeout) do
+      {:ok, {:ok, %Verdict{}, _} = result} ->
+        result
+
+      other ->
+        {:ok, %Verdict{status: :unverified, reason: other, rule_count: length(rules)},
+         %{partitions: 0, pairs_considered: 0, pairs_skipped: 0}}
+    end
+  end
 
   @doc "Delegates admission splitting to the configured gate."
   @spec split_on_verdict([map()], Verdict.t()) :: %{admitted: [map()], withheld: [map()]}

@@ -67,13 +67,13 @@ defmodule Goatmire.Engine do
              verification: map()
            }}
   def deploy(rules, opts \\ []) do
-    GenServer.call(__MODULE__, {:deploy, rules, opts}, 60_000)
+    prepare_deployment(:replace, rules, opts)
   end
 
   @doc "Atomically checks new rules against the active set, retaining it on rejection."
   @spec admit([map()], keyword()) :: {:ok, map()}
   def admit(rules, opts \\ []) do
-    GenServer.call(__MODULE__, {:admit, rules, opts}, 60_000)
+    prepare_deployment(:append, rules, Keyword.put(opts, :mode, :enforce))
   end
 
   @doc "Removes every deployed rule. Devices keep running; nothing actuates them."
@@ -111,6 +111,7 @@ defmodule Goatmire.Engine do
 
     {:ok,
      %{
+       revision: 0,
        rules: [],
        index: %{},
        world: %{},
@@ -129,88 +130,34 @@ defmodule Goatmire.Engine do
   end
 
   @impl true
-  def handle_call({:admit, rules, opts}, from, state) do
-    opts = opts |> Keyword.put(:mode, :enforce) |> Keyword.put(:admission, true)
-    handle_call({:deploy, state.rules ++ rules, opts}, from, state)
-  end
+  def handle_call(:deployment_snapshot, _, state),
+    do: {:reply, {state.revision, state.rules}, state}
 
-  def handle_call({:deploy, rules, opts}, _, state) do
-    mode = deployment_mode(opts)
-    scenario = Keyword.get(opts, :scenario, :deploy)
-    run_id = Keyword.get_lazy(opts, :run_id, &new_run_id/0)
+  def handle_call({:commit, revision, deadline, rules, opts, verdict, stats}, _, state) do
+    cond do
+      System.monotonic_time(:millisecond) >= deadline ->
+        verdict = %Verifier.Verdict{
+          status: :unverified,
+          reason: :timeout,
+          rule_count: length(rules)
+        }
 
-    # Partitioned always: a whole-corpus reduction of 85 rules exceeds the
-    # backend timeout and returns :unverified.
-    {:ok, verdict, stats} = Gate.verify_partitioned(rules, scenario: scenario)
+        finish_deployment(rules, Keyword.put(opts, :preserve_active, true), verdict, stats, state)
 
-    %{admitted: admitted, withheld: withheld} =
-      if mode == :enforce do
-        Gate.split_on_verdict(rules, verdict)
-      else
-        # Even observe-only simulation does not turn absence of a verdict into
-        # permission to activate.
-        case verdict.status do
-          :unverified -> %{admitted: [], withheld: rules}
-          _ -> %{admitted: rules, withheld: []}
-        end
-      end
+      revision != state.revision ->
+        {:reply, :stale, state}
 
-    %{admitted: admitted, withheld: withheld} =
-      if Keyword.get(opts, :admission, false) and verdict.status != :clean do
-        %{admitted: state.rules, withheld: rules -- state.rules}
-      else
-        %{admitted: admitted, withheld: withheld}
-      end
-
-    verification = %{
-      verdict: verdict,
-      stats: stats,
-      scenario: scenario,
-      verified_at: DateTime.utc_now() |> DateTime.to_iso8601()
-    }
-
-    :telemetry.execute(
-      [:goatmire, :engine, :deploy],
-      %{
-        deployed: length(admitted),
-        withheld: length(withheld),
-        partitions: stats.partitions,
-        pairs_considered: stats.pairs_considered,
-        pairs_skipped: stats.pairs_skipped
-      },
-      %{status: verdict.status, mode: mode, scenario: scenario, run_id: run_id}
-    )
-
-    state = %{
-      state
-      | rules: admitted,
-        index: RuleEval.index(admitted),
-        verdict: verdict,
-        mode: mode,
-        withheld: rule_ids(withheld),
-        verification: verification,
-        scenario: scenario,
-        run_id: run_id
-    }
-
-    result = %{
-      verdict: verdict,
-      deployed: length(admitted),
-      withheld: rule_ids(withheld),
-      mode: mode,
-      verification: verification,
-      run_id: run_id
-    }
-
-    broadcast({:engine_deployed, result})
-    {:reply, {:ok, result}, state}
+      true ->
+        finish_deployment(rules, opts, verdict, stats, state)
+    end
   end
 
   def handle_call(:undeploy, _, state) do
     {:reply, :ok,
      %{
        state
-       | rules: [],
+       | revision: state.revision + 1,
+         rules: [],
          index: %{},
          withheld: [],
          verdict: nil,
@@ -246,6 +193,94 @@ defmodule Goatmire.Engine do
   end
 
   def handle_info(_, state), do: {:noreply, state}
+
+  defp finish_deployment(rules, opts, verdict, stats, state) do
+    mode = deployment_mode(opts)
+    scenario = Keyword.get(opts, :scenario, :deploy)
+    run_id = Keyword.get_lazy(opts, :run_id, &new_run_id/0)
+
+    %{admitted: admitted, withheld: withheld} =
+      if mode == :enforce do
+        Gate.split_on_verdict(rules, verdict)
+      else
+        # Even observe-only simulation does not turn absence of a verdict into
+        # permission to activate.
+        case verdict.status do
+          :unverified -> %{admitted: [], withheld: rules}
+          _ -> %{admitted: rules, withheld: []}
+        end
+      end
+
+    %{admitted: admitted, withheld: withheld} =
+      if Keyword.get(opts, :preserve_active, false) or
+           (Keyword.get(opts, :admission, false) and verdict.status != :clean) do
+        %{admitted: state.rules, withheld: rules -- state.rules}
+      else
+        %{admitted: admitted, withheld: withheld}
+      end
+
+    verification = %{
+      verdict: verdict,
+      stats: stats,
+      scenario: scenario,
+      verified_at: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+
+    :telemetry.execute(
+      [:goatmire, :engine, :deploy],
+      %{
+        deployed: length(admitted),
+        withheld: length(withheld),
+        partitions: stats.partitions,
+        pairs_considered: stats.pairs_considered,
+        pairs_skipped: stats.pairs_skipped
+      },
+      %{status: verdict.status, mode: mode, scenario: scenario, run_id: run_id}
+    )
+
+    state = %{
+      state
+      | revision: state.revision + 1,
+        rules: admitted,
+        index: RuleEval.index(admitted),
+        verdict: verdict,
+        mode: mode,
+        withheld: rule_ids(withheld),
+        verification: verification,
+        scenario: scenario,
+        run_id: run_id
+    }
+
+    result = %{
+      verdict: verdict,
+      deployed: length(admitted),
+      withheld: rule_ids(withheld),
+      mode: mode,
+      verification: verification,
+      run_id: run_id
+    }
+
+    broadcast({:engine_deployed, result})
+    {:reply, {:ok, result}, state}
+  end
+
+  defp prepare_deployment(kind, rules, opts) do
+    deadline = System.monotonic_time(:millisecond) + Keyword.get(opts, :timeout, 15_000)
+    attempt_deployment(kind, rules, opts, deadline)
+  end
+
+  defp attempt_deployment(kind, additions, opts, deadline) do
+    {revision, active} = GenServer.call(__MODULE__, :deployment_snapshot)
+    rules = if kind == :append, do: active ++ additions, else: additions
+    remaining = max(deadline - System.monotonic_time(:millisecond), 0)
+    opts = opts |> Keyword.put(:admission, kind == :append) |> Keyword.put(:timeout, remaining)
+    {:ok, verdict, stats} = Gate.verify_partitioned(rules, opts)
+
+    case GenServer.call(__MODULE__, {:commit, revision, deadline, rules, opts, verdict, stats}) do
+      :stale -> attempt_deployment(kind, additions, opts, deadline)
+      result -> result
+    end
+  end
 
   defp ingest(payload, state) do
     case Transport.decode_event(payload) do

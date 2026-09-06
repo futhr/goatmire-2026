@@ -7,7 +7,7 @@ defmodule GoatmireWeb.VerifyLive do
   """
   use GoatmireWeb, :live_view
 
-  alias Goatmire.{Gate, Rules, ScenarioRunner, VerificationDemo}
+  alias Goatmire.{Gate, Rules, VerificationDemo}
 
   @impl true
   def mount(_, _, socket) do
@@ -29,36 +29,43 @@ defmodule GoatmireWeb.VerifyLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("run", %{"set" => set}, socket) do
-    socket =
-      socket
-      |> assign(running: set)
-      |> run_set(set)
+  def handle_event("run", %{"set" => set}, socket) when set in ["conflict", "clean", "cascade"] do
+    {:noreply,
+     socket
+     |> assign(running: set)
+     |> start_async(:verification, fn ->
+       rules =
+         case set do
+           "conflict" -> Rules.research_state_conflict_pair()
+           "clean" -> Rules.clean_set()
+           "cascade" -> Rules.cascade_chain()
+         end
 
-    {:noreply, socket}
+       {:ok, verdict, _} = Gate.verify_partitioned(rules, scenario: :verify_page)
+       {set, verdict, rules}
+     end)}
   end
+
+  def handle_event("run", _, socket), do: {:noreply, socket}
 
   def handle_event("run_policy", _, socket) do
-    {:noreply, assign(socket, policy: VerificationDemo.run())}
+    {:noreply,
+     socket |> assign(running: "policy") |> start_async(:policy, &VerificationDemo.run/0)}
   end
 
-  defp run_set(socket, "conflict") do
-    rules = Rules.research_state_conflict_pair()
-    {:ok, verdict} = Gate.verify(rules, scenario: :verify_page)
-    put_result(socket, "conflict", verdict, rules)
-  end
+  @impl true
+  def handle_async(:verification, {:ok, {set, verdict, rules}}, socket),
+    do: {:noreply, put_result(socket, set, verdict, rules)}
 
-  defp run_set(socket, "clean") do
-    {:ok, verdict} = Gate.verify(Rules.clean_set(), scenario: :verify_page)
-    put_result(socket, "clean", verdict, Rules.clean_set())
-  end
+  def handle_async(:policy, {:ok, policy}, socket),
+    do: {:noreply, assign(socket, running: nil, policy: policy)}
 
-  defp run_set(socket, "cascade") do
-    {:ok, %{verdict: verdict}} = ScenarioRunner.cascade_example()
-    put_result(socket, "cascade", verdict, Rules.cascade_chain())
-  end
-
-  defp run_set(socket, _), do: assign(socket, running: nil)
+  def handle_async(_, _, socket),
+    do:
+      {:noreply,
+       socket
+       |> assign(running: nil)
+       |> put_flash(:error, "Verification did not complete. Retry.")}
 
   defp put_result(socket, key, verdict, rules) do
     socket

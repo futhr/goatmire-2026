@@ -21,7 +21,7 @@ defmodule GoatmireWeb.RuleLive do
      socket
      |> assign(page_title: "New rule")
      |> assign(form: to_form(default_params()))
-     |> assign(verdict: nil, submitted_rule: nil, deployed: false)
+     |> assign(verdict: nil, submitted_rule: nil, deployed: false, running: false)
      |> assign_deployed_rules()}
   end
 
@@ -42,26 +42,39 @@ defmodule GoatmireWeb.RuleLive do
   @impl true
   def handle_event("validate", %{"rule" => params}, socket) do
     {:noreply,
-     assign(socket, form: to_form(params), verdict: nil, submitted_rule: nil, deployed: false)}
+     assign(cancel_async(socket, :rule_operation),
+       form: to_form(params),
+       verdict: nil,
+       submitted_rule: nil,
+       deployed: false,
+       running: false
+     )}
   end
 
   def handle_event("check", %{"rule" => params}, socket) do
     case build_rule(params) do
       {:ok, rule} ->
-        # A rule is only conflict-free relative to the set it is joining.
-        candidate_set = Engine.deployed_rules() ++ [rule]
-        {:ok, verdict, _} = Gate.verify_partitioned(candidate_set, scenario: :rule_form)
-
         {:noreply,
          socket
-         |> assign(verdict: verdict, submitted_rule: rule, deployed: false)
-         |> assign(form: to_form(params))}
+         |> assign(
+           verdict: nil,
+           submitted_rule: nil,
+           deployed: false,
+           running: true,
+           form: to_form(params)
+         )
+         |> start_async(:rule_operation, fn ->
+           {:ok, verdict, _} =
+             Gate.verify_partitioned(Engine.deployed_rules() ++ [rule], scenario: :rule_form)
+
+           {:checked, rule, verdict}
+         end)}
 
       {:error, message} ->
         {:noreply,
          socket
          |> put_flash(:error, message)
-         |> assign(form: to_form(params))}
+         |> assign(form: to_form(params), verdict: nil, submitted_rule: nil, deployed: false)}
     end
   end
 
@@ -87,44 +100,73 @@ defmodule GoatmireWeb.RuleLive do
     }
 
     {:noreply,
-     assign(socket, form: to_form(params), verdict: nil, submitted_rule: nil, deployed: false)}
+     assign(cancel_async(socket, :rule_operation),
+       form: to_form(params),
+       verdict: nil,
+       submitted_rule: nil,
+       deployed: false,
+       running: false
+     )}
   end
 
   def handle_event("seed_deployed", _, socket) do
     [first, _] = Rules.research_state_conflict_pair()
-    {:ok, result} = Engine.deploy([first], mode: :enforce, scenario: :rule_form_seed)
 
-    socket =
-      socket
-      |> assign_deployed_rules()
-      |> assign(verdict: nil, submitted_rule: nil, deployed: false)
+    {:noreply,
+     socket
+     |> assign(running: true, verdict: nil, submitted_rule: nil, deployed: false)
+     |> start_async(:rule_operation, fn ->
+       {:seeded, Engine.deploy([first], scenario: :rule_form_seed)}
+     end)}
+  end
+
+  @impl true
+  def handle_async(:rule_operation, {:ok, {:checked, rule, verdict}}, socket) do
+    {:noreply, assign(socket, running: false, verdict: verdict, submitted_rule: rule)}
+  end
+
+  def handle_async(:rule_operation, {:ok, {kind, {:ok, result}}}, socket) do
+    socket = socket |> assign(running: false) |> assign_deployed_rules()
 
     if result.withheld == [] do
-      {:noreply,
-       put_flash(socket, :info, "Deployed the reproduced O3 switch-on rule. Now load O4.")}
+      message =
+        if kind == :seeded,
+          do: "Deployed the reproduced O3 switch-on rule. Now load O4.",
+          else: "Deployed."
+
+      {:noreply, socket |> assign(deployed: kind == :deployed) |> put_flash(:info, message)}
     else
-      {:noreply,
-       put_flash(socket, :error, "The gate withheld rule A. Restore verification and retry.")}
+      message =
+        if kind == :seeded,
+          do: "The gate withheld rule A. Restore verification and retry.",
+          else: "Gate withheld: #{Enum.join(result.withheld, ", ")}"
+
+      {:noreply, put_flash(socket, :error, message)}
     end
+  end
+
+  def handle_async(:rule_operation, _, socket) do
+    {:noreply,
+     socket
+     |> assign(running: false, verdict: nil, submitted_rule: nil)
+     |> put_flash(:error, "Verification did not complete. Retry.")}
   end
 
   defp deployable?(socket) do
     match?(%{status: :clean}, socket.assigns.verdict) and
-      is_map(socket.assigns.submitted_rule) and not socket.assigns.deployed
+      is_map(socket.assigns.submitted_rule) and not socket.assigns.deployed and
+      not socket.assigns.running
   end
 
   defp deploy_current_candidate(socket) do
-    case Engine.admit([socket.assigns.submitted_rule], scenario: :rule_form) do
-      {:ok, %{withheld: []}} ->
-        {:noreply,
-         socket
-         |> assign(deployed: true)
-         |> assign_deployed_rules()
-         |> put_flash(:info, "Deployed.")}
+    rule = socket.assigns.submitted_rule
 
-      {:ok, %{withheld: withheld}} ->
-        {:noreply, put_flash(socket, :error, "Gate withheld: #{Enum.join(withheld, ", ")}")}
-    end
+    {:noreply,
+     socket
+     |> assign(running: true)
+     |> start_async(:rule_operation, fn ->
+       {:deployed, Engine.admit([rule], scenario: :rule_form)}
+     end)}
   end
 
   # Fleet rules share templates ("agv-12-low-battery-route" is the same rule
@@ -302,8 +344,16 @@ defmodule GoatmireWeb.RuleLive do
           </div>
 
           <div class="rule-actions" style="margin-top:1rem">
-            <button id="check-rule" type="submit">Check &amp; create</button>
-            <button id="deploy-rule-a" type="button" class="ghost" phx-click="seed_deployed">
+            <button id="check-rule" type="submit" disabled={@running}>{if @running,
+              do: "Checking…",
+              else: "Check & create"}</button>
+            <button
+              id="deploy-rule-a"
+              disabled={@running}
+              type="button"
+              class="ghost"
+              phx-click="seed_deployed"
+            >
               Deploy rule A
             </button>
             <button id="load-rule-b" type="button" class="ghost" phx-click="load_example">
@@ -323,7 +373,7 @@ defmodule GoatmireWeb.RuleLive do
         <.verdict_detail verdict={@verdict} />
 
         <div :if={@verdict && @verdict.status == :clean} class="row" style="margin-top:0.9rem">
-          <button id="deploy-checked-rule" phx-click="deploy" disabled={@deployed}>
+          <button id="deploy-checked-rule" phx-click="deploy" disabled={@deployed or @running}>
             {if @deployed, do: "Deployed", else: "Deploy"}
           </button>
         </div>
