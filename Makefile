@@ -149,4 +149,4 @@ install-hooks:
 
 clean:
 	@mix clean
-	@rm -rf _build deps priv/static/assets
+	@rm -rf _build deps
