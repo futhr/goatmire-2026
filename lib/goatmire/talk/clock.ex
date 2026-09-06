@@ -341,15 +341,25 @@ defmodule Goatmire.Talk.Clock do
         :accumulated_ms,
         :panel,
         :tab,
-        :zoom
+        :zoom,
+        :play_done
       ])
 
+    saved = Map.merge(saved, %{version: 2, saved_at_ms: now_ms()})
     Store.put(saved)
 
     with path when is_binary(path) <- Config.talk_state_path() do
-      File.mkdir_p(Path.dirname(path))
-      # credo:disable-for-next-line OeditusCredo.Check.Security.PathTraversal
-      File.write(path, :erlang.term_to_binary(saved))
+      temporary = path <> ".tmp"
+
+      with :ok <- File.mkdir_p(Path.dirname(path)),
+           :ok <- File.write(temporary, :erlang.term_to_binary(saved), [:binary, :sync]),
+           :ok <- File.rename(temporary, path) do
+        :ok
+      else
+        {:error, reason} ->
+          File.rm(temporary)
+          Logger.warning("Presenter checkpoint could not be saved: #{inspect(reason)}")
+      end
     end
 
     state
@@ -358,18 +368,76 @@ defmodule Goatmire.Talk.Clock do
   defp restore_saved(state) do
     saved = Store.get() || read_saved_file()
 
-    case saved do
-      %{slide: slide} = saved when slide in 1..@slide_count ->
-        state = Map.merge(state, saved)
-        # A mid-talk restart keeps the presenter's manual layout; before the
-        # talk starts, the slide's configured layout always wins over a stale
-        # checkpoint.
-        if state.started_at_ms, do: state, else: apply_timing_defaults(state)
+    if valid_saved?(saved) do
+      shift = now_ms() - saved.saved_at_ms
 
-      _ ->
-        apply_timing_defaults(state)
+      restored =
+        Map.take(saved, [
+          :slide,
+          :started_at_ms,
+          :entered_at_ms,
+          :accumulated_ms,
+          :panel,
+          :tab,
+          :zoom,
+          :play_done
+        ])
+
+      restored =
+        Enum.reduce([:started_at_ms, :entered_at_ms], restored, fn key, values ->
+          Map.update!(values, key, fn value -> if value, do: value + shift end)
+        end)
+
+      state = Map.merge(state, restored)
+      if state.started_at_ms, do: state, else: apply_timing_defaults(state)
+    else
+      apply_timing_defaults(state)
     end
   end
+
+  defp valid_saved?(%{
+         version: 2,
+         slide: slide,
+         saved_at_ms: saved_at,
+         started_at_ms: started,
+         entered_at_ms: entered,
+         accumulated_ms: accumulated,
+         panel: panel,
+         tab: tab,
+         zoom: zoom,
+         play_done: done
+       }) do
+    slide in 1..@slide_count and is_integer(saved_at) and panel in @panels and tab in @tabs and
+      is_number(zoom) and zoom >= 0.7 and zoom <= 1.5 and
+      valid_times?(started, entered, saved_at) and valid_durations?(accumulated) and
+      valid_progress?(done)
+  end
+
+  defp valid_saved?(_), do: false
+
+  defp valid_times?(nil, entered, saved_at),
+    do: is_nil(entered) or (is_integer(entered) and entered <= saved_at)
+
+  defp valid_times?(started, entered, saved_at),
+    do:
+      is_integer(started) and is_integer(entered) and started <= saved_at and entered <= saved_at
+
+  defp valid_durations?(map) when is_map(map),
+    do:
+      Enum.all?(map, fn {slide, ms} -> slide in 1..@slide_count and is_integer(ms) and ms >= 0 end)
+
+  defp valid_durations?(_), do: false
+
+  defp valid_progress?(map) when is_map(map) do
+    Enum.all?(map, fn {slide, count} ->
+      case Controls.scripted(slide) do
+        {_, steps} -> is_integer(count) and count >= 0 and count <= length(steps)
+        _ -> false
+      end
+    end)
+  end
+
+  defp valid_progress?(_), do: false
 
   defp apply_timing_defaults(state) do
     timing = slide_timing(state)
@@ -486,6 +554,6 @@ defmodule Goatmire.Talk.Clock do
 
   defp default_timing, do: %{seconds: @default_budget_seconds, panel: :split, tab: nil}
   defp default_timings, do: Map.new(1..@slide_count, &{&1, default_timing()})
-  defp now_ms, do: System.system_time(:millisecond)
+  defp now_ms, do: System.monotonic_time(:millisecond)
   defp schedule_tick, do: Process.send_after(self(), :tick, @tick_ms)
 end

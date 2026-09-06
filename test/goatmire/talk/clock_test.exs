@@ -175,6 +175,21 @@ defmodule Goatmire.Talk.ClockTest do
     assert %{slide: 4, panel: :live_full, started?: true} = Clock.snapshot()
   end
 
+  test "completed steps survive a clock restart" do
+    Clock.goto(13)
+    Clock.play_next()
+    assert_eventually(fn -> Clock.snapshot().play_done[13] == 1 end)
+    kill_and_await_restart()
+    assert Clock.snapshot().play_done[13] == 1
+  end
+
+  test "malformed checkpoints do not crash clock recovery" do
+    Goatmire.Talk.Store.put(%{slide: 5, zoom: "huge", started_at_ms: %{}})
+    kill_and_await_restart()
+    assert Clock.snapshot().slide == 1
+    assert Clock.snapshot().zoom == 1.0
+  end
+
   defp kill_and_await_restart do
     pid = Process.whereis(Clock)
     ref = Process.monitor(pid)
