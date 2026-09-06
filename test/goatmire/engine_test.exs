@@ -81,6 +81,30 @@ defmodule Goatmire.EngineTest do
     assert Engine.deployed_rules() == [first]
   end
 
+  defmodule FailingTransport do
+    @moduledoc false
+    def publish(_, _), do: {:error, :disconnected}
+  end
+
+  test "failed delivery does not change the world or count an alert" do
+    [rule, _] = Rules.state_conflict_pair()
+    {:ok, _} = Engine.deploy([rule])
+    transport = Transport.impl()
+    Application.put_env(:goatmire, :transport, FailingTransport)
+    on_exit(fn -> Application.put_env(:goatmire, :transport, transport) end)
+
+    send(
+      Engine,
+      {:goatmire_publish, Transport.telemetry_topic("agv-42"),
+       %{thing_id: "agv-42", property: "battery", value: 12}}
+    )
+
+    status = Engine.status()
+    assert status.counters.alerts == 0
+    assert status.delivery_failures == 1
+    refute Map.has_key?(Engine.properties("agv-42"), "destination")
+  end
+
   describe "ingest" do
     test "a reading that satisfies no trigger produces no alert" do
       StubVerifier.set(:clean)

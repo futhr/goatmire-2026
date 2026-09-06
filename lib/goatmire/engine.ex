@@ -121,6 +121,7 @@ defmodule Goatmire.Engine do
        verification: nil,
        scenario: nil,
        run_id: nil,
+       delivery_failures: 0,
        counters: zero_counters(),
        recent_alerts: [],
        window_ms: Keyword.get(opts, :window_ms, @default_window_ms),
@@ -172,12 +173,26 @@ defmodule Goatmire.Engine do
   def handle_call(:deployed_rules, _, state), do: {:reply, state.rules, state}
 
   def handle_call(:reset_counters, _, state) do
-    {:reply, :ok, %{state | counters: zero_counters(), command_log: %{}, recent_alerts: []}}
+    {:reply, :ok,
+     %{
+       state
+       | counters: zero_counters(),
+         delivery_failures: 0,
+         command_log: %{},
+         recent_alerts: []
+     }}
   end
 
   def handle_call(:reset, _, state) do
     {:reply, :ok,
-     %{state | counters: zero_counters(), command_log: %{}, world: %{}, recent_alerts: []}}
+     %{
+       state
+       | counters: zero_counters(),
+         delivery_failures: 0,
+         command_log: %{},
+         world: %{},
+         recent_alerts: []
+     }}
   end
 
   def handle_call({:properties, thing_id}, _, state) do
@@ -327,9 +342,20 @@ defmodule Goatmire.Engine do
   defp actuate(thing_id, property, value, state) do
     case throttle(state, thing_id) do
       {:ok, state} ->
-        Transport.publish_command(thing_id, property, value)
-        world = RuleEval.put_reading(state.world, thing_id, property, value)
-        alert(%{state | world: world}, thing_id, property, value)
+        case Transport.publish_command(thing_id, property, value) do
+          :ok ->
+            world = RuleEval.put_reading(state.world, thing_id, property, value)
+            alert(%{state | world: world}, thing_id, property, value)
+
+          {:error, reason} ->
+            :telemetry.execute([:goatmire, :engine, :delivery_failed], %{count: 1}, %{
+              thing_id: thing_id,
+              reason: inspect(reason)
+            })
+
+            broadcast({:engine_delivery_failed, %{thing_id: thing_id, property: property}})
+            %{state | delivery_failures: state.delivery_failures + 1}
+        end
 
       {:throttled, state} ->
         :telemetry.execute([:goatmire, :engine, :throttled], %{count: 1}, %{thing_id: thing_id})
@@ -385,6 +411,7 @@ defmodule Goatmire.Engine do
       scenario: state.scenario,
       run_id: state.run_id,
       counters: state.counters,
+      delivery_failures: state.delivery_failures,
       recent_alerts: state.recent_alerts,
       things_seen: map_size(Map.delete(state.world, "__env__")),
       observed_things: observed_things(state.world)
