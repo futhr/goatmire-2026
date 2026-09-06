@@ -244,6 +244,18 @@ defmodule Goatmire.Talk.Clock do
      }}
   end
 
+  def handle_info({:play_clear_slide, slide}, state) do
+    next = %{
+      state
+      | play_done: Map.delete(state.play_done, slide),
+        play_requested: Map.delete(state.play_requested, slide)
+    }
+
+    persist(next)
+    broadcast(next)
+    {:noreply, next}
+  end
+
   def handle_info(:play_reset_pending, state),
     do: {:noreply, %{state | play_requested: state.play_done}}
 

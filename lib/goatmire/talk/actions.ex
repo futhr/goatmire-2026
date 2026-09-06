@@ -20,6 +20,10 @@ defmodule Goatmire.Talk.Actions do
   @spec reset() :: :ok
   def reset, do: GenServer.cast(__MODULE__, :reset)
 
+  @doc "Cancels notebook evaluation and clears its queued steps before resetting bindings."
+  @spec reset_notebook() :: :ok
+  def reset_notebook, do: GenServer.call(__MODULE__, :reset_notebook)
+
   @impl true
   def init(_) do
     Process.flag(:trap_exit, true)
@@ -28,6 +32,26 @@ defmodule Goatmire.Talk.Actions do
   end
 
   @impl true
+  def handle_call(:reset_notebook, _, state) do
+    state =
+      case state.current do
+        {_, _, :notebook, _} ->
+          Task.shutdown(state.task, :brutal_kill)
+          %{state | task: nil, current: nil}
+
+        _ ->
+          state
+      end
+
+    pane = notebook(get_in(state.panes, [:notebook, :slug]) || "05_agent_policy_proof")
+    panes = Map.put(state.panes, :notebook, pane)
+    Store.put_data(:panes, panes)
+    Phoenix.PubSub.broadcast(Goatmire.PubSub, Talk.play_topic(), {:talk_state, :notebook, pane})
+    send(Clock, {:play_clear_slide, 17})
+    jobs = Enum.reject(state.jobs, fn {_, _, target, _} -> target == :notebook end)
+    {:reply, :ok, advance(%{state | panes: panes, jobs: jobs})}
+  end
+
   def handle_call({:get, pane}, _, state), do: {:reply, Map.get(state.panes, pane, %{}), state}
 
   def handle_call({:enqueue, jobs}, _, state) do

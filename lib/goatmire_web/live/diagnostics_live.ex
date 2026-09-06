@@ -51,22 +51,17 @@ defmodule GoatmireWeb.DiagnosticsLive do
     if prompt == "" or socket.assigns.running do
       {:noreply, socket}
     else
-      task =
-        Task.Supervisor.async_nolink(Goatmire.TaskSupervisor, fn ->
-          Analysis.run(prompt, timeout: @analysis_timeout - 1_000)
-        end)
-
-      Process.send_after(self(), {:analysis_timeout, task.ref}, @analysis_timeout)
-
       messages = socket.assigns.messages ++ [%{role: :user, text: prompt}]
 
       {:noreply,
        assign(socket,
          running: true,
-         task: task,
          prompt: prompt,
          messages: messages
-       )}
+       )
+       |> start_async(:analysis, fn ->
+         Analysis.run(prompt, timeout: @analysis_timeout - 1_000)
+       end)}
     end
   end
 
@@ -85,28 +80,6 @@ defmodule GoatmireWeb.DiagnosticsLive do
     {:noreply, assign(socket, :provider, status)}
   end
 
-  def handle_info({ref, result}, %{assigns: %{task: %{ref: ref}}} = socket) do
-    Process.demonitor(ref, [:flush])
-    {:noreply, complete(socket, result)}
-  end
-
-  def handle_info({:DOWN, ref, :process, _, _}, %{assigns: %{task: %{ref: ref}}} = socket) do
-    message = %{role: :error, text: Analysis.error_message(:beamlens_failed)}
-
-    {:noreply,
-     assign(socket, running: false, task: nil, messages: socket.assigns.messages ++ [message])}
-  end
-
-  def handle_info({:analysis_timeout, ref}, %{assigns: %{task: %{ref: ref} = task}} = socket) do
-    Task.shutdown(task, :brutal_kill)
-    message = %{role: :error, text: "BeamLens analysis exceeded the 30-second stage deadline."}
-
-    {:noreply,
-     assign(socket, running: false, task: nil, messages: socket.assigns.messages ++ [message])}
-  end
-
-  def handle_info({:analysis_timeout, _}, socket), do: {:noreply, socket}
-
   def handle_info(:refresh_snapshot, socket) do
     Process.send_after(self(), :refresh_snapshot, 1_000)
     {:noreply, assign(socket, :snapshot, Snapshot.read(:one_minute))}
@@ -123,6 +96,12 @@ defmodule GoatmireWeb.DiagnosticsLive do
     do: {:noreply, put_flash(socket, :error, "The scripted analysis did not complete. Retry.")}
 
   def handle_info(_, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_async(:analysis, {:ok, result}, socket), do: {:noreply, complete(socket, result)}
+
+  def handle_async(:analysis, {:exit, _}, socket),
+    do: {:noreply, complete(socket, {:error, :beamlens_failed})}
 
   defp restore_script(socket) do
     case Goatmire.Talk.Actions.get(:diagnostics) do

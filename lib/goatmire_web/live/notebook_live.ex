@@ -34,7 +34,11 @@ defmodule GoatmireWeb.NotebookLive do
   end
 
   def handle_event("run_next", _, socket), do: queue(socket, :run_next)
-  def handle_event("reset", _, socket), do: queue(socket, :reset)
+
+  def handle_event("reset", _, socket) do
+    :ok = Goatmire.Talk.Actions.reset_notebook()
+    {:noreply, restore(socket)}
+  end
 
   @impl true
   def handle_info({:talk_state, :notebook, state}, socket), do: {:noreply, assign(socket, state)}
