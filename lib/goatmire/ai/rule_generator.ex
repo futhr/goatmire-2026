@@ -224,8 +224,11 @@ defmodule Goatmire.AI.RuleGenerator do
   @spec decode_rules(String.t(), String.t()) :: {:ok, [map()]} | {:error, term()}
   def decode_rules(raw, tenant \\ "goatmire") do
     with {:ok, json} <- Jason.decode(strip_fences(raw)),
-         %{"rules" => rules} when is_list(rules) <- json do
-      {:ok, Enum.map(rules, &decode_rule(&1, tenant))}
+         %{"rules" => rules} when is_list(rules) and length(rules) in 1..3 <- json,
+         decoded = Enum.map(rules, &decode_rule(&1, tenant)),
+         :ok <- ExMaude.AI.validate_rules(decoded),
+         true <- length(Enum.uniq_by(decoded, & &1.id)) == length(decoded) do
+      {:ok, decoded}
     else
       {:error, %Jason.DecodeError{} = error} -> {:error, {:invalid_json, error}}
       other -> {:error, {:unexpected_rule_payload, other}}
@@ -237,13 +240,13 @@ defmodule Goatmire.AI.RuleGenerator do
   defp decode_rule(rule, tenant) do
     invocations =
       rule
-      |> Map.get("invocations", [])
+      |> Map.fetch!("invocations")
       |> Enum.map(&decode_invocation/1)
 
     %{
-      id: Map.get(rule, "id", "generated-rule"),
-      agent_id: {tenant, Map.get(rule, "agent", "agent")},
-      trigger: decode_trigger(Map.get(rule, "trigger")),
+      id: Map.fetch!(rule, "id"),
+      agent_id: {tenant, Map.fetch!(rule, "agent")},
+      trigger: decode_trigger(Map.fetch!(rule, "trigger")),
       invocations: invocations,
       capability_grants: Map.get(rule, "capability_grants", []),
       authority_required: Map.get(rule, "authority_required", 0),
@@ -262,30 +265,30 @@ defmodule Goatmire.AI.RuleGenerator do
   defp decode_trigger(%{"type" => "prop_lte", "property" => p, "value" => v}),
     do: {:prop_lte, p, v}
 
-  defp decode_trigger(_), do: {:always}
+  defp decode_trigger(_), do: raise(ArgumentError, "unsupported trigger")
 
   defp decode_invocation(%{"type" => "require_approval"} = invocation) do
-    {:require_approval, Map.get(invocation, "class", "unclassified")}
+    {:require_approval, Map.fetch!(invocation, "class")}
   end
 
   defp decode_invocation(%{"type" => "invoke_tool"} = invocation) do
     jurisdiction =
       invocation
-      |> Map.get("jurisdiction", "eu")
+      |> Map.fetch!("jurisdiction")
       |> to_jurisdiction()
 
-    {:invoke_tool, Map.get(invocation, "name", "tool"), Map.get(invocation, "args", %{}),
-     Map.get(invocation, "capability", "unspecified"), jurisdiction}
+    {:invoke_tool, Map.fetch!(invocation, "name"), Map.fetch!(invocation, "args"),
+     Map.fetch!(invocation, "capability"), jurisdiction}
   end
 
-  defp decode_invocation(other), do: {:require_approval, "unrecognised:#{inspect(other)}"}
+  defp decode_invocation(_), do: raise(ArgumentError, "unsupported invocation")
 
   # Closed enumeration on purpose: an unknown jurisdiction string must not
   # become a new atom, and it must not silently pass the sovereignty check.
   defp to_jurisdiction("eu"), do: :eu
   defp to_jurisdiction("us"), do: :us
   defp to_jurisdiction("ch"), do: :ch
-  defp to_jurisdiction(_), do: :unknown
+  defp to_jurisdiction(_), do: raise(ArgumentError, "unsupported jurisdiction")
 
   defp strip_fences(raw) do
     raw

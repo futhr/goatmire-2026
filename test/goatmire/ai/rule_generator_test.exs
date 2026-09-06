@@ -30,17 +30,16 @@ defmodule Goatmire.AI.RuleGeneratorTest do
     end
 
     test "strips a markdown fence the model wrapped the JSON in" do
-      raw = "```json\n{\"rules\":[]}\n```"
-      assert {:ok, []} = RuleGenerator.decode_rules(raw)
+      raw = "```json\n" <> @corrected_raw <> "\n```"
+      assert {:ok, [_]} = RuleGenerator.decode_rules(raw)
     end
 
-    test "an unknown jurisdiction becomes :unknown rather than a new atom" do
+    test "an unknown jurisdiction is rejected" do
       raw =
         ~s({"rules":[{"id":"r1","agent":"a","trigger":{"type":"always"},
         "invocations":[{"type":"invoke_tool","name":"t","args":{},"capability":"c","jurisdiction":"atlantis"}]}]})
 
-      assert {:ok, [rule]} = RuleGenerator.decode_rules(raw)
-      assert [{:invoke_tool, "t", %{}, "c", :unknown}] = rule.invocations
+      assert {:error, _} = RuleGenerator.decode_rules(raw)
     end
 
     test "missing optional fields fall back to safe defaults" do
@@ -52,10 +51,23 @@ defmodule Goatmire.AI.RuleGeneratorTest do
       assert rule.priority == 1
     end
 
-    test "an unrecognised trigger shape degrades to :always rather than crashing" do
+    test "an unrecognised trigger is rejected" do
       raw = ~s({"rules":[{"id":"r1","agent":"a","trigger":{"type":"vibes"},"invocations":[]}]})
-      assert {:ok, [rule]} = RuleGenerator.decode_rules(raw)
-      assert rule.trigger == {:always}
+      assert {:error, _} = RuleGenerator.decode_rules(raw)
+    end
+
+    test "an unknown invocation cannot stand in for high-impact approval" do
+      raw = String.replace(@corrected_raw, "require_approval", "typo")
+      assert {:error, _} = RuleGenerator.decode_rules(raw)
+    end
+
+    test "empty sets and missing identities are rejected" do
+      assert {:error, _} = RuleGenerator.decode_rules(~s({"rules":[]}))
+      raw = Jason.decode!(@corrected_raw)
+      [rule] = raw["rules"]
+
+      assert {:error, _} =
+               RuleGenerator.decode_rules(Jason.encode!(%{rules: [Map.delete(rule, "id")]}))
     end
 
     test "malformed JSON is an error, not a partial rule set" do
