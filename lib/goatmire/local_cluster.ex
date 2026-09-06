@@ -181,12 +181,15 @@ defmodule Goatmire.LocalCluster do
     :erpc.call(node, :code, :add_paths, [:code.get_path()])
 
     Enum.each(
-      [
+      Keyword.merge(Application.get_all_env(:goatmire),
         role: :simulator,
         transport: Goatmire.Transport.Local,
         metrics_enabled: false,
-        autostart_fleet: false
-      ],
+        autostart_fleet: false,
+        real_devices: [],
+        modbus_sensors: [],
+        vda5050_enabled: false
+      ),
       fn {key, value} -> :erpc.call(node, Application, :put_env, [:goatmire, key, value]) end
     )
 
