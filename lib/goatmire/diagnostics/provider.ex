@@ -10,7 +10,6 @@ defmodule Goatmire.Diagnostics.Provider do
 
   alias Goatmire.Config
   @topic "goatmire:diagnostics"
-  @status_key {__MODULE__, :status}
 
   @doc "PubSub topic carrying diagnostic-provider state changes."
   @spec topic() :: String.t()
@@ -18,24 +17,11 @@ defmodule Goatmire.Diagnostics.Provider do
 
   @doc "Last published provider state, or an idle state before the first request."
   @spec status() :: map()
-  def status do
-    :persistent_term.get(@status_key, %{
-      state: :idle,
-      provider: nil,
-      model: nil,
-      reason: nil,
-      completed_at: nil
-    })
-  end
+  def status, do: Goatmire.Diagnostics.Status.get()
 
   @doc false
-  # Test-only: the status lives in :persistent_term and would otherwise leak
-  # a terminal state (e.g. :unavailable) across test files.
   @spec reset() :: :ok
-  def reset do
-    :persistent_term.erase(@status_key)
-    :ok
-  end
+  def reset, do: Goatmire.Diagnostics.Status.reset()
 
   @doc "Completes through Codex plan access, falling back visibly to local Ollama."
   @spec complete([map()], keyword()) :: {:ok, String.t(), map()} | {:error, term()}
@@ -167,8 +153,8 @@ defmodule Goatmire.Diagnostics.Provider do
   end
 
   defp publish(status) do
-    status = Map.put_new(status, :completed_at, nil)
-    :persistent_term.put(@status_key, status)
+    status = status |> Map.put_new(:completed_at, nil) |> Map.put(:request_id, inspect(self()))
+    Goatmire.Diagnostics.Status.put(status)
 
     Phoenix.PubSub.broadcast(Goatmire.PubSub, @topic, {:diagnostics_provider, status})
     :ok

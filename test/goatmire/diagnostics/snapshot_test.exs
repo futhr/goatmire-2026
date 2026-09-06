@@ -72,6 +72,20 @@ defmodule Goatmire.Diagnostics.SnapshotTest do
     assert count <= 12
   end
 
+  test "rates use elapsed time and busy telemetry preserves verdict evidence" do
+    pid = start_supervised!({Sampler, name: :elapsed_sampler, sample_ms: 60_000})
+    send(pid, {:telemetry, [:goatmire, :verify, :stop], %{duration: 1}, %{status: :clean}})
+    for _ <- 1..100, do: send(pid, {:telemetry, [:goatmire, :engine, :event], %{count: 1}, %{}})
+    :sys.replace_state(pid, &%{&1 | previous_at: System.monotonic_time(:millisecond) - 2_000})
+    send(pid, :sample)
+    snapshot = GenServer.call(pid, {:snapshot, 10})
+    assert snapshot.current.engine.rates_per_second.events <= 50
+    assert snapshot.current.engine.rates_per_second.events > 40
+    assert snapshot.window.events == 100
+    assert Enum.any?(snapshot.recent_events, &(&1.event == "goatmire.verify.stop"))
+    refute Enum.any?(snapshot.recent_events, &(&1.event == "goatmire.engine.event"))
+  end
+
   test "a standalone sampler bounds its history" do
     name = :goatmire_bounded_snapshot_sampler_test
     pid = start_supervised!({Sampler, name: name, sample_ms: 5, history_limit: 3})

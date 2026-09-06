@@ -42,6 +42,7 @@ defmodule Goatmire.Demo.Supervisor do
         client_registry = Config.diagnostics_client_registry()
 
         [
+          Goatmire.Diagnostics.Status,
           Goatmire.Diagnostics.Sampler,
           {Goatmire.Diagnostics.BeamlensSupervisor, client_registry: client_registry},
           {BeamlensWeb, client_registry: client_registry}

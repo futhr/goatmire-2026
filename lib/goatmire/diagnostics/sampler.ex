@@ -62,7 +62,9 @@ defmodule Goatmire.Diagnostics.Sampler do
   def init(opts) do
     sample_ms = Keyword.get(opts, :sample_ms, @sample_ms)
     history_limit = Keyword.get(opts, :history_limit, @history_limit)
-    handler_id = "goatmire-diagnostics-#{System.unique_integer([:positive])}"
+    handler_id = {__MODULE__, Keyword.get(opts, :name, __MODULE__)}
+    :telemetry.detach(handler_id)
+    :erlang.system_flag(:scheduler_wall_time, true)
 
     :ok =
       :telemetry.attach_many(handler_id, @events, &__MODULE__.handle_telemetry/4, self())
@@ -76,7 +78,9 @@ defmodule Goatmire.Diagnostics.Sampler do
       totals: zero_totals(),
       previous_totals: zero_totals(),
       last_checkout_us: nil,
-      server_starts: 0
+      server_starts: 0,
+      previous_at: System.monotonic_time(:millisecond),
+      previous_scheduler: scheduler_totals()
     }
 
     schedule_sample(sample_ms)
@@ -91,7 +95,7 @@ defmodule Goatmire.Diagnostics.Sampler do
 
   @impl true
   def handle_call({:snapshot, window_seconds}, _, state) do
-    points = Enum.take(state.history, window_seconds)
+    points = window(state.history, window_seconds)
     current = List.first(points) || %{}
 
     reply = %{
@@ -109,7 +113,7 @@ defmodule Goatmire.Diagnostics.Sampler do
   def handle_call({:series, window_seconds}, _, state) do
     points =
       state.history
-      |> Enum.take(window_seconds)
+      |> window(window_seconds)
       |> Enum.reverse()
 
     reply = %{
@@ -155,7 +159,7 @@ defmodule Goatmire.Diagnostics.Sampler do
     {:noreply,
      %{
        state
-       | recent_events: bounded_prepend(state.recent_events, diagnostic_event, @event_limit)
+       | recent_events: record_event(event, diagnostic_event, state.recent_events)
      }}
   end
 
@@ -164,6 +168,9 @@ defmodule Goatmire.Diagnostics.Sampler do
   defp take_sample(state) do
     engine = safe_engine_status()
     totals = state.totals
+    now = System.monotonic_time(:millisecond)
+    elapsed = max(now - state.previous_at, 1) / 1_000
+    scheduler = scheduler_totals()
     active_run? = not is_nil(engine[:run_id])
 
     deltas =
@@ -172,7 +179,12 @@ defmodule Goatmire.Diagnostics.Sampler do
         &{&1, max(Map.fetch!(totals, &1) - Map.fetch!(state.previous_totals, &1), 0)}
       )
 
+    rates = Map.new(deltas, fn {key, value} -> {key, value / elapsed} end)
+
     sample = %{
+      monotonic_ms: now,
+      elapsed_seconds: elapsed,
+      counts: deltas,
       captured_at: DateTime.utc_now() |> DateTime.to_iso8601(),
       run_id: engine[:run_id],
       scenario: if(active_run?, do: compact(engine[:scenario])),
@@ -182,26 +194,28 @@ defmodule Goatmire.Diagnostics.Sampler do
         withheld: length(engine[:withheld] || []),
         things_seen: engine[:things_seen] || 0,
         counters: engine[:counters] || zero_engine_counters(),
-        rates_per_second: Map.take(deltas, [:events, :alerts, :throttled]),
+        rates_per_second: Map.take(rates, [:events, :alerts, :throttled]),
         recent_alerts: compact(engine[:recent_alerts] || [])
       },
       verification: compact_verification(engine[:verification]),
       maude: %{
         pool: safe_pool_status(),
         checkout_last_us: state.last_checkout_us,
-        checkouts_per_second: deltas.maude_checkouts,
-        timeouts_per_second: deltas.maude_timeouts,
-        crashes_per_second: deltas.maude_crashes,
+        checkouts_per_second: rates.maude_checkouts,
+        timeouts_per_second: rates.maude_timeouts,
+        crashes_per_second: rates.maude_crashes,
         server_starts: state.server_starts
       },
       fleet: %{devices: safe_fleet_count()},
-      beam: beam_snapshot()
+      beam: beam_snapshot(scheduler, state.previous_scheduler)
     }
 
     %{
       state
       | history: bounded_prepend(state.history, sample, state.history_limit),
-        previous_totals: totals
+        previous_totals: totals,
+        previous_at: now,
+        previous_scheduler: scheduler
     }
   end
 
@@ -218,18 +232,28 @@ defmodule Goatmire.Diagnostics.Sampler do
 
   defp summarize(points) do
     Enum.reduce(points, summarize([]), fn point, summary ->
-      rates = get_in(point, [:engine, :rates_per_second]) || %{}
-      maude = point.maude
-
-      %{
-        alerts: summary.alerts + Map.get(rates, :alerts, 0),
-        events: summary.events + Map.get(rates, :events, 0),
-        throttled: summary.throttled + Map.get(rates, :throttled, 0),
-        maude_checkouts: summary.maude_checkouts + maude.checkouts_per_second,
-        maude_timeouts: summary.maude_timeouts + maude.timeouts_per_second,
-        maude_crashes: summary.maude_crashes + maude.crashes_per_second
-      }
+      Map.new(summary, fn {key, total} -> {key, total + Map.get(point.counts, key, 0)} end)
     end)
+  end
+
+  defp window([], _), do: []
+
+  defp window([current | _] = history, seconds) do
+    cutoff = System.monotonic_time(:millisecond) - seconds * 1_000
+    Enum.take_while(history, &(&1.monotonic_ms >= cutoff and &1.run_id == current.run_id))
+  end
+
+  defp record_event(event, item, history) do
+    if event in [
+         [:goatmire, :engine, :deploy],
+         [:goatmire, :verify, :stop],
+         [:ex_maude, :server, :timeout],
+         [:ex_maude, :server, :crash]
+       ] do
+      bounded_prepend(history, item, @event_limit)
+    else
+      history
+    end
   end
 
   defp count_event([:goatmire, :engine, :event], measurements, state),
@@ -290,17 +314,16 @@ defmodule Goatmire.Diagnostics.Sampler do
     }
   end
 
-  defp beam_snapshot do
-    :erlang.system_flag(:scheduler_wall_time, true)
+  defp scheduler_totals do
+    :erlang.statistics(:scheduler_wall_time)
+    |> Enum.reduce({0, 0}, fn {_, active, total}, {a, t} -> {a + active, t + total} end)
+  end
 
-    {active, total} =
-      :erlang.statistics(:scheduler_wall_time)
-      |> Enum.reduce({0, 0}, fn {_, active, total}, {active_sum, total_sum} ->
-        {active_sum + active, total_sum + total}
-      end)
+  defp beam_snapshot({active, total}, {previous_active, previous_total}) do
+    elapsed = total - previous_total
 
     scheduler_utilization =
-      if total > 0, do: Float.round(active / total * 100, 2), else: nil
+      if elapsed > 0, do: Float.round(max(active - previous_active, 0) / elapsed * 100, 2)
 
     %{
       run_queue: :erlang.statistics(:total_run_queue_lengths),
