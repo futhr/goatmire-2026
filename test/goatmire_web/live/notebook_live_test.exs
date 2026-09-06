@@ -68,6 +68,17 @@ defmodule GoatmireWeb.NotebookLiveTest do
     assert html =~ "nb-output"
   end
 
+  @tag :maude
+  test "the final slide reaches all three policy outcomes" do
+    Goatmire.Talk.Clock.reset()
+    Goatmire.Talk.Clock.goto(17)
+    Goatmire.Talk.Clock.play_to(5)
+    assert_eventually(fn -> Goatmire.Talk.Clock.snapshot().play_done[17] == 6 end)
+    results = Goatmire.Talk.Actions.get(:notebook).results
+    assert Enum.all?([6, 8, 10], &(results[&1].status == :ok))
+    Goatmire.Talk.Clock.reset()
+  end
+
   defp assert_eventually(fun, timeout_ms \\ 5_000) do
     deadline = System.monotonic_time(:millisecond) + timeout_ms
     eventually(fun, deadline)

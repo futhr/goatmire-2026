@@ -19,10 +19,12 @@ defmodule Goatmire.Talk.Controls do
     17 =>
       {:notebook,
        [
-         {:run_next, "Cell 1"},
-         {:run_next, "Cell 2"},
-         {:run_next, "Cell 3"},
-         {:run_next, "Cell 4"}
+         {:run_next, "Initialize"},
+         {:run_next, "Check interpreter"},
+         {:run_next, "Define policy"},
+         {:run_next, "Missing approval"},
+         {:run_next, "Approval added"},
+         {:run_next, "Wrong region"}
        ]}
   }
 
