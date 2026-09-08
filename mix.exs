@@ -14,6 +14,8 @@ defmodule Goatmire.MixProject do
       aliases: aliases(),
       releases: releases(),
       dialyzer: [plt_add_apps: [:mix]],
+      # Hex 2.5.1 misclassifies the fixed Decimal 3.1.1 for CVE-2026-32686.
+      hex: [ignore_advisories: ["CVE-2026-32686"]],
       test_coverage: [tool: ExCoveralls],
       coveralls: [minimum_coverage: 70]
     ]

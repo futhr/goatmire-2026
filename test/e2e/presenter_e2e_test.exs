@@ -135,10 +135,15 @@ defmodule GoatmireWeb.PresenterE2ETest do
     Clock.goto(15)
     Clock.reveal()
 
+    session =
+      session
+      |> assert_has(css("#diagnostic-prompt"))
+      |> fill_in(css("#diagnostic-prompt"), with: "why ")
+
     session
-    |> assert_has(css("#diagnostic-prompt"))
-    |> fill_in(css("#diagnostic-prompt"), with: "why ")
+    |> find(css("#diagnostic-prompt"))
     |> send_keys([:space])
-    |> assert_has(css("#deck-slide-15"))
+
+    assert_has(session, css("#deck-slide-15"))
   end
 end

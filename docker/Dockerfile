@@ -72,8 +72,10 @@ RUN git init && git remote add origin https://github.com/livebook-dev/livebook.g
   && git fetch --depth 1 origin 782dc5ecfe103e953c8157df1b47613896aa2c1e \
   && git checkout --detach FETCH_HEAD
 COPY docker/livebook-security.patch docker/livebook.mix.lock ./
+# Hex 2.5.1 misclassifies the fixed Decimal 3.1.1 for CVE-2026-32686.
 RUN git apply livebook-security.patch && mv livebook.mix.lock mix.lock \
-  && mix deps.get --only prod --check-locked && mix hex.audit
+  && mix deps.get --only prod --check-locked \
+  && HEX_IGNORE_ADVISORIES=CVE-2026-32686 mix hex.audit
 RUN mix assets.setup
 RUN mix escript.build
 ENV MAUDE_PATH=/app/deps/ex_maude/priv/maude/bin/maude
