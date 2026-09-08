@@ -86,10 +86,13 @@ const hooks = {
   }
 };
 
+const interactiveKeyTarget = (event) =>
+  Boolean(event.target.closest?.("input, textarea, select, [contenteditable]"));
+
 // Typing in an embedded form must never drive presenter navigation: stop
 // field keystrokes before they bubble to the window-level keydown binding.
 document.addEventListener("keydown", (event) => {
-  if (event.target.closest?.("input, textarea, select, [contenteditable]")) {
+  if (interactiveKeyTarget(event)) {
     event.stopPropagation();
     return;
   }
@@ -111,6 +114,9 @@ document.addEventListener("keydown", (event) => {
 
 const liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
+  metadata: {
+    keydown: (event) => ({ interactive: interactiveKeyTarget(event) })
+  },
   hooks
 });
 

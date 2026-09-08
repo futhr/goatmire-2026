@@ -44,6 +44,15 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert Clock.snapshot().started?
   end
 
+  test "interactive key events do not drive the deck", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+    Clock.goto(15)
+
+    render_keydown(view, "key", %{"key" => " ", "interactive" => true})
+
+    assert Clock.snapshot().slide == 15
+  end
+
   test "a LIVE slide enters deck-only with no panel control", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 

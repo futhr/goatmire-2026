@@ -139,11 +139,11 @@ defmodule GoatmireWeb.PresenterE2ETest do
       session
       |> assert_has(css("#diagnostic-prompt"))
       |> fill_in(css("#diagnostic-prompt"), with: "why ")
+      |> click(css("#diagnostic-prompt"))
 
-    session
-    |> find(css("#diagnostic-prompt"))
-    |> send_keys([:space])
+    session = send_keys(session, [:space])
 
     assert_has(session, css("#deck-slide-15"))
+    assert %{slide: 15} = Clock.snapshot()
   end
 end

@@ -56,6 +56,8 @@ defmodule GoatmireWeb.PresenterLive do
   def handle_event("hide_shortcuts", _, socket),
     do: {:noreply, assign(socket, :shortcuts_open, false)}
 
+  def handle_event("key", %{"interactive" => true}, socket), do: {:noreply, socket}
+
   def handle_event("key", %{"key" => key}, %{assigns: %{shortcuts_open: true}} = socket) do
     case key do
       "Escape" -> {:noreply, assign(socket, :shortcuts_open, false)}
