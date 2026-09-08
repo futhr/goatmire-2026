@@ -105,7 +105,12 @@ defmodule GoatmireWeb.DiagnosticsLiveTest do
 
   test "mounts the full BeamLens inspector separately" do
     conn = get(build_conn(), "/beamlens")
-    assert html_response(conn, 200) =~ "<title>Beamlens</title>"
+    html = html_response(conn, 200)
+
+    assert html =~ "<title>Beamlens</title>"
+    assert html =~ ~s(data-theme-mode="light")
+    assert html =~ "data-beamlens-theme-overrides"
+    assert html =~ "--color-primary: #533a73;"
   end
 
   test "renders exact snapshot fields when an operator returns no anomaly insight" do

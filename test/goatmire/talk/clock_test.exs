@@ -3,12 +3,21 @@ defmodule Goatmire.Talk.ClockTest do
 
   use ExUnit.Case, async: false
 
-  alias Goatmire.Talk
+  alias Goatmire.{Engine, StubVerifier, Talk}
   alias Goatmire.Talk.{Clock, Deck, Store}
 
   setup do
+    Application.put_env(:goatmire, :verifier, StubVerifier)
+    StubVerifier.reset()
+    :ok = Engine.undeploy()
     Clock.reset()
-    on_exit(fn -> Clock.reset() end)
+
+    on_exit(fn ->
+      Application.delete_env(:goatmire, :verifier)
+      StubVerifier.reset()
+      Clock.reset()
+    end)
+
     :ok
   end
 

@@ -88,14 +88,13 @@ defmodule Goatmire.VerifierTest do
     test "duplicate rule ids cannot be split into independently clean partitions" do
       [first, second | _] = Rules.clean_set()
       rules = [first, %{second | id: first.id}]
+      duplicate_id = first.id
 
       assert {:ok,
               %Verdict{
                 status: :unverified,
-                reason: {:duplicate_rule_ids, [duplicate]}
+                reason: %{^duplicate_id => ["rule ids must be unique"]}
               }, _} = Verifier.verify_partitioned(rules)
-
-      assert duplicate == first.id
     end
   end
 

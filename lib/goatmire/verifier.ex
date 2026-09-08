@@ -207,24 +207,7 @@ defmodule Goatmire.Verifier do
     end)
   end
 
-  defp validate_rule_set(rules) do
-    case ExMaude.IoT.validate_rules(rules) do
-      :ok -> validate_unique_ids(rules)
-      {:error, _} = error -> error
-    end
-  end
-
-  defp validate_unique_ids(rules) do
-    duplicates =
-      rules
-      |> Enum.map(& &1.id)
-      |> Enum.frequencies()
-      |> Enum.filter(fn {_, count} -> count > 1 end)
-      |> Enum.map(&elem(&1, 0))
-      |> Enum.sort()
-
-    if duplicates == [], do: :ok, else: {:error, {:duplicate_rule_ids, duplicates}}
-  end
+  defp validate_rule_set(rules), do: ExMaude.IoT.validate_rules(rules)
 
   defp merge_results(results, total) do
     case Enum.find(results, &match?({:error, _}, &1)) do

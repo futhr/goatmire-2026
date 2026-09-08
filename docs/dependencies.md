@@ -1,14 +1,14 @@
 # Dependency maintenance
 
-The lockfile is authoritative. Local sibling checkouts do not override it.
-For temporary library development, change the dependency explicitly and keep
-that local change out of release commits.
+During release preparation, `git_or_local` uses sibling `beamlens_web` and
+`ex_maude` checkouts when present. Otherwise, it uses the Git revisions in
+`mix.exs` and `mix.lock`. Those revisions must be pushed before a fresh remote
+checkout can resolve them.
 
-`beamlens_web` is the only forked dependency. On 2026-09-06, upstream
-`beamlens/beamlens_web` main was `efe1b7f139cf256173beef85636b13e310bb3f79`.
-Rebasing the fork's `theme-config` branch onto it was a no-op: its two custom
-commits already follow that upstream head. The pinned result is
-`a8bcb2340d9a67cb91265d929f0f286d3425ad24`. `ex_maude` is an original project,
+`beamlens_web` is the only forked dependency. Its `theme-config` revision
+`42f6e9b98ad04fc4f89b47d77183505ba21cd8aa` adds consumer theming in one commit
+on upstream `efe1b7f139cf256173beef85636b13e310bb3f79`. The fork is consumed
+through Git; upstream owns its Hex releases. `ex_maude` is an original project,
 not a fork. BeamLens itself comes from Hex.
 
 Updates reviewed for this audit:
