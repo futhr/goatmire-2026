@@ -28,7 +28,7 @@ defmodule Goatmire.MixProject do
         quality: :test,
         coveralls: :test,
         "coveralls.detail": :test,
-        "coveralls.github": :test,
+        "coveralls.lcov": :test,
         "coveralls.html": :test,
         "test.unit": :test,
         "test.all": :test,
@@ -90,7 +90,7 @@ defmodule Goatmire.MixProject do
       {:plug, "~> 1.20"},
       {:lazy_html, "~> 0.1.12", only: :test},
       {:stream_data, "~> 1.4", only: :test},
-      {:wallaby, "~> 0.31.0", only: :test, runtime: false},
+      {:phoenix_test_playwright, "~> 0.17.0", only: :test, runtime: false},
       {:benchee, "~> 1.5", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:oeditus_credo, "~> 0.11.2", only: [:dev, :test], runtime: false},
@@ -110,7 +110,9 @@ defmodule Goatmire.MixProject do
       test: ["test --warnings-as-errors"],
       "test.unit": ["test --only unit"],
       "test.all": ["test"],
-      "test.e2e": ["test --warnings-as-errors --only e2e test/e2e"],
+      "test.e2e": [
+        "cmd env GOATMIRE_E2E=true mix test --warnings-as-errors --only e2e test/e2e"
+      ],
       "test.llm": ["test --only llm test/llm"],
       "test.property": ["test test/property"],
       "test.stress": ["test --only stress test/stress"],

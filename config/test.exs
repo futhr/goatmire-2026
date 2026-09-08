@@ -19,16 +19,14 @@ config :goatmire, GoatmireWeb.Endpoint,
   check_origin: false,
   server: true
 
-config :wallaby,
-  driver: Wallaby.Chrome,
-  screenshot_dir: "tmp/wallaby",
-  max_wait_time: 8_000,
-  screenshot_on_failure: true,
-  js_errors: true,
-  js_logger: nil,
-  chromedriver: [
-    path: Path.expand("../tmp/tools/chromedriver", __DIR__),
-    headless: true
+config :phoenix_test, otp_app: :goatmire
+
+config :phoenix_test,
+  playwright: [
+    assets_dir: Path.expand("../assets", __DIR__),
+    browser_pool: :chromium,
+    browser_pools: [[id: :chromium, browser: :chromium, size: 1]],
+    timeout: 8_000
   ]
 
 config :logger, level: :warning

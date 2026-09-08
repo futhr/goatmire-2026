@@ -16,16 +16,15 @@ Coverage is a guardrail, not the objective. The configured minimum is enforced w
 
 ## Connected dashboard E2E
 
-Wallaby requires Google Chrome and a compatible ChromeDriver. The helper reads the installed Chrome version and selects the matching build from Google's official Chrome-for-Testing catalogue:
+The browser lane follows the other Phoenix applications in this workspace: PhoenixTest drives Playwright's bundled Chromium, with no workstation Chrome or ChromeDriver coupling:
 
 ```bash
-scripts/install-chromedriver.sh
+pnpm --dir assets install --frozen-lockfile
+pnpm --dir assets exec playwright install chromium
 mix test.e2e
 ```
 
-The E2E suite boots Phoenix on loopback, waits for a connected LiveView, and uses a real headless Chrome session. It covers primary navigation, coherent storm configuration and completion, the rule conflict workflow, JavaScript errors, horizontal overflow, dashboard grid behavior, and mobile interaction targets at 1440×1000, 820×1180, 390×844, and 320×720.
-
-Screenshots from failed runs are written to `tmp/wallaby/` and are ignored by Git. CI runs this lane independently from the canonical gate.
+The E2E suite boots Phoenix on loopback, waits for a connected LiveView, and uses a real headless Chromium session. It covers primary navigation, coherent storm configuration and completion, the rule conflict workflow, horizontal overflow, dashboard grid behavior, and mobile interaction targets at 1440×1000, 820×1180, 390×844, and 320×720. CI runs this lane independently from the canonical gate.
 
 ## Stress tests
 

@@ -13,7 +13,7 @@
     {:vendor, command: "scripts/check-vendor.sh"},
     {:unused_deps, command: "mix deps.unlock --check-unused"},
     {:secret_scan, command: "scripts/pre-commit-secret-scan.sh"},
-    {:ex_unit, command: "mix coveralls --warnings-as-errors"},
+    {:ex_unit, command: "mix coveralls.lcov --warnings-as-errors"},
     {:dialyzer, command: "mix dialyzer --format short"},
     {:ex_doc, command: "mix docs --warnings-as-errors"},
     {:release, "mix release --overwrite", env: %{"MIX_ENV" => "prod"}},

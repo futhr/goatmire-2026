@@ -26,6 +26,17 @@ end
 
 ExUnit.start(exclude: exclusions)
 
+if System.get_env("GOATMIRE_E2E") == "true" do
+  {:ok, {_, port}} = Bandit.PhoenixAdapter.server_info(GoatmireWeb.Endpoint, :http)
+  Application.put_env(:phoenix_test, :base_url, "http://127.0.0.1:#{port}")
+
+  case PhoenixTest.Playwright.Supervisor.start_link() do
+    {:ok, _} -> :ok
+    {:error, {:already_started, _}} -> :ok
+    {:error, reason} -> raise "could not start Playwright: #{inspect(reason)}"
+  end
+end
+
 Application.put_env(:goatmire, :req_options,
   plug: {Req.Test, Goatmire.AI.RuleGenerator},
   retry: false

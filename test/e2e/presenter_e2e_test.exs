@@ -1,25 +1,50 @@
 defmodule GoatmireWeb.PresenterE2ETest do
   @moduledoc false
 
-  use ExUnit.Case, async: false
-  use Wallaby.Feature
-
-  import Wallaby.Query
+  use GoatmireWeb.E2ECase,
+    async: false,
+    browser_context_opts: [viewport: %{width: 1_440, height: 1_000}]
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.{Clock, Deck}
+  alias Goatmire.Talk.Clock
 
   @moduletag :e2e
   @moduletag timeout: 60_000
 
-  setup_all do
-    {:ok, {_, port}} = Bandit.PhoenixAdapter.server_info(GoatmireWeb.Endpoint, :http)
-    Application.put_env(:wallaby, :base_url, "http://127.0.0.1:#{port}")
-    {:ok, _} = Application.ensure_all_started(:wallaby)
-    :ok
+  setup :reset_presenter
+
+  test "the projector stays keyboard-driven and free of visual controls", %{conn: conn} do
+    conn
+    |> visit("/talk")
+    |> assert_has("#presenter")
+    |> assert_has("[data-phx-main].phx-connected")
+    |> refute_has(".presenter-chrome")
+    |> refute_has(".live-tabs")
+    |> press("body", "ArrowRight")
+    |> assert_has("#deck-slide-2")
+    |> press("body", "ArrowLeft")
+    |> assert_has("#deck-slide-1")
+
+    assert Clock.snapshot().started?
   end
 
-  setup do
+  test "typing in an embedded form does not advance the deck", %{conn: conn} do
+    conn = visit(conn, "/talk")
+
+    # Slide 15 is the diagnostics beat; revealing opens its pane.
+    Clock.goto(15)
+    Clock.reveal()
+
+    conn
+    |> assert_has("#diagnostic-prompt")
+    |> type("#diagnostic-prompt", "why")
+    |> press("#diagnostic-prompt", " ")
+    |> assert_has("#deck-slide-15")
+
+    assert %{slide: 15} = Clock.snapshot()
+  end
+
+  defp reset_presenter(_) do
     Application.put_env(:goatmire, :verifier, StubVerifier)
     StubVerifier.reset()
     :ok = Engine.undeploy()
@@ -33,44 +58,43 @@ defmodule GoatmireWeb.PresenterE2ETest do
 
     :ok
   end
+end
 
-  feature "the projector stays keyboard-driven and free of visual controls", %{
-    session: session
+defmodule GoatmireWeb.PresenterControlsE2ETest do
+  @moduledoc false
+
+  use GoatmireWeb.E2ECase,
+    async: false,
+    browser_context_opts: [viewport: %{width: 768, height: 1_024}, has_touch: true]
+
+  alias Goatmire.{Engine, StubVerifier}
+  alias Goatmire.Talk.Clock
+
+  @moduletag :e2e
+  @moduletag timeout: 60_000
+
+  setup :reset_presenter
+
+  test "the iPad row is touch-sized, icon-only, single-line, and controls the stage", %{
+    conn: conn
   } do
-    session
-    |> visit("/talk")
-    |> assert_has(css("#presenter"))
-    |> refute_has(css(".presenter-chrome"))
-    |> refute_has(css(".live-tabs"))
-    |> send_keys([:right_arrow])
-    |> assert_has(css("#deck-slide-2"))
-    |> send_keys([:left_arrow])
-    |> assert_has(css("#deck-slide-1"))
-
-    assert Clock.snapshot().started?
-  end
-
-  feature "the iPad row is touch-sized, icon-only, single-line, and controls the stage", %{
-    session: session
-  } do
-    session =
-      session
-      |> resize_window(768, 1024)
+    conn =
+      conn
       |> visit("/talk/notes/unlock/test-speaker-notes")
-      |> assert_has(css("#speaker-controls"))
-      |> click(css("#speaker-next"))
-      |> assert_has(css("#speaker-note-2.current"))
-      |> click(css("#speaker-live-full"))
+      |> assert_has("#speaker-controls")
+      |> click("#speaker-next")
+      |> assert_has("#speaker-note-2.current")
+      |> click("#speaker-live-full")
 
     assert %{slide: 2, panel: :live_full} = Clock.snapshot()
 
     Clock.goto(17)
-    session = assert_has(session, css(".speaker-controls-dynamic button", count: 7))
 
-    {:ok, layout} =
-      Wallaby.Chrome.execute_script(
-        session,
-        """
+    conn
+    |> assert_has(".speaker-controls-dynamic button", count: 7)
+    |> evaluate(
+      """
+      (() => {
         const controls = document.getElementById('speaker-controls');
         const buttons = [...controls.querySelectorAll('button')];
         return {
@@ -80,32 +104,59 @@ defmodule GoatmireWeb.PresenterE2ETest do
             controls.getBoundingClientRect().right <= window.innerWidth,
           text: controls.innerText.trim()
         };
-        """,
-        []
-      )
-
-    assert layout["rows"] == 1
-    assert layout["minSize"] >= 44
-    assert layout["fits"]
-    assert layout["text"] == ""
+      })()
+      """,
+      fn layout ->
+        assert layout["rows"] == 1
+        assert layout["minSize"] >= 44
+        assert layout["fits"]
+        assert layout["text"] == ""
+      end
+    )
   end
 
-  feature "every current iPad script is pinned at the top and clears the controls", %{
-    session: session
-  } do
-    session =
-      session
-      |> resize_window(1024, 1509)
-      |> visit("/talk/notes/unlock/test-speaker-notes")
+  defp reset_presenter(_) do
+    Application.put_env(:goatmire, :verifier, StubVerifier)
+    StubVerifier.reset()
+    :ok = Engine.undeploy()
+    Clock.reset()
+
+    on_exit(fn ->
+      Application.delete_env(:goatmire, :verifier)
+      StubVerifier.reset()
+      Clock.reset()
+    end)
+
+    :ok
+  end
+end
+
+defmodule GoatmireWeb.PresenterScriptE2ETest do
+  @moduledoc false
+
+  use GoatmireWeb.E2ECase,
+    async: false,
+    browser_context_opts: [viewport: %{width: 1_024, height: 1_509}, has_touch: true]
+
+  alias Goatmire.{Engine, StubVerifier}
+  alias Goatmire.Talk.{Clock, Deck}
+
+  @moduletag :e2e
+  @moduletag timeout: 60_000
+
+  setup :reset_presenter
+
+  test "every current iPad script is pinned at the top and clears the controls", %{conn: conn} do
+    conn = visit(conn, "/talk/notes/unlock/test-speaker-notes")
 
     Enum.each(1..Deck.count(), fn slide ->
       Clock.goto(slide)
-      session = assert_has(session, css("#speaker-note-#{slide}.current"))
 
-      {:ok, layout} =
-        Wallaby.Chrome.execute_script(
-          session,
-          """
+      conn
+      |> assert_has("#speaker-note-#{slide}.current")
+      |> evaluate(
+        """
+        (() => {
           const current = document.querySelector('.speaker-note.current');
           const controls = document.getElementById('speaker-controls');
           const currentBox = current.getBoundingClientRect();
@@ -116,32 +167,31 @@ defmodule GoatmireWeb.PresenterE2ETest do
             bottom: Math.round(currentBox.bottom),
             controlsTop: Math.round(controlsBox.top)
           };
-          """,
-          []
-        )
+        })()
+        """,
+        fn layout ->
+          assert layout["top"] in 20..28,
+                 "slide #{slide} starts at #{layout["top"]}px instead of the top"
 
-      assert layout["top"] in 20..28,
-             "slide #{slide} starts at #{layout["top"]}px instead of the top"
-
-      assert layout["bottom"] <= layout["controlsTop"] - 12,
-             "slide #{slide} ends behind the controls"
+          assert layout["bottom"] <= layout["controlsTop"] - 12,
+                 "slide #{slide} ends behind the controls"
+        end
+      )
     end)
   end
 
-  feature "typing in an embedded form does not advance the deck", %{session: session} do
-    session = visit(session, "/talk")
+  defp reset_presenter(_) do
+    Application.put_env(:goatmire, :verifier, StubVerifier)
+    StubVerifier.reset()
+    :ok = Engine.undeploy()
+    Clock.reset()
 
-    # slide 15 is the diagnostics beat; revealing opens its pane
-    Clock.goto(15)
-    Clock.reveal()
+    on_exit(fn ->
+      Application.delete_env(:goatmire, :verifier)
+      StubVerifier.reset()
+      Clock.reset()
+    end)
 
-    session =
-      session
-      |> assert_has(css("#diagnostic-prompt"))
-      |> fill_in(css("#diagnostic-prompt"), with: "why ")
-      |> send_keys(css("#diagnostic-prompt"), [:space])
-
-    assert_has(session, css("#deck-slide-15"))
-    assert %{slide: 15} = Clock.snapshot()
+    :ok
   end
 end

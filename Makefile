@@ -88,9 +88,10 @@ test:
 test-property:
 	@mix test.property
 
-# Install a matching driver into tmp/tools first.
+# Install Playwright's bundled Chromium before running the browser lane.
 test-e2e:
-	@scripts/install-chromedriver.sh
+	@pnpm --dir assets install --frozen-lockfile
+	@pnpm --dir assets exec playwright install chromium
 	@mix test.e2e
 
 # Deliberately manual: heavier concurrency and a real loopback Ollama model.

@@ -6,7 +6,9 @@ A simulation-only demo repository for the Goatmire 2026 talk: a simulated AGV wa
 
 ---
 
-[![quality](https://github.com/futhr/goatmire-2026/actions/workflows/quality.yml/badge.svg)](https://github.com/futhr/goatmire-2026/actions/workflows/quality.yml) [![coverage](https://coveralls.io/repos/github/futhr/goatmire-2026/badge.svg?branch=main)](https://coveralls.io/github/futhr/goatmire-2026?branch=main) [![Elixir](https://img.shields.io/badge/Elixir-1.19-4B275F)](.tool-versions) [![Maude](https://img.shields.io/badge/Maude-3.5.1-3e64ff)](https://maude.cs.illinois.edu) [![license](https://img.shields.io/badge/license-MIT%20%2B%20CC%20BY--NC--ND-blue)](#license)
+[![CI](https://github.com/futhr/goatmire-2026/actions/workflows/quality.yml/badge.svg)](https://github.com/futhr/goatmire-2026/actions/workflows/quality.yml)
+[![Coverage](https://codecov.io/gh/futhr/goatmire-2026/branch/main/graph/badge.svg)](https://codecov.io/gh/futhr/goatmire-2026)
+[![License](https://img.shields.io/github/license/futhr/goatmire-2026.svg)](#license)
 
 ---
 
