@@ -141,20 +141,32 @@ defmodule Goatmire.Verifier do
   @doc """
   Whether a usable Maude interpreter is reachable, and which version.
 
-  `mix goatmire.health` calls this instead of probing a remote service — the
-  only external dependency this demo has left is the interpreter on `PATH`.
+  `mix goatmire.health` uses this local interpreter check. ExMaude discovers
+  its configured, package-local, or `PATH` interpreter. A version string alone
+  is not a usable gate: without the worker pool this application cannot obtain
+  a verdict, so that case reports an error instead of a version. A pool whose
+  workers are all busy is still usable. This does not check optional MQTT or
+  language-model services.
   """
   @impl Goatmire.Gate
   @spec health() :: {:ok, String.t()} | {:error, term()}
   def health do
-    case ExMaude.version() do
-      {:ok, version} -> {:ok, version}
-      {:error, reason} -> {:error, reason}
+    with {:ok, version} <- ExMaude.version(),
+         :ok <- pool_available() do
+      {:ok, version}
     end
   rescue
     error -> {:error, error}
   catch
     :exit, reason -> {:error, {:exit, reason}}
+  end
+
+  defp pool_available do
+    case ExMaude.Pool.status() do
+      %{state: :not_started} -> {:error, :verifier_pool_unavailable}
+      %{size: 0} -> {:error, :verifier_pool_unavailable}
+      %{} -> :ok
+    end
   end
 
   # ExMaude returns {:error, _} for input and backend failures, but a missing
