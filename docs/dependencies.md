@@ -3,6 +3,13 @@
 `ex_maude` comes from Hex under the constraint in `mix.exs` and the version in
 `mix.lock`. It does not use a sibling checkout.
 
+The in-house libraries may contain unreleased changes even when their local
+version strings still match Hex. Report released-package and local-candidate
+verification separately, identifying the candidate commit and dirty state.
+A passing sibling build does not establish that the fixes are in the package
+this application's lockfile installs. Test candidates in temporary consumers;
+do not rewrite this lockfile or widen constraints merely to test them.
+
 `git_or_local` uses a sibling `beamlens_web` checkout when present; otherwise
 it uses the pinned Git revision in `mix.exs` and `mix.lock`. A local sibling can
 therefore differ from the locked dependency. Release verification must also
@@ -26,10 +33,6 @@ Updates reviewed for this audit:
   OTP 28 warning support and ignore handling.
 - [ExDoc 0.40.4](https://github.com/elixir-lang/ex_doc/blob/main/CHANGELOG.md):
   reproducible output and navigation fixes.
-- [Tesla 1.21.3](https://github.com/elixir-tesla/tesla/blob/master/CHANGELOG.md):
-  HTTP streaming, upload, and retry handling fixes.
-- [QUIC 1.8.2](https://github.com/benoitc/erlang_quic/blob/main/CHANGELOG.md):
-  connection lifecycle and HTTP/3 response completion fixes.
 
 Lua remains on BeamLens's compatible 0.4 series. Upgrade that constraint through
 BeamLens rather than overriding it in this application.

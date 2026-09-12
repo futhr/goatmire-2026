@@ -2,6 +2,8 @@
 
 This is the technical study guide behind “Zero Alert Storms: Formal Verification for IoT Automation.” It describes the code that exists in the local `ex_maude` and `goatmire-2026` repositories as of 19 August 2026. When this guide and the code disagree, the code and its tests win.
 
+Local library changes may be unreleased even when their version strings match Hex. The application installs locked Hex ExMaude by default; see [dependency maintenance](dependencies.md) and the [application review](hardening.md) for separately verified package and candidate versions.
+
 ## 1. The useful mental model
 
 Why would an Elixir developer care about a term rewriter from the formal-methods world? Because Maude can *decide* things about your automation rules that tests can only *sample* — and it turns out you already know most of its ideas under different names.
@@ -21,7 +23,7 @@ search [1] in MODULE : initial =>* pattern .
 
 They answer different questions, and this distinction carries the whole talk. `reduce` *decides*: given these rules, conflict or no conflict — and it can genuinely decide, yes or no, because the detector's equations cover every case of a finite, validated input. Same reason an exhaustive `case` over a closed enum can't miss a branch. `search` *finds witnesses*: an actual path to the bad state.
 
-And when a bounded search comes back empty, that means it gave up before finding trouble. That's “we don't know,” never “it's safe.” ExMaude reports it as `:unverified`.
+An empty bounded search establishes only that no witness was found within that bound; it does not by itself establish unbounded safety. Raw `ExMaude.search/4` returns `{:ok, []}`. The higher-level bounded IoT safety and liveness helpers translate no witness into `{:ok, :unverified}`.
 
 One more boundary to keep in your head the whole way through: “no modeled conflict found” does not mean “the system is safe in every respect.” It means the conflicts this model knows about aren't in the rules you handed it.
 
@@ -123,7 +125,7 @@ A local ignored NIF artifact must not force Rustler onto a path-based consumer.
 
 What can it actually catch? Four things, and it's honest about the list.
 
-`ExMaude.IoT.detect_conflicts/2` targets `priv/maude/iot-rules.maude`, currently 531 lines. The schema is inspired by the conflict categories discussed by AutoIoT, but it is a smaller custom model — not an implementation of that full system.
+`ExMaude.IoT.detect_conflicts/2` targets `priv/maude/iot-rules.maude`, currently 522 lines. The schema is inspired by the conflict categories discussed by AutoIoT, but it is a smaller custom model — not an implementation of that full system.
 
 The four modeled categories:
 
@@ -140,7 +142,7 @@ ExMaude also exposes bounded IoT safety and liveness helpers. A counterexample i
 
 Can it check agent policies too? Yes — same mechanism, different model.
 
-`ExMaude.AI.detect_conflicts/2` targets `priv/maude/ai-rules.maude`, currently 756 lines. It implements exactly seven conflict types:
+`ExMaude.AI.detect_conflicts/2` targets `priv/maude/ai-rules.maude`, currently 733 lines. It implements exactly seven conflict types:
 
 1. `:tool_call_conflict`
 2. `:capability_shadowing`
@@ -224,9 +226,9 @@ What happens when Maude is down mid-deploy? That's the question this section ans
 
 - `:conflicts` — a concrete typed conflict, with the rule ids.
 - `:clean` — no conflict of the types this detector models.
-- `:unverified` — the detector could not run at all.
+- `:unverified` — the application did not obtain a usable, complete detector verdict.
 
-Skips, unavailable backends, encoder rejections, and clean bounded searches all land in `:unverified`. None of them becomes a success claim. A bad answer, a good answer, and no answer are three different things.
+Skipped checks, unavailable backends, and encoder rejections land in `:unverified`. The bounded IoT helpers also use that status when no witness is found; Goatmire's deployment gate uses the equational conflict detector, not those search helpers. None of these uncertain outcomes becomes a success claim. A bad answer, a good answer, and no answer are three different things.
 
 `split_on_verdict/2` fails closed: an unverified rule set admits nothing. And when a conflict names two rules, it withholds *both* of them rather than guessing which author was right.
 

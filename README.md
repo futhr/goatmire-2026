@@ -80,8 +80,15 @@ mix phx.server
 | [`/rules`](http://localhost:4000/rules) | rule creation with a bounded asynchronous admission check |
 | [`/verify`](http://localhost:4000/verify) | verifier detail — term, verdict, measured cost |
 | [`/diagnostics`](http://localhost:4000/diagnostics) | prompt-driven BeamLens diagnostics |
+| [`/notebook`](http://localhost:4000/notebook) | the staged livebooks, in the pane the presenter shows |
 | [`/metrics`](http://localhost:4000/metrics) | in-app series from the diagnostics sampler |
 | [`/beamlens`](http://localhost:4000/beamlens) | advanced BeamLens inspector |
+
+`/` is the warehouse. `/talk/notes` is the speaker's iPad view and needs the
+stage credential even on loopback; `make talk-stage` prints its unlock link.
+Under `/api`: `GET /api/health` (what `mix goatmire.health` polls),
+`POST /api/things/:thing_id/telemetry` for devices that cannot hold an MQTT
+session, and the loopback-only diagnostics completion bridge.
 
 The dashboard is styled with Livebook's own design tokens and fonts, so the talk moves between notebook and floor without a visual seam.
 
@@ -148,7 +155,7 @@ Benchee workloads in [`bench/`](./bench) record distributions, memory, and BEAM 
 
 ```bash
 mix run --no-start bench/rule_eval_bench.exs   # runtime rule evaluation, 20 → 2000 rules
-mix run --no-start bench/partition_bench.exs   # interaction partitioning, 25 → 2005 rules
+mix run --no-start bench/partition_bench.exs   # interaction partitioning, 25 → 6005 rules
 mix run --no-start bench/verifier_bench.exs    # the full gate; needs Maude, parallel: 1
 ```
 

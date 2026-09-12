@@ -60,8 +60,9 @@ alone.
 ## Narrative rhythm
 
 Twenty-five main slides fit the 30-minute slot. The deck carries roughly 13–15
-minutes of prepared speech, 7–8 minutes of live interaction, deliberate reading
-silence, and at least 4 minutes of recovery or questions.
+minutes of prepared speech, about 9 minutes budgeted to the live panel in
+`priv/talk/timings.exs`, deliberate reading silence, and at least 4 minutes of
+recovery or questions.
 
 1. **Incident** — two sensible rules become one absurd system.
 2. **Method** — tests and formal checks answer different questions.

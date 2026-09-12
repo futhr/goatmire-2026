@@ -25,10 +25,9 @@ defmodule Goatmire.LocalClusterTest do
   end
 
   # `start/1` boots `:peer` nodes and needs epmd plus a distributed BEAM. Peer
-  # bring-up is slow and flaky in ephemeral runners, so it is a rehearsal step
-  # rather than a CI test — see docs/runbooks/rehearsal.md. The container swarm in
-  # docker/docker-compose.yml covers the same ground more honestly, with a real
-  # broker between the nodes.
+  # bring-up is excluded by default; the quality workflow explicitly includes
+  # this test. The separate container smoke check exercises delivery through a
+  # real broker. See docs/runbooks/rehearsal.md for the stage checks.
   @tag :manual
   test "starts peers and gives each one a fleet partition" do
     assert {:ok, nodes} = LocalCluster.start(node_count: 2, fleet_per_node: 5, tick_ms: 0)
