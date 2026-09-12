@@ -52,7 +52,7 @@ defmodule Goatmire.Diagnostics.CodexRunner do
             {:ok, Map.merge(account, %{quota: quota})}
           end
         after
-          if Port.info(port), do: Port.close(port)
+          close_port(port)
         end
     end
   rescue
@@ -117,7 +117,7 @@ defmodule Goatmire.Diagnostics.CodexRunner do
          }}
       end
     after
-      if Port.info(port), do: Port.close(port)
+      close_port(port)
     end
   rescue
     _ -> {:error, :invalid_codex_response}
@@ -158,6 +158,27 @@ defmodule Goatmire.Diagnostics.CodexRunner do
       clientInfo: %{name: "goatmire", title: "Goatmire Diagnostics", version: "0.2.0"},
       capabilities: %{experimentalApi: false}
     }
+  end
+
+  # `Port.close/1` only closes the pipes. An app server that keeps running after
+  # stdin EOF would outlive a timed-out turn, so signal the child as well.
+  defp close_port(port) do
+    case Port.info(port, :os_pid) do
+      {:os_pid, os_pid} ->
+        Port.close(port)
+        terminate_child(os_pid)
+
+      nil ->
+        :ok
+    end
+  end
+
+  defp terminate_child(os_pid) do
+    System.cmd("kill", ["-TERM", Integer.to_string(os_pid)], stderr_to_stdout: true)
+    :ok
+  rescue
+    # No `kill` on this host: the port is closed either way.
+    _ -> :ok
   end
 
   defp open_port(codex) do

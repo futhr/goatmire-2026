@@ -67,6 +67,79 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
     assert "project_doc_max_bytes=0" in args
   end
 
+  test "a timed-out turn leaves no app server process behind" do
+    directory =
+      Path.join(
+        System.tmp_dir!(),
+        "goatmire-orphan-codex-" <> Base.encode16(:crypto.strong_rand_bytes(6))
+      )
+
+    File.mkdir!(directory)
+    script = Path.join(directory, "codex")
+    pidfile = Path.join(directory, "child.pid")
+    on_exit(fn -> File.rm_rf!(directory) end)
+
+    # An app server that ignores stdin EOF, which closing the port alone cannot stop.
+    File.write!(script, """
+    #!/bin/sh
+    echo $$ > #{pidfile}
+    while true; do sleep 1; done
+    """)
+
+    File.chmod!(script, 0o700)
+
+    # Capture the child while it is still running, so a slow host delays the
+    # check instead of racing it.
+    watcher = Task.async(fn -> await_pidfile(pidfile, deadline(5_000)) end)
+
+    assert {:error, :codex_timeout} =
+             CodexRunner.complete([%{"role" => "user", "content" => "hi"}],
+               executable: script,
+               timeout: 1_000
+             )
+
+    os_pid = Task.await(watcher, 6_000)
+
+    assert is_binary(os_pid),
+           "the fake app server never started, so the orphan check could not run"
+
+    on_exit(fn ->
+      if running?(os_pid), do: System.cmd("kill", ["-KILL", os_pid], stderr_to_stdout: true)
+    end)
+
+    assert await_exit(os_pid, deadline(5_000)) == :ok
+  end
+
+  defp deadline(ms), do: System.monotonic_time(:millisecond) + ms
+
+  defp await_pidfile(pidfile, deadline) do
+    case File.read(pidfile) do
+      {:ok, contents} when byte_size(contents) > 0 ->
+        String.trim(contents)
+
+      _ ->
+        if System.monotonic_time(:millisecond) < deadline do
+          Process.sleep(10)
+          await_pidfile(pidfile, deadline)
+        end
+    end
+  end
+
+  # Generous upper bound on signalling and reaping, not a latency assertion: an
+  # unsignalled child loops for ever, so it never leaves this wait.
+  defp await_exit(os_pid, deadline) do
+    cond do
+      not running?(os_pid) -> :ok
+      System.monotonic_time(:millisecond) >= deadline -> {:error, :still_running}
+      true -> Process.sleep(25) && await_exit(os_pid, deadline)
+    end
+  end
+
+  defp running?(os_pid) do
+    {_, status} = System.cmd("kill", ["-0", os_pid], stderr_to_stdout: true)
+    status == 0
+  end
+
   test "runs one ephemeral app-server completion and returns compact usage", %{executable: script} do
     assert {:ok, ~s({"summary":"grounded"}), metadata} =
              CodexRunner.complete(
