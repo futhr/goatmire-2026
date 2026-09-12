@@ -221,11 +221,12 @@ defmodule Goatmire.Diagnostics.Analysis do
         %{inference: "runtime_pressure", next_check: "inspect_runtime", confidence: "medium"}
 
       true ->
-        compatible_classification(%{
+        %{
           classification
           | inference: "insufficient_evidence",
+            next_check: "inspect_raw_metrics",
             confidence: "low"
-        })
+        }
     end
   end
 
@@ -233,21 +234,6 @@ defmodule Goatmire.Diagnostics.Analysis do
     metrics.run_queue > 2 or
       (metrics.pool_size > 0 and metrics.pool_in_use >= metrics.pool_size)
   end
-
-  defp compatible_classification(%{inference: "rule_semantics"} = classification) do
-    if classification.next_check in ~w(inspect_conflict_witness compare_enforce_run),
-      do: classification,
-      else: %{classification | next_check: "compare_enforce_run"}
-  end
-
-  defp compatible_classification(%{inference: "runtime_pressure"} = classification),
-    do: %{classification | next_check: "inspect_runtime"}
-
-  defp compatible_classification(%{inference: "verifier_unavailable"} = classification),
-    do: %{classification | next_check: "retry_verifier"}
-
-  defp compatible_classification(%{inference: "insufficient_evidence"} = classification),
-    do: %{classification | next_check: "inspect_raw_metrics"}
 
   defp summary_for("rule_semantics", snapshot) do
     metrics = summary_metrics(snapshot)
