@@ -2,7 +2,7 @@
 
 This is the technical study guide behind “Zero Alert Storms: Formal Verification for IoT Automation.” It describes the code that exists in the local `ex_maude` and `goatmire-2026` repositories as of 19 August 2026. When this guide and the code disagree, the code and its tests win.
 
-Local library changes may be unreleased even when their version strings match Hex. The application installs locked Hex ExMaude by default; see [dependency maintenance](dependencies.md) and the [application review](hardening.md) for separately verified package and candidate versions.
+Local library changes may be unreleased even when their version strings match Hex. The application installs locked Hex ExMaude by default; see [dependency maintenance](dependencies.md) for how that resolution works.
 
 ## 1. The useful mental model
 
