@@ -121,6 +121,31 @@ defmodule Goatmire.FleetTest do
       assert device.battery == 77
     end
 
+    test "a reading addressed to another device is ignored, as the engine ignores it" do
+      {:ok, _} = Fleet.attach_real("bench-agv", stale_after_ms: 10_000)
+
+      Transport.impl().publish(
+        Transport.telemetry_topic("bench-agv"),
+        %{"thing_id" => "someone-else", "property" => "battery", "value" => 5}
+      )
+
+      Process.sleep(50)
+
+      assert [device] = Fleet.snapshot()
+      assert device.status == :never_seen
+      assert device.properties == %{}
+    end
+
+    test "the observed property count is bounded like the engine's" do
+      {:ok, _} = Fleet.attach_real("bench-agv", stale_after_ms: 10_000)
+
+      for n <- 1..80, do: Transport.publish_telemetry("bench-agv", "p#{n}", n)
+      Process.sleep(80)
+
+      assert [device] = Fleet.snapshot()
+      assert map_size(device.properties) == 64
+    end
+
     test "silence past the threshold reads as stale, not as absent" do
       {:ok, _} = Fleet.attach_real("bench-agv", stale_after_ms: 20)
       Transport.publish_telemetry("bench-agv", "battery", 77)

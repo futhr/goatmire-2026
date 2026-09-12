@@ -9,7 +9,10 @@ defmodule Goatmire.Device.Real do
   before its first reading).
 
   Readings reach the engine directly off the transport; this observes rather
-  than relays, so it is never in the data path.
+  than relays, so it is never in the data path. A payload is accepted on the
+  same terms the engine accepts it: its `thing_id` must match the topic it
+  arrived on, and the observed property count is bounded, so a chatty or
+  misaddressed publisher cannot make this view disagree with the engine's.
 
       config :goatmire, real_devices: [[thing_id: "agv-01", stale_after_ms: 15_000]]
   """
@@ -21,6 +24,8 @@ defmodule Goatmire.Device.Real do
 
   @default_stale_after_ms 15_000
   @check_interval_ms 2_000
+  # Matches the engine's per-Thing property bound.
+  @property_limit 64
 
   @doc "Builds the transient child specification keyed by physical Thing ID."
   @spec child_spec(keyword()) :: Supervisor.child_spec()
@@ -69,7 +74,7 @@ defmodule Goatmire.Device.Real do
   @impl true
   def handle_info({:goatmire_publish, _, _} = message, state) do
     case Local.accept(message) do
-      {:ok, _, payload} -> {:noreply, observe(payload, state)}
+      {:ok, topic, payload} -> {:noreply, observe(payload, topic, state)}
       :ignore -> {:noreply, state}
     end
   end
@@ -81,18 +86,26 @@ defmodule Goatmire.Device.Real do
 
   def handle_info(_, state), do: {:noreply, state}
 
-  defp observe(payload, state) do
-    case Transport.decode_event(payload) do
+  defp observe(payload, topic, state) do
+    case Transport.decode_event(payload, topic) do
       {:ok, %{property: property, value: value}} ->
         %{
           state
-          | properties: Map.put(state.properties, property, value),
+          | properties: put_bounded(state.properties, property, value),
             last_seen_at: System.monotonic_time(:millisecond),
             status: :online
         }
 
       :error ->
         state
+    end
+  end
+
+  defp put_bounded(properties, property, value) do
+    if Map.has_key?(properties, property) or map_size(properties) < @property_limit do
+      Map.put(properties, property, value)
+    else
+      properties
     end
   end
 
