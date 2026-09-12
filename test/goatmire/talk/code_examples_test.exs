@@ -18,6 +18,9 @@ defmodule Goatmire.Talk.CodeExamplesTest do
       if slide == 8 do
         assert {:ok, _} = value.reduction
         assert {:ok, _} = value.witness
+
+        assert {:ok, []} =
+                 ExMaude.search("TALK-CELL", "ready", "idle", max_depth: 1, max_solutions: 1)
       end
     end
   end
