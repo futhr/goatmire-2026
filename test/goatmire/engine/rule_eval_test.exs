@@ -28,6 +28,22 @@ defmodule Goatmire.Engine.RuleEvalTest do
       refute RuleEval.triggered?({:prop_eq, "mode", "charging"}, %{"mode" => "driving"}, %{})
     end
 
+    test "equality distinguishes numeric representations and missing properties" do
+      for operator <- [:prop_eq, :env_eq] do
+        for {actual, expected} <- [{1, 1.0}, {1.0, 1}] do
+          values = %{"reading" => actual}
+          refute RuleEval.triggered?({operator, "reading", expected}, values, values)
+          assert RuleEval.triggered?({operator, "reading", actual}, values, values)
+        end
+
+        refute RuleEval.triggered?({operator, "reading", nil}, %{}, %{})
+
+        assert RuleEval.triggered?({operator, "reading", nil}, %{"reading" => nil}, %{
+                 "reading" => nil
+               })
+      end
+    end
+
     test "environment predicates read the env map" do
       assert RuleEval.triggered?({:env_gt, "temperature", 28}, %{}, %{"temperature" => 30})
       refute RuleEval.triggered?({:env_gt, "temperature", 28}, %{"temperature" => 30}, %{})
@@ -101,6 +117,38 @@ defmodule Goatmire.Engine.RuleEvalTest do
 
     test "a Thing with no bound rules yields nothing", %{index: index} do
       assert {[], []} = RuleEval.evaluate(index, "agv-99", %{})
+    end
+
+    test "keeps action order across empty and non-firing rules" do
+      rules = [
+        %{
+          id: "first",
+          thing_id: "one",
+          trigger: {:always},
+          actions: [{:invoke, "one", "a"}, {:invoke, "one", "b"}]
+        },
+        %{id: "empty", thing_id: "one", trigger: {:always}, actions: []},
+        %{
+          id: "skip",
+          thing_id: "one",
+          trigger: {:prop_eq, "ready", true},
+          actions: [{:invoke, "one", "skip"}]
+        },
+        %{
+          id: "last",
+          thing_id: "one",
+          trigger: {:always},
+          actions: [{:invoke, "one", "c"}, {:invoke, "one", "d"}]
+        }
+      ]
+
+      assert {["first", "empty", "last"],
+              [
+                {:invoke, "one", "a"},
+                {:invoke, "one", "b"},
+                {:invoke, "one", "c"},
+                {:invoke, "one", "d"}
+              ]} = RuleEval.evaluate(RuleEval.index(rules), "one", %{})
     end
   end
 

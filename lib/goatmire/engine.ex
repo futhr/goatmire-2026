@@ -326,7 +326,7 @@ defmodule Goatmire.Engine do
 
   # Only a change is an alert; re-asserting a held value is not an incident.
   defp perform({:set_prop, target_thing, property, value}, _, state) do
-    if RuleEval.get_reading(state.world, target_thing, property) == value do
+    if Map.fetch(Map.get(state.world, target_thing, %{}), property) === {:ok, value} do
       state
     else
       actuate(target_thing, property, value, state)

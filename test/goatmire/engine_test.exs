@@ -145,6 +145,44 @@ defmodule Goatmire.EngineTest do
   end
 
   describe "ingest" do
+    test "publishes a type-changing write and an explicit null to an unseen property" do
+      rule = %{
+        id: "typed-write",
+        thing_id: "typed-device",
+        trigger: {:prop_eq, "ready", true},
+        actions: [
+          {:set_prop, "typed-device", "reading", 1.0},
+          {:set_prop, "typed-device", "nullable", nil}
+        ]
+      }
+
+      {:ok, _} = Engine.deploy([rule])
+      :ok = Transport.subscribe_commands("typed-device")
+      topic = Transport.telemetry_topic("typed-device")
+
+      send(
+        Engine,
+        {:goatmire_publish, topic, %{thing_id: "typed-device", property: "reading", value: 1}}
+      )
+
+      send(
+        Engine,
+        {:goatmire_publish, topic, %{thing_id: "typed-device", property: "ready", value: true}}
+      )
+
+      assert Engine.status().counters.alerts == 2
+
+      assert_receive {:goatmire_publish, "goatmire/things/typed-device/command",
+                      %{"property" => "reading", "value" => value}}
+
+      assert value === 1.0
+
+      assert_receive {:goatmire_publish, "goatmire/things/typed-device/command",
+                      %{"property" => "nullable", "value" => nil}}
+
+      assert Map.fetch(Engine.properties("typed-device"), "nullable") === {:ok, nil}
+    end
+
     test "a reading that satisfies no trigger produces no alert" do
       StubVerifier.set(:clean)
       {:ok, _} = Engine.deploy(Rules.state_conflict_pair())

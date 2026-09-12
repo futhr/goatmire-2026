@@ -33,12 +33,12 @@ defmodule Goatmire.Engine.RuleEval do
     |> Map.get(thing_id, [])
     |> Enum.reduce({[], []}, fn rule, {fired, actions} ->
       if triggered?(rule.trigger, props, env) do
-        {[rule.id | fired], actions ++ rule.actions}
+        {[rule.id | fired], Enum.reverse(rule.actions, actions)}
       else
         {fired, actions}
       end
     end)
-    |> then(fn {fired, actions} -> {Enum.reverse(fired), actions} end)
+    |> then(fn {fired, actions} -> {Enum.reverse(fired), Enum.reverse(actions)} end)
   end
 
   @doc """
@@ -46,16 +46,17 @@ defmodule Goatmire.Engine.RuleEval do
 
   Mirrors the trigger sorts of the bundled `iot-rules.maude` model. A
   comparison against a property that has never been reported is false, not an
-  error: an unseen sensor has not met a threshold.
+  error: an unseen sensor has not met a threshold. Equality preserves value
+  types (`1` differs from `1.0`) and distinguishes missing from explicit null.
   """
   @spec triggered?(tuple(), props(), props()) :: boolean()
   def triggered?({:always}, _, _), do: true
-  def triggered?({:prop_eq, p, v}, props, _), do: Map.get(props, p) == v
+  def triggered?({:prop_eq, p, v}, props, _), do: Map.fetch(props, p) === {:ok, v}
   def triggered?({:prop_gt, p, v}, props, _), do: compare(Map.get(props, p), v, :gt)
   def triggered?({:prop_lt, p, v}, props, _), do: compare(Map.get(props, p), v, :lt)
   def triggered?({:prop_gte, p, v}, props, _), do: compare(Map.get(props, p), v, :gte)
   def triggered?({:prop_lte, p, v}, props, _), do: compare(Map.get(props, p), v, :lte)
-  def triggered?({:env_eq, p, v}, _, env), do: Map.get(env, p) == v
+  def triggered?({:env_eq, p, v}, _, env), do: Map.fetch(env, p) === {:ok, v}
   def triggered?({:env_gt, p, v}, _, env), do: compare(Map.get(env, p), v, :gt)
   def triggered?({:env_lt, p, v}, _, env), do: compare(Map.get(env, p), v, :lt)
 

@@ -2,6 +2,11 @@
 
 These are exploratory performance tools, not pass/fail tests. Benchee owns warmup and sampling; the existing `mix goatmire.benchmark` task remains the versioned JSON artifact used for talk claims.
 
+The evaluator workload includes both sparse fleets (two rules per Thing) and
+dense sets of 200–2,000 simultaneously firing rules on one Thing. Input creation
+and indexing happen before timing. Benchee reports allocated memory separately
+from elapsed time and reductions; it does not measure peak resident memory.
+
 ```bash
 mix run --no-start bench/rule_eval_bench.exs
 mix run --no-start bench/partition_bench.exs
