@@ -1,9 +1,13 @@
 # Dependency maintenance
 
-During release preparation, `git_or_local` uses sibling `beamlens_web` and
-`ex_maude` checkouts when present. Otherwise, it uses the Git revisions in
-`mix.exs` and `mix.lock`. Those revisions must be pushed before a fresh remote
-checkout can resolve them.
+`ex_maude` comes from Hex under the constraint in `mix.exs` and the version in
+`mix.lock`. It does not use a sibling checkout.
+
+`git_or_local` uses a sibling `beamlens_web` checkout when present; otherwise
+it uses the pinned Git revision in `mix.exs` and `mix.lock`. A local sibling can
+therefore differ from the locked dependency. Release verification must also
+run in an isolated checkout without that sibling. The pinned revision must
+already be available remotely for a fresh checkout to resolve it.
 
 `beamlens_web` is the only forked dependency. Its `theme-config` revision
 `42f6e9b98ad04fc4f89b47d77183505ba21cd8aa` adds consumer theming in one commit
