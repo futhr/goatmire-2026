@@ -25,6 +25,15 @@ defmodule Goatmire.WarehouseTest do
     assert Warehouse.dock_position("not-a-dock") == nil
   end
 
+  test "dock_position/1 resolves only the spelling that appears in docks/0" do
+    for alias_id <- ["dock-05", "dock-005", "dock-+5", "dock-5 ", "dock- 5"] do
+      refute Map.has_key?(Warehouse.docks(), alias_id)
+      assert Warehouse.dock_position(alias_id) == nil
+    end
+
+    assert Warehouse.dock_position("dock-5") == Warehouse.docks()["dock-5"]
+  end
+
   describe "zone_of/1" do
     test "corners land in the expected cells" do
       assert Warehouse.zone_of({0, 0}) == "zone-1"

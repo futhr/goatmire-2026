@@ -25,7 +25,14 @@ defmodule Goatmire.Warehouse do
     end
   end
 
-  @doc "Position of a dock by id, or nil."
+  @doc """
+  Position of a dock by id, or nil.
+
+  Only the canonical spelling resolves: `"dock-5"` is a dock, `"dock-05"` is
+  not. An alias would place a vehicle at a position whose id no longer matches
+  any key in `docks/0`, so anything comparing a destination against that map
+  would silently miss it.
+  """
   @spec dock_position(String.t() | pos_integer()) :: {number(), number()} | nil
   def dock_position(n) when is_integer(n) and n in 1..@dock_count do
     # Docks 1–12 line the north wall; 13–24 run down the central aisle, which
@@ -39,12 +46,16 @@ defmodule Goatmire.Warehouse do
 
   def dock_position("dock-" <> n) do
     case Integer.parse(n) do
-      {number, ""} -> dock_position(number)
+      {number, ""} -> canonical_dock_position(number, n)
       _ -> nil
     end
   end
 
   def dock_position(_), do: nil
+
+  defp canonical_dock_position(number, suffix) do
+    if Integer.to_string(number) == suffix, do: dock_position(number)
+  end
 
   @doc "How many docks the hall has."
   @spec dock_count() :: pos_integer()
