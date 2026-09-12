@@ -280,6 +280,7 @@ defmodule Goatmire.Engine do
   end
 
   defp prepare_deployment(kind, rules, opts) do
+    opts = Keyword.put(opts, :mode, deployment_mode(opts))
     deadline = System.monotonic_time(:millisecond) + Keyword.get(opts, :timeout, 15_000)
     attempt_deployment(kind, rules, opts, deadline)
   end

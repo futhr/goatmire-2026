@@ -19,6 +19,21 @@ defmodule Goatmire.EngineTest do
   end
 
   describe "deploy/2" do
+    test "invalid modes raise in the caller without changing the engine" do
+      rules = Rules.clean_set()
+      {:ok, _} = Engine.deploy(rules)
+      engine = Process.whereis(Engine)
+      status = Engine.status()
+
+      assert_raise ArgumentError, ~r/invalid deployment mode/, fn ->
+        Engine.deploy([], mode: :typo)
+      end
+
+      assert Process.whereis(Engine) == engine
+      assert Engine.deployed_rules() == rules
+      assert Engine.status().run_id == status.run_id
+    end
+
     test "a clean verdict deploys the whole set" do
       StubVerifier.set(:clean)
       rules = Rules.clean_set()
