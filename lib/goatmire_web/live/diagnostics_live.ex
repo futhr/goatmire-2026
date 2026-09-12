@@ -86,10 +86,6 @@ defmodule GoatmireWeb.DiagnosticsLive do
     {:noreply, assign(socket, :snapshot, Snapshot.read(:one_minute))}
   end
 
-  def handle_info({:talk_play, :diagnostics, :diagnose}, socket) do
-    handle_event("diagnose", %{"diagnostics" => %{"prompt" => socket.assigns.prompt}}, socket)
-  end
-
   def handle_info({:talk_state, :diagnostics, %{result: result}}, socket),
     do: {:noreply, complete(socket, result)}
 

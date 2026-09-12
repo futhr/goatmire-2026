@@ -29,10 +29,6 @@ defmodule GoatmireWeb.VerifyLive do
   end
 
   @impl true
-  def handle_info({:talk_play, :verify, :run_policy}, socket) do
-    handle_event("run_policy", %{}, socket)
-  end
-
   def handle_info({:talk_state, :verify, %{policy: policy}}, socket),
     do: {:noreply, assign(socket, policy: policy)}
 

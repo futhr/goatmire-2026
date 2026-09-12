@@ -111,14 +111,6 @@ defmodule GoatmireWeb.WarehouseLive do
      |> put_flash(:error, message)}
   end
 
-  def handle_info({:talk_play, :warehouse, mode}, socket) when mode in [:observe, :enforce] do
-    handle_event("storm", %{"mode" => Atom.to_string(mode)}, socket)
-  end
-
-  def handle_info({:talk_play, :warehouse, :clear}, socket) do
-    handle_event("stop_fleet", %{}, socket)
-  end
-
   def handle_info(_, socket), do: {:noreply, socket}
 
   defp fleet_mutation(socket, fun) do

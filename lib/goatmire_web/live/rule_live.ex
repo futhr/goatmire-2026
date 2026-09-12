@@ -29,15 +29,6 @@ defmodule GoatmireWeb.RuleLive do
   end
 
   @impl true
-  def handle_info({:talk_play, :rules, step}, socket)
-      when step in [:seed_deployed, :load_example] do
-    handle_event(Atom.to_string(step), %{}, socket)
-  end
-
-  def handle_info({:talk_play, :rules, :check}, socket) do
-    handle_event("check", %{"rule" => socket.assigns.form.params}, socket)
-  end
-
   def handle_info({:engine_deployed, _}, socket), do: {:noreply, assign_deployed_rules(socket)}
 
   def handle_info({:talk_state, :rules, state}, socket),
