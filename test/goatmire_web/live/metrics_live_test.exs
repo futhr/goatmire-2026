@@ -28,6 +28,17 @@ defmodule GoatmireWeb.MetricsLiveTest do
     assert render(view) =~ "last 60 s"
   end
 
+  test "a malformed window payload falls back instead of killing the view", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/metrics")
+
+    for payload <- ["not-a-number", "60.5", "", "3000"] do
+      assert render_click(view, "window", %{"seconds" => payload}) =~ "last 300 s"
+    end
+
+    assert render_click(view, "window", %{"seconds" => 60}) =~ "last 60 s"
+    assert Process.alive?(view.pid)
+  end
+
   test "the summary table stays open across refresh ticks", %{conn: conn} do
     {:ok, view, _} = live(conn, "/metrics")
 

@@ -13,6 +13,7 @@ defmodule GoatmireWeb.MetricsLive do
 
   @refresh_ms 1_000
   @windows [60, 300]
+  @default_window 300
 
   @impl true
   def mount(_, _, socket) do
@@ -20,7 +21,7 @@ defmodule GoatmireWeb.MetricsLive do
 
     {:ok,
      socket
-     |> assign(page_title: "Metrics", window: 300, show_table: false)
+     |> assign(page_title: "Metrics", window: @default_window, show_table: false)
      |> load()}
   end
 
@@ -36,14 +37,22 @@ defmodule GoatmireWeb.MetricsLive do
   end
 
   def handle_event("window", %{"seconds" => seconds}, socket) do
-    window = String.to_integer(seconds)
-    window = if window in @windows, do: window, else: 300
-
     {:noreply,
      socket
-     |> assign(window: window)
+     |> assign(window: window(seconds))
      |> load()}
   end
+
+  # A websocket client can send any payload, whatever the rendered button said.
+  defp window(seconds) when is_binary(seconds) do
+    case Integer.parse(seconds) do
+      {value, ""} -> window(value)
+      _ -> @default_window
+    end
+  end
+
+  defp window(seconds) when seconds in @windows, do: seconds
+  defp window(_), do: @default_window
 
   defp schedule_refresh, do: Process.send_after(self(), :refresh, @refresh_ms)
 
