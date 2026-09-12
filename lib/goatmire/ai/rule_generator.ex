@@ -223,7 +223,7 @@ defmodule Goatmire.AI.RuleGenerator do
   """
   @spec decode_rules(String.t(), String.t()) :: {:ok, [map()]} | {:error, term()}
   def decode_rules(raw, tenant \\ "goatmire") do
-    with {:ok, json} <- Jason.decode(strip_fences(raw)),
+    with {:ok, json} <- Goatmire.JSON.decode(strip_fences(raw)),
          %{"rules" => rules} when is_list(rules) and length(rules) in 1..3 <- json,
          decoded = Enum.map(rules, &decode_rule(&1, tenant)),
          :ok <- ExMaude.AI.validate_rules(decoded),

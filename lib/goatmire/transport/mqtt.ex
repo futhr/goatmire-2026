@@ -113,7 +113,7 @@ defmodule Goatmire.Transport.MQTT do
     def handle_message(topic_levels, payload, state) do
       topic = Enum.join(topic_levels, "/")
 
-      case Jason.decode(payload) do
+      case Goatmire.JSON.decode(payload) do
         {:ok, decoded} ->
           Phoenix.PubSub.broadcast(@pubsub, @fanout, {:goatmire_publish, topic, decoded})
 

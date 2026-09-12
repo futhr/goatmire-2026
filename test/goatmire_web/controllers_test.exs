@@ -63,6 +63,19 @@ defmodule GoatmireWeb.ControllersTest do
     assert error =~ "property"
   end
 
+  test "HTTP telemetry rejects ambiguous JSON before publishing" do
+    assert_error_sent 400, fn ->
+      build_conn()
+      |> put_req_header("content-type", "application/json")
+      |> post(
+        "/api/things/ambiguous-http/telemetry",
+        ~S({"property":"battery","value":1,"value":2})
+      )
+    end
+
+    assert Engine.properties("ambiguous-http") == %{}
+  end
+
   test "browser responses carry the repository CSP" do
     conn = get(build_conn(), "/")
     [csp] = get_resp_header(conn, "content-security-policy")

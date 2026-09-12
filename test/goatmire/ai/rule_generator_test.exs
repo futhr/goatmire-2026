@@ -10,6 +10,16 @@ defmodule Goatmire.AI.RuleGeneratorTest do
   @corrected_raw ~s({"rules":[{"id":"reassign-on-drift","agent":"fleet-ops","trigger":{"type":"prop_gt","property":"task_drift_ratio","value":2},"invocations":[{"type":"require_approval","class":"reassignment_high_drift"},{"type":"invoke_tool","name":"dispatch_robot","args":{},"capability":"high_impact","jurisdiction":"eu"}],"capability_grants":[],"authority_required":0,"priority":1}]})
 
   describe "decode_rules/2" do
+    test "rejects ambiguous rule identities and nested tool arguments" do
+      for raw <- [
+            String.replace(@corrected_raw, "\"id\":", "\"id\":\"other\",\"id\":"),
+            String.replace(@corrected_raw, "\"args\":{}", ~S("args":{"x":1,"x":2}))
+          ] do
+        assert {:error, {:unexpected_rule_payload, {:error, :duplicate_key}}} =
+                 RuleGenerator.decode_rules(raw)
+      end
+    end
+
     test "decodes a well-formed payload into ExMaude.AI terms" do
       raw = ~s({"rules":[{"id":"r1","agent":"fleet-ops",
         "trigger":{"type":"prop_gt","property":"drift","value":2},

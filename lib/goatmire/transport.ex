@@ -44,11 +44,11 @@ defmodule Goatmire.Transport do
   @spec publish_telemetry(String.t(), String.t(), term()) :: :ok | {:error, term()}
   def publish_telemetry(thing_id, property, value) do
     case decode_event(%{thing_id: thing_id, property: property, value: value}) do
-      {:ok, _} ->
+      {:ok, event} ->
         impl().publish(telemetry_topic(thing_id), %{
           "thing_id" => thing_id,
           "property" => property,
-          "value" => value,
+          "value" => event.value,
           "ts" => System.system_time(:millisecond)
         })
 
@@ -85,19 +85,40 @@ defmodule Goatmire.Transport do
 
   Accepts both the JSON map a broker delivers and the atom-keyed map a local
   publisher sends, so the engine has exactly one event type to handle.
+  Mixed aliases for one envelope field are rejected. Nested atom keys become
+  strings, matching MQTT JSON; colliding keys are rejected. Existing limits
+  (four levels, 32 entries per collection, 1,024 encoded bytes) apply before
+  publishing, with structure checked before encoding.
   """
   @spec decode_event(map()) :: {:ok, map()} | :error
-  def decode_event(%{"thing_id" => thing_id, "property" => property, "value" => value}) do
-    decode_event(%{thing_id: thing_id, property: property, value: value})
-  end
-
-  def decode_event(%{thing_id: thing_id, property: property, value: value}) do
-    if valid_identifier?(thing_id) and valid_identifier?(property) and valid_value?(value),
-      do: {:ok, %{thing_id: thing_id, property: property, value: value}},
-      else: :error
+  def decode_event(payload) when is_map(payload) do
+    if Enum.any?(
+         [:thing_id, :property, :value],
+         &(Map.has_key?(payload, &1) and Map.has_key?(payload, Atom.to_string(&1)))
+       ) do
+      :error
+    else
+      decode_fields(payload)
+    end
   end
 
   def decode_event(_), do: :error
+
+  defp decode_fields(%{"thing_id" => thing_id, "property" => property, "value" => value}),
+    do: decode_fields(%{thing_id: thing_id, property: property, value: value})
+
+  defp decode_fields(%{thing_id: thing_id, property: property, value: value}) do
+    with true <- valid_identifier?(thing_id) and valid_identifier?(property),
+         true <- bounded_json?(value, 4),
+         {:ok, value} <- Goatmire.JSON.normalize(value),
+         true <- valid_value?(value) do
+      {:ok, %{thing_id: thing_id, property: property, value: value}}
+    else
+      _ -> :error
+    end
+  end
+
+  defp decode_fields(_), do: :error
 
   @doc "Validates a payload and binds its identity to the telemetry topic."
   @spec decode_event(term(), String.t()) :: {:ok, map()} | :error
@@ -110,17 +131,19 @@ defmodule Goatmire.Transport do
     end
   end
 
-  defp valid_identifier?(value) when is_binary(value) and byte_size(value) in 1..128,
+  @doc "Checks an identifier used by native telemetry or a translated device topic."
+  @spec valid_identifier?(term()) :: boolean()
+  def valid_identifier?(value) when is_binary(value) and byte_size(value) in 1..128,
     do: String.valid?(value) and Regex.match?(~r/\A[a-zA-Z0-9_.:-]+\z/, value)
 
-  defp valid_identifier?(_), do: false
+  def valid_identifier?(_), do: false
 
   defp valid_value?(value) when is_binary(value),
     do: byte_size(value) <= 1024 and String.valid?(value)
 
   defp valid_value?(value) when is_map(value) or is_list(value) do
     case Jason.encode(value) do
-      {:ok, json} -> byte_size(json) <= 1024 and bounded_json?(value, 4)
+      {:ok, json} -> byte_size(json) <= 1024
       _ -> false
     end
   end
@@ -128,6 +151,7 @@ defmodule Goatmire.Transport do
   defp valid_value?(value), do: is_number(value) or is_boolean(value) or is_nil(value)
 
   defp bounded_json?(_, 0), do: false
+  defp bounded_json?(%_{}, _), do: false
 
   defp bounded_json?(map, depth) when is_map(map),
     do:
@@ -137,7 +161,14 @@ defmodule Goatmire.Transport do
         end)
 
   defp bounded_json?(list, depth) when is_list(list),
-    do: length(list) <= 32 and Enum.all?(list, &bounded_json?(&1, depth - 1))
+    do: bounded_list?(list, depth, 32)
 
   defp bounded_json?(value, _), do: valid_value?(value)
+
+  defp bounded_list?([], _, _), do: true
+
+  defp bounded_list?([head | tail], depth, remaining) when remaining > 0,
+    do: bounded_json?(head, depth - 1) and bounded_list?(tail, depth, remaining - 1)
+
+  defp bounded_list?(_, _, _), do: false
 end
