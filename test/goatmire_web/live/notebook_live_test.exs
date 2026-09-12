@@ -75,9 +75,9 @@ defmodule GoatmireWeb.NotebookLiveTest do
     Clock.reset()
     :ok = Actions.enqueue([{nil, nil, :notebook, {:open, "01_iot_state_conflict"}}])
     assert_eventually(fn -> Actions.get(:notebook)[:slug] == "01_iot_state_conflict" end)
-    Clock.goto(17)
+    Clock.goto(22)
     Clock.play_to(5)
-    assert_eventually(fn -> Clock.snapshot().play_done[17] == 6 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[22] == 6 end)
     results = Actions.get(:notebook).results
     assert Enum.all?([6, 8, 10], &(results[&1].status == :ok))
     Clock.reset()

@@ -217,10 +217,12 @@ defmodule Goatmire.Talk.ClockTest do
 
   test "the previous checkpoint schema starts at the holding slide" do
     Clock.goto(16)
+
     Store.get()
     |> Map.put(:version, 2)
     |> Map.delete(:deck_id)
     |> Store.put()
+
     kill_and_await_restart()
     assert %{slide: 1, started?: false} = Clock.snapshot()
   end
