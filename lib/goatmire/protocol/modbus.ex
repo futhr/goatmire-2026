@@ -11,6 +11,12 @@ defmodule Goatmire.Protocol.Modbus do
   Supports `0x03` read holding registers and `0x04` read input registers.
   Writes are deliberately absent: nothing here should be able to actuate a
   physical industrial output.
+
+  Reads accept 1–125 registers within the 16-bit address space and an 8-bit
+  unit ID. Invalid request fields return `{:error, :invalid_request}` before
+  sending. Responses must match the transaction, protocol, and unit ID, with
+  a length of 3–254 bytes including the unit ID. Callers should close the
+  socket after an error because unread response bytes may remain.
   """
 
   @read_holding 0x03
@@ -57,13 +63,33 @@ defmodule Goatmire.Protocol.Modbus do
   defp request(socket, function, address, count, opts) do
     unit_id = Keyword.get(opts, :unit_id, 1)
     timeout = Keyword.get(opts, :timeout, @default_timeout)
+
+    if valid_request?(address, count, unit_id, timeout) do
+      exchange(socket, function, address, count, unit_id, timeout)
+    else
+      {:error, :invalid_request}
+    end
+  end
+
+  defp valid_request?(address, count, unit_id, timeout) do
+    is_integer(address) and address in 0..65_535 and
+      is_integer(count) and count in 1..125 and address + count <= 65_536 and
+      is_integer(unit_id) and unit_id in 0..255 and
+      valid_timeout?(timeout)
+  end
+
+  defp valid_timeout?(:infinity), do: true
+  defp valid_timeout?(timeout), do: is_integer(timeout) and timeout >= 0
+
+  defp exchange(socket, function, address, count, unit_id, timeout) do
     txn = :erlang.unique_integer([:positive]) |> rem(0xFFFF)
 
     pdu = <<function::8, address::16, count::16>>
     frame = <<txn::16, 0::16, byte_size(pdu) + 1::16, unit_id::8>> <> pdu
 
     with :ok <- :gen_tcp.send(socket, frame),
-         {:ok, <<^txn::16, 0::16, length::16, _::8>>} <- recv(socket, 7, timeout),
+         {:ok, <<^txn::16, 0::16, length::16, ^unit_id::8>>} when length in 3..254 <-
+           recv(socket, 7, timeout),
          {:ok, body} <- recv(socket, length - 1, timeout) do
       decode(body, function, count)
     else

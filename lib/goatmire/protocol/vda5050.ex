@@ -181,6 +181,14 @@ defmodule Goatmire.Protocol.VDA5050 do
   """
   @spec readings_from_state(map()) :: {:ok, String.t(), [{String.t(), term()}]} | :error
   def readings_from_state(%{"serialNumber" => serial} = message) do
+    if Goatmire.Transport.valid_identifier?(serial),
+      do: {:ok, serial, state_readings(message)},
+      else: :error
+  end
+
+  def readings_from_state(_), do: :error
+
+  defp state_readings(message) do
     readings =
       [
         battery_reading(message),
@@ -190,10 +198,8 @@ defmodule Goatmire.Protocol.VDA5050 do
       ]
       |> Enum.reject(&is_nil/1)
 
-    {:ok, serial, readings}
+    readings
   end
-
-  def readings_from_state(_), do: :error
 
   defp battery_reading(%{"batteryState" => %{"batteryCharge" => charge}}),
     do: {"battery", charge}

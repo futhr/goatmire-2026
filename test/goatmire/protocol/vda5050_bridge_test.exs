@@ -23,6 +23,35 @@ defmodule Goatmire.Protocol.VDA5050.BridgeTest do
     assert_eventually(fn -> Bridge.vehicles()["agv-1"] == :connection_broken end)
   end
 
+  test "rejects mismatched and malformed identities before changing state or republishing" do
+    :ok = Local.subscribe(Transport.telemetry_topic("agv-7"))
+    connection = VDA5050.connection("agv-7", :online)
+    state = VDA5050.state("agv-7", %{battery: 44.0})
+    bridge = Process.whereis(Bridge)
+
+    for {kind, payload} <- [{:connection, connection}, {:state, state}] do
+      send(bridge, {:goatmire_publish, VDA5050.topic("other", kind), payload})
+
+      for serial <- [%{}, [], nil, "", "a/b", <<255>>] do
+        send(
+          bridge,
+          {:goatmire_publish, VDA5050.topic("agv-7", kind),
+           Map.put(payload, "serialNumber", serial)}
+        )
+      end
+    end
+
+    send(
+      bridge,
+      {:goatmire_publish, VDA5050.topic("agv-7", :connection),
+       Map.put(connection, "connectionState", "UNKNOWN")}
+    )
+
+    assert Bridge.vehicles() == %{}
+    assert Process.whereis(Bridge) == bridge
+    refute_receive {:goatmire_publish, "goatmire/things/agv-7/telemetry", _}
+  end
+
   test "turns VDA state into the engine telemetry vocabulary" do
     :ok = Local.subscribe(Transport.telemetry_topic("agv-7"))
 

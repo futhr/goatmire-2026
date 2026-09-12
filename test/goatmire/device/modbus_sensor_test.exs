@@ -85,6 +85,37 @@ defmodule Goatmire.Device.ModbusSensorTest do
   end
 
   describe "Modbus TCP wire protocol" do
+    test "rejects invalid requests before touching the socket" do
+      for {address, count, opts} <- [
+            {-1, 1, []},
+            {65_536, 1, []},
+            {65_535, 2, []},
+            {0, 0, []},
+            {0, 126, []},
+            {1.0, 1, []},
+            {0, 1, [unit_id: 256]},
+            {0, 1, [unit_id: -1]},
+            {0, 1, [timeout: -1]}
+          ] do
+        assert {:error, :invalid_request} =
+                 Modbus.read_input_registers(:unused, address, count, opts)
+      end
+    end
+
+    test "rejects invalid lengths and foreign response identities" do
+      for header <- [
+            fn txn, unit -> <<txn::16, 0::16, 0::16, unit::8>> end,
+            fn txn, unit -> <<txn::16, 0::16, 1::16, unit::8>> end,
+            fn txn, unit -> <<txn::16, 0::16, 255::16, unit::8>> end,
+            fn txn, unit -> <<txn::16, 0::16, 5::16, unit + 1::8>> end,
+            fn txn, unit -> <<txn + 1::16, 0::16, 5::16, unit::8>> end,
+            fn txn, unit -> <<txn::16, 1::16, 5::16, unit::8>> end
+          ] do
+        assert {:error, {:unexpected_header, _}} =
+                 request_from_fake_device(0x04, <<0x04, 2, 42::16>>, header)
+      end
+    end
+
     test "reads input and holding registers from a TCP endpoint" do
       assert {:ok, [123, 456]} = request_from_fake_device(0x04, <<0x04, 4, 123::16, 456::16>>)
       assert {:ok, [321]} = request_from_fake_device(0x03, <<0x03, 2, 321::16>>)
@@ -101,7 +132,7 @@ defmodule Goatmire.Device.ModbusSensorTest do
     end
   end
 
-  defp request_from_fake_device(function, body) do
+  defp request_from_fake_device(function, body, header \\ nil) do
     {:ok, listener} = :gen_tcp.listen(0, [:binary, active: false, reuseaddr: true])
     {:ok, {_, port}} = :inet.sockname(listener)
 
@@ -113,7 +144,12 @@ defmodule Goatmire.Device.ModbusSensorTest do
         <<transaction::16, 0::16, 6::16, unit_id::8, ^function::8, _::16, _::16>> =
           request
 
-        response = <<transaction::16, 0::16, byte_size(body) + 1::16, unit_id::8>> <> body
+        response_header =
+          if header,
+            do: header.(transaction, unit_id),
+            else: <<transaction::16, 0::16, byte_size(body) + 1::16, unit_id::8>>
+
+        response = response_header <> body
         :ok = :gen_tcp.send(socket, response)
         :gen_tcp.close(socket)
         :gen_tcp.close(listener)

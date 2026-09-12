@@ -8,6 +8,10 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   `CONNECTIONBROKEN` arrives either as the broker-published Last Will or from
   this bridge's own liveness deadline. Vehicles in that state are reported, not
   removed.
+
+  Inbound serial numbers must be valid telemetry identifiers and match the
+  subscribed topic exactly. Malformed connection states are ignored. This is
+  a consistency check on the demo broker, not device authentication.
   """
 
   use GenServer
@@ -98,13 +102,19 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
 
   def handle_info(_, state), do: {:noreply, state}
 
-  defp route(topic, payload, state) do
-    cond do
-      String.ends_with?(topic, "/state") -> handle_state(payload, state)
-      String.ends_with?(topic, "/connection") -> handle_connection(payload, state)
-      true -> state
+  defp route(topic, %{"serialNumber" => serial} = payload, state) do
+    if Transport.valid_identifier?(serial) do
+      cond do
+        topic == VDA5050.topic(serial, :state) -> handle_state(payload, state)
+        topic == VDA5050.topic(serial, :connection) -> handle_connection(payload, state)
+        true -> state
+      end
+    else
+      state
     end
   end
+
+  defp route(_, _, state), do: state
 
   defp handle_state(payload, state) do
     case VDA5050.readings_from_state(payload) do
@@ -123,7 +133,8 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
     end
   end
 
-  defp handle_connection(%{"serialNumber" => serial, "connectionState" => connection}, state) do
+  defp handle_connection(%{"serialNumber" => serial, "connectionState" => connection}, state)
+       when connection in ["ONLINE", "OFFLINE", "CONNECTIONBROKEN"] do
     mark(state, serial, decode_connection(connection))
   end
 
@@ -132,7 +143,6 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   defp decode_connection("ONLINE"), do: :online
   defp decode_connection("OFFLINE"), do: :offline
   defp decode_connection("CONNECTIONBROKEN"), do: :connection_broken
-  defp decode_connection(_), do: :connection_broken
 
   defp mark(state, serial, connection) do
     previous = get_in(state.vehicles, [serial, Access.key(:connection)])
