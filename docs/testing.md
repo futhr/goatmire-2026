@@ -22,6 +22,32 @@ keys normalize to JSON strings without changing scalar types. Diagnostic
 templates must remain compatible with the recorded verdict and runtime fields;
 a model classification alone is not conflict evidence.
 
+A second round added regressions for the boundaries below. Each one asserts
+observable behaviour, and each was first run against the unfixed code to
+confirm it fails there.
+
+- **Transport addressing.** A device subscribed to one exact topic is not
+  handed another device's traffic at all, and a wildcard holder still receives
+  each message exactly once. Broker deliveries reach exact-topic subscribers
+  too, so the MQTT and local transports stay interchangeable.
+- **Deployment provenance.** A deployment that activates nothing — a commit
+  past its deadline, or a rejected addition — leaves the running set's verdict,
+  mode, scenario, and run identity alone. The caller still receives the
+  `:unverified` or `:conflicts` verdict for its own attempt.
+- **Interpreter readiness.** An interpreter that answers `maude --version` but
+  cannot load the bundled models is not treated as usable: the pool stays out
+  of the supervision tree, the application still boots, `health/0` reports an
+  error rather than a version, and verdicts are `:unverified`.
+- **Device adapters.** A physical device's readings are accepted on the engine's
+  terms (payload identity bound to the topic, property count bounded). Modbus
+  refuses an unusable host, port, or timeout instead of raising into its
+  supervisor. The VDA 5050 bridge bounds tracked vehicles and refuses orders it
+  could not build. Only the canonical `dock-N` spelling resolves to a position.
+- **Client payloads.** A malformed `/metrics` window payload falls back to the
+  default instead of killing the LiveView process.
+- **Subprocess lifetime.** A timed-out Codex turn signals its app server, so an
+  external process that ignores stdin EOF does not outlive the request.
+
 ## Connected dashboard E2E
 
 The browser lane follows the other Phoenix applications in this workspace: PhoenixTest drives Playwright's bundled Chromium, with no workstation Chrome or ChromeDriver coupling:
