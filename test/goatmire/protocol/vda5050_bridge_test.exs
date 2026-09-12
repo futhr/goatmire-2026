@@ -82,6 +82,47 @@ defmodule Goatmire.Protocol.VDA5050.BridgeTest do
     assert receive_payload()["headerId"] == 1
   end
 
+  test "an unbuildable order is refused in the caller, keeping vehicle state" do
+    publish_connection("agv-5", :online)
+    assert_eventually(fn -> Bridge.vehicles()["agv-5"] == :online end)
+    bridge = Process.whereis(Bridge)
+
+    for {serial, node_id, position} <- [
+          {"agv-5", "dock-7", nil},
+          {"agv-5", "dock-7", {1.0, "y"}},
+          {"agv-5", "", {1.0, 2.0}},
+          {"agv-5", nil, {1.0, 2.0}},
+          {"a/b", "dock-7", {1.0, 2.0}},
+          {"", "dock-7", {1.0, 2.0}}
+        ] do
+      assert {:error, :invalid_order} = Bridge.send_order(serial, node_id, position)
+    end
+
+    assert Process.whereis(Bridge) == bridge
+    assert Bridge.vehicles()["agv-5"] == :online
+  end
+
+  test "the tracked vehicle count is bounded" do
+    bridge = Process.whereis(Bridge)
+    limit = 4_096
+
+    for n <- 1..(limit + 50) do
+      send(
+        bridge,
+        {:goatmire_publish, VDA5050.topic("veh-#{n}", :connection),
+         VDA5050.connection("veh-#{n}", :online)}
+      )
+    end
+
+    assert_eventually(fn -> map_size(Bridge.vehicles()) == limit end, 200)
+    assert Process.whereis(Bridge) == bridge
+
+    # A vehicle already tracked still updates after the bound is reached.
+    tracked = Bridge.vehicles() |> Map.keys() |> hd()
+    publish_connection(tracked, :offline)
+    assert_eventually(fn -> Bridge.vehicles()[tracked] == :offline end)
+  end
+
   test "marks a silent online vehicle connection-broken" do
     publish_connection("agv-4", :online)
     assert_eventually(fn -> Bridge.vehicles()["agv-4"] == :online end)

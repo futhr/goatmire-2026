@@ -10,8 +10,10 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   removed.
 
   Inbound serial numbers must be valid telemetry identifiers and match the
-  subscribed topic exactly. Malformed connection states are ignored. This is
-  a consistency check on the demo broker, not device authentication.
+  subscribed topic exactly. Malformed connection states are ignored, and the
+  number of tracked vehicles is bounded, so an unauthenticated broker client
+  cannot grow this state without limit. This is a consistency check on the demo
+  broker, not device authentication.
   """
 
   use GenServer
@@ -31,6 +33,8 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   # time.
   @default_deadline_ms 5_000
   @sweep_ms 1_000
+  # Matches the engine's bound on distinct Things.
+  @vehicle_limit 4_096
 
   @doc "Starts the VDA 5050 MQTT bridge."
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -52,11 +56,26 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   Called by whatever is actuating; the engine's own `set_prop` path stays on
   the native command topic, so a VDA 5050 vehicle and a native one are driven
   through their own vocabularies rather than a lowest common denominator.
+
+  An order whose serial, node, or position could not build a valid message
+  returns `{:error, :invalid_order}` in the caller rather than reaching the
+  bridge, which would otherwise lose every vehicle's state with it.
   """
   @spec send_order(String.t(), String.t(), {number(), number()}) :: :ok | {:error, term()}
   def send_order(serial, node_id, position) do
-    GenServer.call(__MODULE__, {:order, serial, node_id, position})
+    if valid_order?(serial, node_id, position) do
+      GenServer.call(__MODULE__, {:order, serial, node_id, position})
+    else
+      {:error, :invalid_order}
+    end
   end
+
+  defp valid_order?(serial, node_id, {x, y}) do
+    Transport.valid_identifier?(serial) and is_binary(node_id) and node_id != "" and
+      is_number(x) and is_number(y)
+  end
+
+  defp valid_order?(_, _, _), do: false
 
   @impl true
   def init(opts) do
@@ -145,6 +164,20 @@ defmodule Goatmire.Protocol.VDA5050.Bridge do
   defp decode_connection("CONNECTIONBROKEN"), do: :connection_broken
 
   defp mark(state, serial, connection) do
+    if Map.has_key?(state.vehicles, serial) or map_size(state.vehicles) < @vehicle_limit do
+      track(state, serial, connection)
+    else
+      :telemetry.execute(
+        [:goatmire, :vda5050, :rejected],
+        %{count: 1},
+        %{serial_number: serial, reason: :vehicle_limit}
+      )
+
+      state
+    end
+  end
+
+  defp track(state, serial, connection) do
     previous = get_in(state.vehicles, [serial, Access.key(:connection)])
 
     vehicle = %{connection: connection, last_seen_at: System.monotonic_time(:millisecond)}
