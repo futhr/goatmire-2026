@@ -174,12 +174,19 @@ defmodule Goatmire.Diagnostics.CodexRunner do
   end
 
   defp terminate_child(os_pid) do
-    System.cmd("kill", ["-TERM", Integer.to_string(os_pid)], stderr_to_stdout: true)
+    System.cmd("kill", ["-TERM", Integer.to_string(os_pid)],
+      env: cleared_environment(),
+      stderr_to_stdout: true
+    )
+
     :ok
   rescue
     # No `kill` on this host: the port is closed either way.
     _ -> :ok
   end
+
+  # `kill` needs no environment, so it inherits none of this node's.
+  defp cleared_environment, do: Enum.map(System.get_env(), fn {name, _} -> {name, nil} end)
 
   defp open_port(codex) do
     Port.open(

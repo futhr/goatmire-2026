@@ -118,7 +118,7 @@ defmodule Goatmire.Protocol.VDA5050.BridgeTest do
     assert Process.whereis(Bridge) == bridge
 
     # A vehicle already tracked still updates after the bound is reached.
-    tracked = Bridge.vehicles() |> Map.keys() |> hd()
+    [tracked | _] = Map.keys(Bridge.vehicles())
     publish_connection(tracked, :offline)
     assert_eventually(fn -> Bridge.vehicles()[tracked] == :offline end)
   end

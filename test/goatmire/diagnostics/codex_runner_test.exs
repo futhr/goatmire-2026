@@ -104,7 +104,7 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
            "the fake app server never started, so the orphan check could not run"
 
     on_exit(fn ->
-      if running?(os_pid), do: System.cmd("kill", ["-KILL", os_pid], stderr_to_stdout: true)
+      if running?(os_pid), do: signal(os_pid, "-KILL")
     end)
 
     assert await_exit(os_pid, deadline(5_000)) == :ok
@@ -136,8 +136,16 @@ defmodule Goatmire.Diagnostics.CodexRunnerTest do
   end
 
   defp running?(os_pid) do
-    {_, status} = System.cmd("kill", ["-0", os_pid], stderr_to_stdout: true)
+    {_, status} = signal(os_pid, "-0")
     status == 0
+  end
+
+  # No environment for the child: it only needs to name a pid.
+  defp signal(os_pid, flag) do
+    System.cmd("kill", [flag, os_pid],
+      env: Enum.map(System.get_env(), fn {name, _} -> {name, nil} end),
+      stderr_to_stdout: true
+    )
   end
 
   test "runs one ephemeral app-server completion and returns compact usage", %{executable: script} do
