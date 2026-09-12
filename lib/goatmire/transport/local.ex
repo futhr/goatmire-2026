@@ -3,16 +3,21 @@ defmodule Goatmire.Transport.Local do
   In-BEAM transport over `Phoenix.PubSub`. The default — no broker, no
   configuration.
 
-  MQTT topic filters are honoured by subscribing to a fan-out topic and
-  filtering on delivery, so wildcard semantics (`+`, `#`) match the broker
-  implementation. Messages arrive as `{:goatmire_publish, topic, payload}`;
-  subscribers pass them through `accept/1`.
+  MQTT topic filters are honoured, so wildcard semantics (`+`, `#`) match the
+  broker implementation. An exact filter subscribes to that one topic, so a
+  device receives only the messages addressed to it. A wildcard filter
+  subscribes to a fan-out topic and filters on delivery; a process holding any
+  wildcard listens on the fan-out alone, so no message arrives twice.
+
+  Messages arrive as `{:goatmire_publish, topic, payload}`; subscribers pass
+  them through `accept/1`.
   """
 
   @behaviour Goatmire.Transport
 
   @pubsub Goatmire.PubSub
   @fanout "goatmire:transport"
+  @exact_prefix "goatmire:transport:"
 
   @impl Goatmire.Transport
   def child_spec(_) do
@@ -25,22 +30,43 @@ defmodule Goatmire.Transport.Local do
 
   @impl Goatmire.Transport
   def publish(topic, payload) do
-    Phoenix.PubSub.broadcast(@pubsub, @fanout, {:goatmire_publish, topic, payload})
+    message = {:goatmire_publish, topic, payload}
+
+    with :ok <- Phoenix.PubSub.broadcast(@pubsub, @fanout, message) do
+      Phoenix.PubSub.broadcast(@pubsub, exact_topic(topic), message)
+    end
   end
 
   @impl Goatmire.Transport
   def subscribe(filter) do
     filters = Process.get(__MODULE__, MapSet.new())
 
-    with :ok <-
-           if(MapSet.size(filters) == 0,
-             do: Phoenix.PubSub.subscribe(@pubsub, @fanout),
-             else: :ok
-           ) do
+    with :ok <- register(filter, filters) do
       Process.put(__MODULE__, MapSet.put(filters, filter))
       :ok
     end
   end
+
+  # One listening point per process: the fan-out serves every wildcard holder,
+  # and an exact-only subscriber never sees another device's traffic.
+  defp register(filter, filters) do
+    cond do
+      MapSet.member?(filters, filter) -> :ok
+      Enum.any?(filters, &wildcard?/1) -> :ok
+      wildcard?(filter) -> subscribe_fanout(filters)
+      true -> Phoenix.PubSub.subscribe(@pubsub, exact_topic(filter))
+    end
+  end
+
+  defp subscribe_fanout(filters) do
+    with :ok <- Phoenix.PubSub.subscribe(@pubsub, @fanout) do
+      Enum.each(filters, &Phoenix.PubSub.unsubscribe(@pubsub, exact_topic(&1)))
+    end
+  end
+
+  defp wildcard?(filter), do: Enum.any?(String.split(filter, "/"), &(&1 in ["+", "#"]))
+
+  defp exact_topic(topic), do: @exact_prefix <> topic
 
   @doc """
   Whether a published topic matches a subscribed filter, using MQTT wildcard
@@ -63,7 +89,7 @@ defmodule Goatmire.Transport.Local do
   defp match_levels(_, _), do: false
 
   @doc """
-  Filters an incoming fan-out message against this process's subscriptions.
+  Filters an incoming message against this process's subscriptions.
 
   A subscriber's `handle_info` calls this rather than matching the topic
   itself; it returns `{:ok, topic, payload}` only for topics the process

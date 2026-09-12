@@ -62,6 +62,50 @@ defmodule Goatmire.Transport.LocalTest do
 
       assert length(drain_accepted()) == 2
     end
+
+    test "an exact subscriber is not delivered another device's traffic at all" do
+      :ok = Transport.subscribe_commands("agv-7")
+
+      :ok = Transport.publish_command("agv-8", "destination", "dock-4")
+      :ok = Transport.publish_telemetry("agv-8", "battery", 11)
+      :ok = Transport.publish_command("agv-7", "destination", "dock-3")
+
+      assert [{"goatmire/things/agv-7/command", %{"value" => "dock-3"}}] = drain_delivered()
+    end
+
+    test "a wildcard holder receives each message once, exact filters included" do
+      :ok = Transport.subscribe_commands("agv-7")
+      :ok = Transport.subscribe_all_telemetry()
+
+      :ok = Transport.publish_command("agv-7", "destination", "dock-3")
+      :ok = Transport.publish_telemetry("agv-7", "battery", 11)
+
+      delivered = drain_delivered()
+
+      assert [
+               {"goatmire/things/agv-7/command", %{"value" => "dock-3"}},
+               {"goatmire/things/agv-7/telemetry", %{"value" => 11}}
+             ] = delivered
+    end
+
+    test "subscribing twice to one exact topic still delivers a single copy" do
+      :ok = Transport.subscribe_commands("agv-7")
+      :ok = Transport.subscribe_commands("agv-7")
+
+      :ok = Transport.publish_command("agv-7", "destination", "dock-3")
+
+      assert length(drain_delivered()) == 1
+    end
+  end
+
+  # Everything this process was handed, before `accept/1` filters it: the
+  # measure of how much traffic the transport copies into one mailbox.
+  defp drain_delivered(acc \\ []) do
+    receive do
+      {:goatmire_publish, topic, payload} -> drain_delivered([{topic, payload} | acc])
+    after
+      50 -> Enum.reverse(acc)
+    end
   end
 
   defp drain_accepted(acc \\ []) do

@@ -3,9 +3,9 @@ defmodule Goatmire.Transport.MQTT do
   MQTT 3.1.1 transport against a real broker, used by the Docker swarm and any
   physical device.
 
-  Holds one broker session per node and re-broadcasts inbound messages onto the
-  same local fan-out `Goatmire.Transport.Local` uses, so a subscriber's mailbox
-  is identical whichever transport is configured.
+  Holds one broker session per node and republishes inbound messages through
+  `Goatmire.Transport.Local`, so a subscriber's mailbox is identical whichever
+  transport is configured.
 
       config :goatmire,
         transport: Goatmire.Transport.MQTT,
@@ -86,7 +86,8 @@ defmodule Goatmire.Transport.MQTT do
 
   defmodule Handler do
     @moduledoc """
-    Bridges broker deliveries onto the local fan-out.
+    Bridges broker deliveries onto the local transport, so a subscriber's
+    mailbox is the same whichever transport is configured.
 
     Decoding failures are logged and dropped rather than crashing the session:
     a malformed payload from one device on a shared broker must not take the
@@ -97,8 +98,7 @@ defmodule Goatmire.Transport.MQTT do
 
     require Logger
 
-    @pubsub Goatmire.PubSub
-    @fanout "goatmire:transport"
+    alias Goatmire.Transport.Local
 
     @impl true
     def init(_), do: {:ok, %{}}
@@ -115,7 +115,7 @@ defmodule Goatmire.Transport.MQTT do
 
       case Goatmire.JSON.decode(payload) do
         {:ok, decoded} ->
-          Phoenix.PubSub.broadcast(@pubsub, @fanout, {:goatmire_publish, topic, decoded})
+          Local.publish(topic, decoded)
 
         {:error, reason} ->
           Logger.warning("mqtt: undecodable payload on #{topic} — #{inspect(reason)}")

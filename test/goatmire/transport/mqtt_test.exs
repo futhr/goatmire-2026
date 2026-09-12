@@ -74,6 +74,19 @@ defmodule Goatmire.Transport.MQTTTest do
     assert :ok = Handler.terminate(:normal, state)
   end
 
+  test "handler delivers to an exact-topic subscriber, not only wildcard holders" do
+    :ok = Local.subscribe("goatmire/things/agv-9/telemetry")
+    {:ok, state} = Handler.init([])
+
+    payload = Jason.encode!(%{"thing_id" => "agv-9", "property" => "battery", "value" => 18})
+
+    assert {:ok, ^state} =
+             Handler.handle_message(~w(goatmire things agv-9 telemetry), payload, state)
+
+    assert_receive {:goatmire_publish, "goatmire/things/agv-9/telemetry", decoded}, 500
+    assert decoded["value"] == 18
+  end
+
   test "handler drops ambiguous JSON before fan-out" do
     :ok = Local.subscribe("goatmire/things/+/telemetry")
     {:ok, state} = Handler.init([])
