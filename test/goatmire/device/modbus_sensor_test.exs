@@ -69,6 +69,14 @@ defmodule Goatmire.Device.ModbusSensorTest do
     test "a zero span does not divide by zero" do
       assert Modbus.to_milliamps(10, raw_min: 5, raw_max: 5, ma_min: 4.0, ma_max: 20.0) == 4.0
     end
+
+    test "an integer floor still scales to a float a reading can be rounded from" do
+      milliamps = Modbus.to_milliamps(10, raw_min: 5, raw_max: 5, ma_min: 4, ma_max: 20)
+
+      assert milliamps === 4.0
+      assert ModbusSensor.classify(milliamps) == :ok
+      assert Float.round(milliamps, 2) === 4.0
+    end
   end
 
   describe "end to end" do
@@ -99,6 +107,21 @@ defmodule Goatmire.Device.ModbusSensorTest do
           ] do
         assert {:error, :invalid_request} =
                  Modbus.read_input_registers(:unused, address, count, opts)
+      end
+    end
+
+    test "refuses an unusable host, port, or timeout without raising" do
+      for {host, opts} <- [
+            {"127.0.0.1", [port: 70_000]},
+            {"127.0.0.1", [port: -1]},
+            {"127.0.0.1", [port: "502"]},
+            {"127.0.0.1", [timeout: -1]},
+            {"127.0.0.1", [timeout: "2000"]},
+            {"", []},
+            {nil, []},
+            {{127, 0, 0}, []}
+          ] do
+        assert {:error, :invalid_request} = Modbus.connect(host, opts)
       end
     end
 

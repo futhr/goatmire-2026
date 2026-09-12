@@ -28,6 +28,10 @@ defmodule Goatmire.Protocol.Modbus do
   @doc """
   Opens a connection to a Modbus TCP device.
 
+  An unusable host, port, or timeout returns `{:error, :invalid_request}`
+  rather than raising, so one mistyped sensor setting cannot take its
+  supervisor down with it.
+
   ## Options
 
     * `:port` — default 502, the registered Modbus port
@@ -37,10 +41,22 @@ defmodule Goatmire.Protocol.Modbus do
   def connect(host, opts \\ []) do
     port = Keyword.get(opts, :port, 502)
     timeout = Keyword.get(opts, :timeout, @default_timeout)
-    host = if is_binary(host), do: String.to_charlist(host), else: host
 
-    :gen_tcp.connect(host, port, [:binary, active: false, packet: :raw], timeout)
+    if valid_host?(host) and valid_port?(port) and valid_timeout?(timeout) do
+      :gen_tcp.connect(address(host), port, [:binary, active: false, packet: :raw], timeout)
+    else
+      {:error, :invalid_request}
+    end
   end
+
+  defp valid_host?(host) when is_binary(host), do: host != "" and String.valid?(host)
+  defp valid_host?(host) when is_tuple(host), do: :inet.is_ip_address(host)
+  defp valid_host?(_), do: false
+
+  defp valid_port?(port), do: is_integer(port) and port in 0..65_535
+
+  defp address(host) when is_binary(host), do: String.to_charlist(host)
+  defp address(host), do: host
 
   @doc "Closes a Modbus TCP connection."
   @spec close(conn()) :: :ok
@@ -137,6 +153,10 @@ defmodule Goatmire.Protocol.Modbus do
     ma_max = Keyword.get(opts, :ma_max, 20.0)
 
     span = raw_max - raw_min
-    if span == 0, do: ma_min, else: ma_min + (raw - raw_min) / span * (ma_max - ma_min)
+
+    # Always a float, so a zero span cannot hand an integer to a float caller.
+    if span == 0,
+      do: ma_min * 1.0,
+      else: ma_min + (raw - raw_min) / span * (ma_max - ma_min)
   end
 end
