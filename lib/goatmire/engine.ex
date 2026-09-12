@@ -213,25 +213,13 @@ defmodule Goatmire.Engine do
     mode = deployment_mode(opts)
     scenario = Keyword.get(opts, :scenario, :deploy)
     run_id = Keyword.get_lazy(opts, :run_id, &new_run_id/0)
+    retained? = retain_active?(opts, verdict)
 
     %{admitted: admitted, withheld: withheld} =
-      if mode == :enforce do
-        Gate.split_on_verdict(rules, verdict)
-      else
-        # Even observe-only simulation does not turn absence of a verdict into
-        # permission to activate.
-        case verdict.status do
-          :unverified -> %{admitted: [], withheld: rules}
-          _ -> %{admitted: rules, withheld: []}
-        end
-      end
-
-    %{admitted: admitted, withheld: withheld} =
-      if Keyword.get(opts, :preserve_active, false) or
-           (Keyword.get(opts, :admission, false) and verdict.status != :clean) do
+      if retained? do
         %{admitted: state.rules, withheld: rules -- state.rules}
       else
-        %{admitted: admitted, withheld: withheld}
+        split_candidates(rules, mode, verdict)
       end
 
     verification = %{
@@ -253,18 +241,27 @@ defmodule Goatmire.Engine do
       %{status: verdict.status, mode: mode, scenario: scenario, run_id: run_id}
     )
 
-    state = %{
-      state
-      | revision: state.revision + 1,
-        rules: admitted,
-        index: RuleEval.index(admitted),
-        verdict: verdict,
-        mode: mode,
-        withheld: rule_ids(withheld),
-        verification: verification,
-        scenario: scenario,
-        run_id: run_id
-    }
+    state =
+      if retained? do
+        # Nothing was activated, so nothing about the running set changed. Only
+        # the withheld list is news; restamping the verdict, mode, or run
+        # identity would attribute this attempt's outcome to rules it never
+        # re-verified.
+        %{state | withheld: rule_ids(withheld)}
+      else
+        %{
+          state
+          | revision: state.revision + 1,
+            rules: admitted,
+            index: RuleEval.index(admitted),
+            verdict: verdict,
+            mode: mode,
+            withheld: rule_ids(withheld),
+            verification: verification,
+            scenario: scenario,
+            run_id: run_id
+        }
+      end
 
     result = %{
       verdict: verdict,
@@ -278,6 +275,22 @@ defmodule Goatmire.Engine do
     broadcast({:engine_deployed, result})
     {:reply, {:ok, result}, state}
   end
+
+  # A timed-out commit keeps the last valid state; a rejected addition keeps the
+  # set it was checked against.
+  defp retain_active?(opts, verdict) do
+    Keyword.get(opts, :preserve_active, false) or
+      (Keyword.get(opts, :admission, false) and verdict.status != :clean)
+  end
+
+  defp split_candidates(rules, :enforce, verdict), do: Gate.split_on_verdict(rules, verdict)
+
+  # Even observe-only simulation does not turn absence of a verdict into
+  # permission to activate.
+  defp split_candidates(rules, :observe, %{status: :unverified}),
+    do: %{admitted: [], withheld: rules}
+
+  defp split_candidates(rules, :observe, _), do: %{admitted: rules, withheld: []}
 
   defp prepare_deployment(kind, rules, opts) do
     opts = Keyword.put(opts, :mode, deployment_mode(opts))

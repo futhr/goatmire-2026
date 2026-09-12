@@ -134,6 +134,47 @@ defmodule Goatmire.EngineTest do
     assert Engine.deployed_rules() == [first]
   end
 
+  test "a rejected addition keeps the running set's verdict and reports the withheld rule" do
+    [first, second] = Rules.state_conflict_pair()
+    {:ok, deployment} = Engine.deploy([first], scenario: :baseline)
+    StubVerifier.set({:conflicts, [%{type: :state_conflict, rule1: first.id, rule2: second.id}]})
+
+    assert {:ok, %{verdict: %{status: :conflicts}, deployed: 1, withheld: withheld}} =
+             Engine.admit([second])
+
+    assert withheld == [second.id]
+
+    status = Engine.status()
+    assert Engine.deployed_rules() == [first]
+    assert status.verdict.status == :clean
+    assert status.run_id == deployment.run_id
+    assert status.scenario == :baseline
+    assert status.withheld == [second.id]
+  end
+
+  test "a timed-out replacement keeps the running set's verdict, mode, and identity" do
+    rules = Rules.clean_set()
+    {:ok, deployment} = Engine.deploy(rules, scenario: :baseline)
+    recorded = Engine.status()
+
+    Application.put_env(:goatmire, :verifier, SlowVerifier)
+    candidates = Rules.state_conflict_pair()
+
+    assert {:ok, %{verdict: %{status: :unverified, reason: :timeout}, deployed: 5}} =
+             Engine.deploy(candidates, timeout: 120, mode: :observe, observer: self())
+
+    assert_receive {:checking, _}
+
+    status = Engine.status()
+    assert Engine.deployed_rules() == rules
+    assert status.verdict.status == :clean
+    assert status.mode == :enforce
+    assert status.scenario == :baseline
+    assert status.run_id == deployment.run_id
+    assert status.verification == recorded.verification
+    assert status.withheld == Enum.map(candidates, & &1.id)
+  end
+
   defmodule FailingTransport do
     @moduledoc false
     @spec publish(term(), term()) :: {:error, :disconnected}
