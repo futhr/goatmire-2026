@@ -3,15 +3,40 @@ defmodule GoatmireWeb.PresenterE2ETest do
 
   use GoatmireWeb.E2ECase,
     async: false,
-    browser_context_opts: [viewport: %{width: 1_440, height: 1_000}]
+    browser_context_opts: [viewport: %{width: 1_280, height: 720}, reduced_motion: :reduce]
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.Clock
+  alias Goatmire.Talk.{Clock, Deck}
 
   @moduletag :e2e
   @moduletag timeout: 60_000
 
   setup :reset_presenter
+
+  test "every projected slide keeps its content inside the screen", %{conn: conn} do
+    conn = visit(conn, "/talk")
+
+    for {slide, title} <- Deck.titles() do
+      Clock.goto(slide)
+
+      conn
+      |> assert_has("#deck-slide-#{slide} section[aria-label=\"#{title}\"]")
+      |> evaluate(
+        """
+        (() => {
+          const slide = document.querySelector('.deck-slide .slide');
+          const box = slide.getBoundingClientRect();
+          return [...slide.querySelectorAll('*')].filter(element => {
+            const child = element.getBoundingClientRect();
+            return child.left < box.left - 1 || child.right > box.right + 1 ||
+              child.top < box.top - 1 || child.bottom > box.bottom + 1;
+          }).map(element => element.textContent.trim());
+        })()
+        """,
+        fn overflow -> assert overflow == [], "slide #{slide} clips #{inspect(overflow)}" end
+      )
+    end
+  end
 
   test "the projector stays keyboard-driven and free of visual controls", %{conn: conn} do
     conn
@@ -31,17 +56,17 @@ defmodule GoatmireWeb.PresenterE2ETest do
   test "typing in an embedded form does not advance the deck", %{conn: conn} do
     conn = visit(conn, "/talk")
 
-    # Slide 15 is the diagnostics beat; revealing opens its pane.
-    Clock.goto(15)
+    # Slide 18 is the diagnostics beat; revealing opens its pane.
+    Clock.goto(18)
     Clock.reveal()
 
     conn
     |> assert_has("#diagnostic-prompt")
     |> type("#diagnostic-prompt", "why")
     |> press("#diagnostic-prompt", " ")
-    |> assert_has("#deck-slide-15")
+    |> assert_has("#deck-slide-18")
 
-    assert %{slide: 15} = Clock.snapshot()
+    assert %{slide: 18} = Clock.snapshot()
   end
 
   defp reset_presenter(_) do
@@ -88,7 +113,7 @@ defmodule GoatmireWeb.PresenterControlsE2ETest do
 
     assert %{slide: 2, panel: :live_full} = Clock.snapshot()
 
-    Clock.goto(17)
+    Clock.goto(22)
 
     conn
     |> assert_has(".speaker-controls-dynamic button", count: 7)

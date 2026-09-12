@@ -369,7 +369,7 @@ defmodule Goatmire.Talk.Clock do
         :play_done
       ])
 
-    saved = Map.merge(saved, %{version: 2, saved_at_ms: now_ms()})
+    saved = Map.merge(saved, %{version: 3, deck_id: Deck.identity(), saved_at_ms: now_ms()})
     Store.put(saved)
 
     with path when is_binary(path) <- Config.talk_state_path() do
@@ -424,7 +424,8 @@ defmodule Goatmire.Talk.Clock do
   defp valid_zoom?(zoom), do: is_number(zoom) and zoom >= 0.7 and zoom <= 1.5
 
   defp valid_saved?(%{
-         version: 2,
+         version: 3,
+         deck_id: deck_id,
          slide: slide,
          saved_at_ms: saved_at,
          started_at_ms: started,
@@ -435,7 +436,8 @@ defmodule Goatmire.Talk.Clock do
          zoom: zoom,
          play_done: done
        }) do
-    slide in 1..@slide_count and is_integer(saved_at) and panel in @panels and tab in @tabs and
+    deck_id === Deck.identity() and slide in 1..@slide_count and is_integer(saved_at) and
+      panel in @panels and tab in @tabs and
       valid_zoom?(zoom) and
       valid_times?(started, entered, saved_at) and valid_durations?(accumulated) and
       valid_progress?(done)

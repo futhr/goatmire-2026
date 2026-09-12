@@ -92,13 +92,13 @@ Use the seven-beat spine and slide anchors from [`../talk/memorize.md`](../talk/
 
 | Checkpoint | Target |
 |---|---:|
-| research-derived pair introduced | 00:45 |
-| narrow-check boundary complete | 08:35 |
-| three verdicts complete | 12:05 |
-| LIVE 01 starts | 13:05 |
-| LIVE 02 starts | 14:45 |
-| LIVE 03 starts | 18:15 |
-| AI-policy transfer starts | 20:05 |
+| research-derived pair introduced (2) | 00:40 |
+| narrow-check boundary complete | 07:25 |
+| three verdicts complete | 10:05 |
+| LIVE 01 starts | 11:45 |
+| LIVE 02 starts | 13:15 |
+| LIVE 03 starts | 16:30 |
+| AI-policy transfer starts | 18:10 |
 | closing begins | 24:35 |
 | prepared talk stops | 25:00–26:00 |
 

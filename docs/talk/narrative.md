@@ -83,7 +83,7 @@ Open with the SOTERIA-derived contact-open pair. Show why reviewing each rule al
 
 ### Act 2 — A narrow formal gate (about 9 minutes)
 
-Explain Maude in one picture: validated rules, explicit conflict definitions, and a concrete answer. Show the shared rule representation and the three-verdict result. Keep language mechanics, partitioning, and backend comparisons for Q&A. Avoid universal latency or scale claims.
+Explain Maude in one picture: validated rules, explicit conflict definitions, and a concrete answer. Show the shared rule representation and the three-verdict result. Explain the reduce/search distinction and conservative partitioning briefly; keep backend comparisons for Q&A. Avoid universal latency or scale claims.
 
 ### Act 3 — Observe, enforce, then ask the system (about 7 minutes)
 

@@ -59,7 +59,7 @@ alone.
 
 ## Narrative rhythm
 
-Eighteen main slides fit the 30-minute slot. The deck carries roughly 13–15
+Twenty-five main slides fit the 30-minute slot. The deck carries roughly 13–15
 minutes of prepared speech, 7–8 minutes of live interaction, deliberate reading
 silence, and at least 4 minutes of recovery or questions.
 
@@ -81,5 +81,5 @@ recovery point if a fallback recording is needed.
 - [`tooling.md`](./tooling.md) — the no-Diggymon build decision and runbook.
 
 This design system also drives the merged presenter at `/talk`, which is the
-stage surface — the Marp deck and its exports are a frozen archive
+stage surface — the Markdown deck records the same sequence; standalone exports are not built
 (see [`tooling.md`](./tooling.md)).

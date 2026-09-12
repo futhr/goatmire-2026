@@ -135,7 +135,7 @@ Never present a generated explanation as a proof. If the explanation conflicts w
 - [ ] Confirm Maude, Codex account/quota state, and the Ollama model with `mix goatmire.health`.
 - [ ] Run one observe/enforce pair with the final fleet size.
 - [ ] Ask one BeamLens prompt and confirm the answer cites snapshot fields.
-- [ ] On slide 17, run all six embedded notebook steps and inspect missing approval, added approval, and wrong-region results.
+- [ ] On slide 22, run all six embedded notebook steps and inspect missing approval, added approval, and wrong-region results.
 - [ ] Store the final benchmark artifact with the rehearsal notes.
 - [ ] Rehearse both-model-failure and Maude-`unverified` fallbacks aloud.
 - [ ] If any live number differs from rehearsal, read the live result and discard the prepared number.

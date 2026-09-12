@@ -15,9 +15,9 @@ defmodule Goatmire.Talk.Script do
   @sections (
               source = File.read!(@manuscript_path)
 
-              ~r/^## (\d+) · .+? — (\d{2}:\d{2})\s*$\n(.*?)(?=^---\s*$)/ms
+              ~r/^## (\d+) · (.+?) — (\d{2}:\d{2})\s*$\n(.*?)(?=^---\s*$)/ms
               |> Regex.scan(source)
-              |> Enum.map(fn [_, number, time, body] ->
+              |> Enum.map(fn [_, number, title, time, body] ->
                 number = String.to_integer(number)
 
                 paragraphs =
@@ -33,15 +33,15 @@ defmodule Goatmire.Talk.Script do
 
                 %{
                   number: number,
-                  title: Deck.title(number),
+                  title: title,
                   time: time,
                   paragraphs: paragraphs
                 }
               end)
             )
 
-  if length(@sections) != Deck.count() do
-    raise "manuscript has #{length(@sections)} slide sections; deck has #{Deck.count()}"
+  if Enum.map(@sections, &{&1.number, &1.title}) != Deck.titles() do
+    raise "manuscript slide identities and order must match Goatmire.Talk.Deck"
   end
 
   @type section :: %{

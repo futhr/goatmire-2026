@@ -72,7 +72,7 @@ rehearse-solo:
 	@echo "==> Solo rehearsal — seven beats and anchors first; manuscript only as recovery."
 	@open docs/talk/manuscript.md || xdg-open docs/talk/manuscript.md || cat docs/talk/manuscript.md
 
-# The learning cut: seven beats, eighteen anchors, and protected lines.
+# The learning cut: seven beats, twenty-five anchors, and protected lines.
 learn:
 	@open docs/talk/memorize.md || xdg-open docs/talk/memorize.md || cat docs/talk/memorize.md
 

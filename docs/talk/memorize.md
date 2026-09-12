@@ -1,4 +1,4 @@
-# Learn the talk — seven beats and eighteen anchors
+# Learn the talk — seven beats and twenty-five anchors
 
 The full wording lives in [`manuscript.md`](./manuscript.md) and on the private iPad notes view. It is a recovery aid, not a memorization assignment.
 
@@ -25,23 +25,30 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 | Slide | Anchor | Exit |
 |---:|---|---|
 | 1 | Hi. I’m Tobias. | “Be more careful” is not a deployment control. |
-| 2 | This example comes from a published smart-home study called SOTERIA. | The problem appears when both rules live in the same system. |
-| 3 | Look at the two values: on and off. | Reasonable alone can become unreasonable together. |
-| 4 | The relationship exists before a device moves. | The check belongs before “let this rule run.” |
-| 5 | Why not solve this with more tests? | A smaller question can support a stronger answer. |
-| 6 | Maude is the tool doing that check. | Maude checks what we described. |
-| 7 | This demo checks four kinds of interaction. | If it is not represented, the checker does not see it. |
-| 8 | Let’s say exactly what a clean result means. | It is a narrower sentence I can defend. |
-| 9 | Maude behaves like an ordinary dependency. | It lives inside the application’s failure handling. |
-| 10 | This is the implementation choice I care about most. | Check the same rule you run. |
-| 11 | The gate keeps three answers, not two. | Unverified rules do not deploy. |
-| 12 | Formal checking is only as trustworthy as the path around it. | Every arrow deserves a test. |
-| 13 | Now we will put the gate in the deployment path. | The conflicting pair never becomes active. |
-| 14 | Now we will run the same simulated shift change twice. | The difference happened before activation. |
-| 15 | We have numbers; now let’s ask the system to explain them. | Maude decided; the language model explained. |
-| 16 | The same boundary is useful when AI writes the first draft. | The author does not grade its own work. |
-| 17 | This last demo is deliberately boring. | Three inputs; three readable answers. |
-| 18 | Please take away three things. | A narrow claim can be strong without becoming broad. |
+| 2 | This example comes from a published smart-home study called SOTERIA. | A controlled reproduction is not a historical prevention claim. |
+| 3 | Each rule is easy to explain on its own. | The system runs all of them together. |
+| 4 | Nobody asked for the combined behavior on this slide. | Keep the published pattern and simulated load distinct. |
+| 5 | The relationship between these rules exists before a device moves and before an alert fires. | The check belongs before “let this rule run.” |
+| 6 | Why not solve this with more tests? | A smaller question can support a stronger answer. |
+| 7 | You need four Maude words to read the next slide. | Simplification and transitions support different questions. |
+| 8 | Reduce and search answer different questions. | This gate uses the equational detector. |
+| 9 | This demo checks four kinds of interaction. | If it is not represented, the checker does not see it. |
+| 10 | So let’s say exactly what a clean result means. | A clean result stays inside the model. |
+| 11 | Inside this Elixir application, Maude behaves like an ordinary dependency. | Maude lives inside the application’s failure handling. |
+| 12 | This is the implementation choice I care about most. | Check the same rule you run. |
+| 13 | The gate keeps three answers, not two. | An unverified rule is not deployed. |
+| 14 | Formal checking is only as trustworthy as the path around it. | Every arrow deserves a test. |
+| 15 | Partitioning reduces the comparisons we ask Maude to make. | Read counts; do not memorize a scaling ratio. |
+| 16 | Now we will put the gate in the deployment path. | The conflicting pair never becomes active. |
+| 17 | Now we will run the same simulated shift change twice. | The difference happened before activation. |
+| 18 | We have numbers. Now let’s ask the running system to explain them. | Maude decided; the language model explained. |
+| 19 | The same boundary is useful when an LLM proposes a policy. | The author does not grade its own work. |
+| 20 | The AI-policy detector has exactly seven categories. | Exactly seven categories; no budget or routing claim. |
+| 21 | A typed conflict gives the author something concrete to revise. | A revision may still fail. |
+| 22 | This last demo has no fleet, broker, language model, or network. It is deliberately boring—and therefore a good recovery path. | Three inputs; three readable answers. |
+| 23 | Choose the tool that makes your property easiest to state precisely. | Choose by property shape. |
+| 24 | Before production, keep the claim attached to its evidence. | Evidence is not a production or regulatory guarantee. |
+| 25 | The code, notebooks, and demo are available if you want to try this pattern. | A narrow claim can be strong without becoming broad. |
 
 ## Protected lines
 

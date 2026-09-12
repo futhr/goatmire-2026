@@ -1,13 +1,15 @@
-# Archived slide tooling decision
+# Stage deck sources
 
-The Marp source and theme in this directory preserve the earlier slide design.
-The repository no longer contains the Node package manifest or export pipeline,
-so these files are not a reproducible HTML, PDF, or PPTX build.
+The maintained stage sequence has 25 slides. [`deck.md`](./deck.md) records its
+content and sources; `Goatmire.Talk.Deck` and the Phoenix slide components render
+that sequence at `/talk`. The manuscript, memorization anchors, code cards,
+scripted actions, and `priv/talk/timings.exs` must change together when the
+sequence changes. The talk tests check their agreement.
 
-The maintained deck is rendered by `Goatmire.Talk.Deck` at `/talk`. Follow
-[the stage rig runbook](../../runbooks/stage-rig.md) to run it. The executable
-notebook pane is part of that presenter. External Livebook is optional study
-material, described in [the notebook guide](../../../notebooks/README.md).
+The Marp front matter and theme remain useful source material. This repository
+has no Marp export pipeline, so it does not promise a reproducible standalone
+HTML, PDF, or PPTX export. The live Phoenix presenter is the stage surface.
 
-Treat archived slide text as historical. The current manuscript and live deck
-are the rehearsal sources; no prebuilt archive export is promised as a fallback.
+Follow [the stage rig runbook](../../runbooks/stage-rig.md). Its embedded
+notebook pane uses the running application; external Livebook is optional
+study material described in [the notebook guide](../../../notebooks/README.md).

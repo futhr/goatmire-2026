@@ -1,6 +1,6 @@
 defmodule GoatmireWeb.Presenter.CodeExamples do
   @moduledoc """
-  Runnable evidence cards for the shortened Maude-flow slides.
+  Runnable evidence cards for the Maude-flow slides.
 
   Every example evaluates against the running application. The card supports
   the spoken point without requiring the speaker to narrate implementation
@@ -16,7 +16,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
 
   @doc "The runnable card for slide `n`, or `nil` when the slide has none."
   @spec example(pos_integer()) :: example() | nil
-  def example(5) do
+  def example(6) do
     %{
       title: "No answer admits nothing",
       description: "When the checker cannot answer, the gate withholds the rule set.",
@@ -33,7 +33,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(6) do
+  def example(7) do
     %{
       title: "Rules in, concrete conflicts out",
       description:
@@ -50,7 +50,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(7) do
+  def example(9) do
     %{
       title: "A finding names the problem",
       description: "The answer includes the conflict type, both rule ids, and a readable reason.",
@@ -66,7 +66,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(8) do
+  def example(10) do
     %{
       title: "The scope travels with the answer",
       description: "A new verdict begins unverified. Clean must be earned by a completed check.",
@@ -77,7 +77,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(9) do
+  def example(11) do
     %{
       title: "The live worker pool",
       description: "Maude runs in supervised operating-system processes behind a named pool.",
@@ -88,7 +88,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(10) do
+  def example(12) do
     %{
       title: "The runtime executes the checked rules",
       description: "The same rule maps feed the checker and the runtime evaluator.",
@@ -105,7 +105,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(11) do
+  def example(13) do
     %{
       title: "Three answers, never two",
       description: "The gate keeps clean, conflicts, and unverified separate.",
@@ -124,7 +124,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(12) do
+  def example(14) do
     %{
       title: "Translation behavior is tested",
       description: "The runtime and model agree on what a threshold trigger means.",
@@ -143,7 +143,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(16) do
+  def example(19) do
     %{
       title: "The checker remains deterministic",
       description:
@@ -152,6 +152,45 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
       Goatmire.VerificationDemo.run()
       """,
       source: "lib/goatmire/ai/rule_generator.ex · lib/goatmire/verification_demo.ex"
+    }
+  end
+
+  def example(8) do
+    %{
+      title: "Equations and transitions",
+      description: "Reduce a toggle term, then find one reachable state in a tiny model.",
+      code: ~S'''
+      :ok = ExMaude.load_module("""
+      mod TALK-CELL is
+        sort State .
+        ops on off idle ready : -> State [ctor] .
+        op toggle : State -> State .
+        eq toggle(on) = off .
+        eq toggle(off) = on .
+        rl [advance] : idle => ready .
+      endm
+      """)
+
+      %{
+        reduction: ExMaude.reduce("TALK-CELL", "toggle(toggle(on))"),
+        witness: ExMaude.search("TALK-CELL", "idle", "ready", max_depth: 1, max_solutions: 1)
+      }
+      ''',
+      source: "docs/maude-for-dummies.md"
+    }
+  end
+
+  def example(15) do
+    %{
+      title: "Measure the comparisons",
+      description: "Show the actual partition count and verdict for this corpus.",
+      code: ~S"""
+      alias Goatmire.{Gate, Rules}
+      rules = Rules.fleet(20) ++ Rules.clean_set()
+      {:ok, verdict, stats} = Gate.verify_partitioned(rules)
+      %{rules: length(rules), verdict: verdict.status, work: stats}
+      """,
+      source: "lib/goatmire/rules.ex"
     }
   end
 

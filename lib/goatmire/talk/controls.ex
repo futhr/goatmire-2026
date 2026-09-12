@@ -7,16 +7,16 @@ defmodule Goatmire.Talk.Controls do
   """
 
   @scripted %{
-    13 =>
+    16 =>
       {:rules,
        [
          {:seed_deployed, "Deploy rule A"},
          {:load_example, "Load rule B"},
          {:check, "Check and create"}
        ]},
-    14 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
-    15 => {:diagnostics, [{:diagnose, "Ask"}]},
-    17 =>
+    17 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
+    18 => {:diagnostics, [{:diagnose, "Ask"}]},
+    22 =>
       {:notebook,
        [
          {:initialize_policy, "Initialize"},

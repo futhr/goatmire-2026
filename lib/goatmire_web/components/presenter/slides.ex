@@ -1,10 +1,9 @@
 defmodule GoatmireWeb.Presenter.Slides do
   @moduledoc """
-  The 18-slide conference deck as Phoenix function components.
+  The 25-slide conference sequence as Phoenix function components.
 
-  The main path carries one idea at a time. Partitioning, detector inventories,
-  tool comparisons, and production audit detail remain in the repository for
-  Q&A instead of competing with the thirty-minute story.
+  Slide order agrees with the manuscript and Markdown source. Claims remain
+  scoped to the demonstrated model, simulation, and measured run.
   """
 
   use Phoenix.Component
@@ -19,37 +18,12 @@ defmodule GoatmireWeb.Presenter.Slides do
 
   @doc "Renders slide `n` of the deck."
   @spec slide(map()) :: Phoenix.LiveView.Rendered.t()
-  # A dispatch table over the slides; the branch count is deck length, not
-  # decision logic.
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  def slide(assigns) do
-    case assigns.n do
-      1 -> slide_1(assigns)
-      2 -> slide_2(assigns)
-      3 -> slide_3(assigns)
-      4 -> slide_4(assigns)
-      5 -> slide_5(assigns)
-      6 -> slide_6(assigns)
-      7 -> slide_7(assigns)
-      8 -> slide_8(assigns)
-      9 -> slide_9(assigns)
-      10 -> slide_10(assigns)
-      11 -> slide_11(assigns)
-      12 -> slide_12(assigns)
-      13 -> slide_13(assigns)
-      14 -> slide_14(assigns)
-      15 -> slide_15(assigns)
-      16 -> slide_16(assigns)
-      17 -> slide_17(assigns)
-      18 -> slide_18(assigns)
-    end
-  end
 
-  defp slide_1(assigns) do
+  def slide(%{n: 1} = assigns) do
     ~H"""
-    <section class="slide slide-1 slide--title">
+    <section aria-label={Deck.title(@n)} class="slide slide-1 slide--title">
       <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
-      <h1>Zero Alert Storms</h1>
+      <h1>{Deck.title(@n)}</h1>
       <p class="sl-lede">
         Check rules together—before reasonable rules become an unreasonable system.
       </p>
@@ -58,11 +32,25 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_2(assigns) do
+  def slide(%{n: 2} = assigns) do
     ~H"""
-    <section class="slide slide-2 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-2 slide--default">
+      <div class="sl-eyebrow">A published interaction</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-value">SOTERIA · O3 + O4</div><p class="sl-lede sl-mt">
+        The same contact-open event sets one switch to conflicting values.
+      </p>
+      <blockquote>
+        Published pattern · controlled reproduction · no historical prevention claim
+      </blockquote>
+    </section>
+    """
+  end
+
+  def slide(%{n: 3} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-3 slide--default">
       <div class="sl-eyebrow">A published SOTERIA interaction</div>
-      <h1>Two reasonable rules disagree</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
           <div class="sl-label">O3 shape</div>
@@ -80,11 +68,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_3(assigns) do
+  def slide(%{n: 4} = assigns) do
     ~H"""
-    <section class="slide slide-3 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-4 slide--default">
       <div class="sl-eyebrow">Composition is the bug</div>
-      <h1>The system runs the set</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
         <div class="sl-node">contact opens</div>
         <div class="sl-arrow">→</div>
@@ -97,20 +85,20 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_4(assigns) do
+  def slide(%{n: 5} = assigns) do
     ~H"""
-    <section class="slide slide-4 slide--statement">
+    <section aria-label={Deck.title(@n)} class="slide slide-5 slide--statement">
       <div class="sl-eyebrow">The deployment question</div>
       <div class="sl-statement">If the conflict exists now, why discover it after deployment?</div>
     </section>
     """
   end
 
-  defp slide_5(assigns) do
+  def slide(%{n: 6} = assigns) do
     ~H"""
-    <section class="slide slide-5 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-6 slide--default">
       <div class="sl-eyebrow">Different tools · different questions</div>
-      <h1>Tests and checks answer different questions</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
           <div class="sl-label">tests and simulation</div>
@@ -126,28 +114,52 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_6(assigns) do
+  def slide(%{n: 7} = assigns) do
     ~H"""
-    <section class="slide slide-6 slide--default">
-      <div class="sl-eyebrow">Maude in one picture</div>
-      <h1>Maude turns rules into an answer</h1>
-      <div class="sl-flow">
-        <div class="sl-node">validated rules</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">conflict definitions</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">answer + concrete example</div>
-      </div>
-      <blockquote>It checks the model we wrote—not every fact about the physical world.</blockquote>
+    <section aria-label={Deck.title(@n)} class="slide slide-7 slide--default">
+      <div class="sl-eyebrow">A Maude mental model</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-four">
+        <div class="sl-panel">
+          <div class="sl-label">sorts</div><div class="sl-value">types</div>
+        </div>
+        <div class="sl-panel">
+          <div class="sl-label">operators</div><div class="sl-value">constructors + functions</div>
+        </div>
+        <div class="sl-panel">
+          <div class="sl-label">equations</div><div class="sl-value">simplify</div>
+        </div>
+        <div class="sl-panel">
+          <div class="sl-label">rewrite rules</div><div class="sl-value">transition</div>
+        </div>
+      </div><p class="sl-lede sl-mt">Function clauses versus possible state transitions.</p>
     </section>
     """
   end
 
-  defp slide_7(assigns) do
+  def slide(%{n: 8} = assigns) do
     ~H"""
-    <section class="slide slide-7 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-8 slide--default">
+      <div class="sl-eyebrow">Two commands · two claims</div><h1>{Deck.title(@n)}</h1>
+      <pre><code>reduce in SWITCH : toggle(toggle(on)) .
+    search [1] in CELL : idle =&gt;* ready .</code></pre>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <h2>reduce</h2><p>normal form under equations</p>
+        </div>
+        <div class="sl-panel">
+          <h2>search</h2><p>reachable witness under transitions</p>
+        </div>
+      </div>
+      <p class="sl-small sl-mt">No witness within a bound is not an unbounded safety proof.</p>
+    </section>
+    """
+  end
+
+  def slide(%{n: 9} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-9 slide--default">
       <div class="sl-eyebrow">What this demo checks</div>
-      <h1>Four ways rules can fight</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-four">
         <div class="sl-panel">
           <div class="sl-value">opposite writes</div>
@@ -167,11 +179,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_8(assigns) do
+  def slide(%{n: 10} = assigns) do
     ~H"""
-    <section class="slide slide-8 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-10 slide--default">
       <div class="sl-eyebrow">Draw the border around the answer</div>
-      <h1>A narrow answer is still useful</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel sl-panel--clean">
           <h2>Checked</h2>
@@ -186,11 +198,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_9(assigns) do
+  def slide(%{n: 11} = assigns) do
     ~H"""
-    <section class="slide slide-9 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-11 slide--default">
       <div class="sl-eyebrow">An ordinary BEAM dependency</div>
-      <h1>Maude runs as a supervised worker</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
         <div class="sl-node">Elixir call</div>
         <div class="sl-arrow">→</div>
@@ -205,11 +217,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_10(assigns) do
+  def slide(%{n: 12} = assigns) do
     ~H"""
-    <section class="slide slide-10 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-12 slide--default">
       <div class="sl-eyebrow">One rule representation · two uses</div>
-      <h1>Check the same rule you run</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-branch-source" phx-no-curly-interpolation>%{trigger: …, actions: …}</div>
       <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
       <div class="sl-two">
@@ -221,11 +233,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_11(assigns) do
+  def slide(%{n: 13} = assigns) do
     ~H"""
-    <section class="slide slide-11 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-13 slide--default">
       <div class="sl-eyebrow">The gate has three answers</div>
-      <h1>Never turn “no answer” into “yes”</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-three">
         <div class="sl-verdict sl-verdict--clean">
           <strong>clean</strong>
@@ -244,11 +256,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_12(assigns) do
+  def slide(%{n: 14} = assigns) do
     ~H"""
-    <section class="slide slide-12 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-14 slide--default">
       <div class="sl-eyebrow">The real trust boundary</div>
-      <h1>Test every translation step</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
         <div class="sl-node">Elixir rule</div>
         <div class="sl-arrow">→</div>
@@ -262,50 +274,101 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_13(assigns) do
+  def slide(%{n: 15} = assigns) do
     ~H"""
-    <section class="slide slide-13 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-15 slide--default">
+      <div class="sl-eyebrow">Scale the comparisons, keep the scope</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <h2>Conservative edges</h2><p>
+            same Thing<br />same action target<br />writer → trigger property
+          </p>
+        </div>
+        <div class="sl-panel">
+          <h2>Measured work</h2><p>rules<br />partitions<br />pairs considered / skipped</p>
+        </div>
+      </div>
+      <blockquote>Grouping only by Thing can miss cross-Thing cascades.</blockquote>
+    </section>
+    """
+  end
+
+  def slide(%{n: 16} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-16 slide--demo">
       <div class="sl-eyebrow">Live demo · rule gate</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 01</p>
-        <h1>Catch the conflict before the rule exists</h1>
+        <h1>{Deck.title(@n)}</h1>
         <p class="sl-live-caption">deploy rule A → check rule B → read the answer</p>
       </div>
     </section>
     """
   end
 
-  defp slide_14(assigns) do
+  def slide(%{n: 17} = assigns) do
     ~H"""
-    <section class="slide slide-14 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-17 slide--demo">
       <div class="sl-eyebrow">Live demo · warehouse floor</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 02</p>
-        <h1>Run the same shift change twice</h1>
+        <h1>{Deck.title(@n)}</h1>
         <p class="sl-live-caption">observe → enforce · read the measured counters</p>
       </div>
     </section>
     """
   end
 
-  defp slide_15(assigns) do
+  def slide(%{n: 18} = assigns) do
     ~H"""
-    <section class="slide slide-15 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-18 slide--demo">
       <div class="sl-eyebrow">Live demo · diagnostics</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 03</p>
-        <h1>Ask the running system why</h1>
+        <h1>{Deck.title(@n)}</h1>
         <p class="sl-live-caption">observations cite fields · inference stays separate</p>
       </div>
     </section>
     """
   end
 
-  defp slide_16(assigns) do
+  def slide(%{n: 19} = assigns) do
     ~H"""
-    <section class="slide slide-16 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-19 slide--default">
+      <div class="sl-eyebrow">The pattern transfers</div><h1>{Deck.title(@n)}</h1>
+      <pre phx-no-curly-interpolation><code>invocations: [
+    {:invoke_tool, "dose", %{}, "high_impact", :eu}
+    ]</code></pre>
+      <p class="sl-lede">Structured output in. Deterministic policy equations out.</p>
+      <blockquote>This checks a policy, not the language model.</blockquote>
+    </section>
+    """
+  end
+
+  def slide(%{n: 20} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-20 slide--default">
+      <div class="sl-eyebrow">The bundled AI policy model</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <p>
+            tool-call conflict<br />capability shadowing<br />pack/tool composition mismatch<br />sovereignty violation
+          </p>
+        </div>
+        <div class="sl-panel">
+          <p>authority escalation<br />approval-gate bypass<br />agent-loop cascade</p>
+        </div>
+      </div>
+      <blockquote>If a property is not in the model, this detector did not check it.</blockquote>
+    </section>
+    """
+  end
+
+  def slide(%{n: 21} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-21 slide--default">
       <div class="sl-eyebrow">The same boundary works for generated policy</div>
-      <h1>AI may suggest; the checker decides</h1>
+      <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
         <div class="sl-node">AI suggests a rule</div>
         <div class="sl-arrow">→</div>
@@ -320,22 +383,64 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  defp slide_17(assigns) do
+  def slide(%{n: 22} = assigns) do
     ~H"""
-    <section class="slide slide-17 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-22 slide--demo">
       <div class="sl-eyebrow">Live demo · policy by hand</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 04</p>
-        <h1>Approval missing → fixed → wrong region</h1>
+        <h1>{Deck.title(@n)}</h1>
         <p class="sl-live-caption">three inputs · three readable answers</p>
       </div>
     </section>
     """
   end
 
-  defp slide_18(assigns) do
+  def slide(%{n: 23} = assigns) do
     ~H"""
-    <section class="slide slide-18 slide--closing">
+    <section aria-label={Deck.title(@n)} class="slide slide-23 slide--default">
+      <div class="sl-eyebrow">Choose by property shape</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <p>
+            algebraic terms + transitions<br />temporal distributed behavior<br />bounded relations<br />constraints<br />protocol conformance
+          </p>
+        </div>
+        <div class="sl-panel">
+          <p>Maude<br />TLA+ / PlusCal<br />Alloy<br />SMT / Z3<br />types and model checking</p>
+        </div>
+      </div>
+      <p class="sl-small sl-mt">Choose the model that makes the property clearest.</p>
+    </section>
+    """
+  end
+
+  def slide(%{n: 24} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-24 slide--default">
+      <div class="sl-eyebrow">Before production</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-two">
+        <div class="sl-panel">
+          <h2>Engineering</h2><p>
+            validate input<br />test translation<br />bound checking work<br />recover uncertain workers
+          </p>
+        </div>
+        <div class="sl-panel">
+          <h2>Evidence</h2><p>
+            model + interpreter<br />validated input<br />typed verdict<br />activation decision
+          </p>
+        </div>
+      </div>
+      <p class="sl-small sl-mt">
+        This simulation is not production evidence or a regulatory safety case.
+      </p>
+    </section>
+    """
+  end
+
+  def slide(%{n: 25} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--closing">
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>

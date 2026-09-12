@@ -46,17 +46,17 @@ defmodule GoatmireWeb.PresenterLiveTest do
 
   test "interactive key events do not drive the deck", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
-    Clock.goto(15)
+    Clock.goto(18)
 
     render_keydown(view, "key", %{"key" => " ", "interactive" => true})
 
-    assert Clock.snapshot().slide == 15
+    assert Clock.snapshot().slide == 18
   end
 
   test "a LIVE slide enters deck-only with no panel control", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(13)
+    Clock.goto(16)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
     refute render(view) =~ "live-tabs"
 
@@ -67,7 +67,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "the bracket key reveals the slide's configured layout", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(13)
+    Clock.goto(16)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
 
     render_keydown(view, "key", %{"key" => "]"})
@@ -78,7 +78,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "a Maude slide shows its code card in the right panel", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(11)
+    Clock.goto(13)
 
     assert_eventually(fn -> render(view) =~ "code-card" end)
   end
@@ -86,11 +86,11 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "p steps the shared scripted sequence without rendering a dock", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(13)
+    Clock.goto(16)
     render_keydown(view, "key", %{"key" => "p"})
 
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
-    assert_eventually(fn -> Clock.snapshot().play_done[13] == 1 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[16] == 1 end)
     refute render(view) =~ "live-tabs"
   end
 
@@ -128,11 +128,11 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "keyboard help owns the keyboard while it is open", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    Clock.goto(6)
+    Clock.goto(7)
     render_keydown(view, "key", %{"key" => "?"})
     render_keydown(view, "key", %{"key" => "ArrowRight"})
 
-    assert Clock.snapshot().slide == 6
+    assert Clock.snapshot().slide == 7
 
     render_keydown(view, "key", %{"key" => "?"})
     refute render(view) =~ ~s(id="presenter-shortcuts")
@@ -141,7 +141,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "every code card is runnable code, not commentary", %{conn: conn} do
     {:ok, _, _} = live(conn, "/talk")
 
-    for slide <- 1..18, example = CodeExamples.example(slide) do
+    for slide <- 1..25, example = CodeExamples.example(slide) do
       refute example.code =~ ~r/^\s*defp?\s/m,
              "slide #{slide} quotes a definition instead of a call"
 
@@ -161,7 +161,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, presenter, _} = live(conn, "/talk")
     {:ok, notes, _} = authorized_live(conn)
 
-    Clock.goto(12)
+    Clock.goto(14)
     Clock.reveal()
     assert_eventually(fn -> render(notes) =~ ~s(id="speaker-run-code") end)
 

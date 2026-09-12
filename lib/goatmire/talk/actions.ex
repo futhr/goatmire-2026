@@ -52,7 +52,7 @@ defmodule Goatmire.Talk.Actions do
     panes = Map.put(state.panes, :notebook, pane)
     Store.put_data(:panes, panes)
     Phoenix.PubSub.broadcast(Goatmire.PubSub, Talk.play_topic(), {:talk_state, :notebook, pane})
-    send(Clock, {:play_clear_slide, 17})
+    send(Clock, {:play_clear_slide, 22})
     jobs = Enum.reject(state.jobs, fn {_, _, target, _} -> target == :notebook end)
     {:reply, :ok, advance(%{state | panes: panes, jobs: jobs})}
   end

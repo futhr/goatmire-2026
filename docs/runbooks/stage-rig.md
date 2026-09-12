@@ -14,7 +14,7 @@ One-time macOS settings (System Settings → Desktop & Dock → Mission Control)
 
 The speech is learned as a short story, with the full wording available as a safety net:
 
-1. [`../talk/memorize.md`](../talk/memorize.md) contains the seven-beat story, eighteen anchors, and protected lines. Drill those until they are yours (`make learn`).
+1. [`../talk/memorize.md`](../talk/memorize.md) contains the seven-beat story, twenty-five anchors, and protected lines. Drill those until they are yours (`make learn`).
 2. [`../talk/manuscript.md`](../talk/manuscript.md) is the complete plain-language reference. It is recovery text, not a word-for-word memorization assignment.
 
 The server timer starts when you leave slide 1, so the title can sit on screen while the room settles. The iPad timer icon restarts it in place; the separate reset icon uses a two-tap confirmation and clears the whole talk.
@@ -46,7 +46,7 @@ Set iPad Auto-Lock to **Never** for the talk and restore it afterwards. Lock ori
 
 The iPad is optional. If it disconnects, keep presenting with the laptop keyboard; refreshing or reopening the notes restores the server's current slide.
 
-The Marp deck (`deck.md`) is a frozen archive. It carries the speaker-note history but is not part of the rig.
+The 25-slide sequence in `docs/talk/slides/deck.md` matches the live presenter and rehearsal sources. The Markdown source is not a separately built stage export.
 
 ## The projector: one tab
 
@@ -66,7 +66,7 @@ With the server already running from `make talk-stage`, run `make talk` in anoth
 
 Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: press `]` or tap an iPad layout icon. The blue live actions change with the current slide and stay at the right edge of the same bottom row.
 
-Slide, panel, zoom, completed steps, and timer state live in the server. Browser refresh restores that state and the shared pane results. Versioned clock checkpoints also survive application restart, excluding time spent offline; malformed or older checkpoint schemas start from slide 1. In-memory pane results survive clock or action-worker restart, but a full application restart clears them. That is the recovery move: Cmd+R, not window juggling.
+Slide, panel, zoom, completed steps, and timer state live in the server. Browser refresh restores that state and the shared pane results. Versioned clock checkpoints also survive application restart, excluding time spent offline; malformed or older checkpoint schemas and checkpoints from another deck sequence start from slide 1. The 25-slide deck uses checkpoint version 3 and cannot restore the old 18-slide positions. In-memory pane results survive clock or action-worker restart, but a full application restart clears them. That is the recovery move: Cmd+R, not window juggling.
 
 ## The laptop: server terminal
 

@@ -8,24 +8,37 @@ defmodule Goatmire.Talk.Deck do
 
   @slides [
     {1, "Zero Alert Storms"},
-    {2, "Two reasonable rules disagree"},
-    {3, "The system runs the set"},
-    {4, "Why wait until after deployment?"},
-    {5, "Tests and checks answer different questions"},
-    {6, "Maude turns rules into an answer"},
-    {7, "Four ways rules can fight"},
-    {8, "A narrow answer is still useful"},
-    {9, "Maude runs as a supervised worker"},
-    {10, "Check the same rule you run"},
-    {11, "Never turn “no answer” into “yes”"},
-    {12, "Test every translation step"},
-    {13, "Catch the conflict before the rule exists"},
-    {14, "Run the same shift change twice"},
-    {15, "Ask the running system why"},
-    {16, "AI may suggest; the checker decides"},
-    {17, "Approval missing → fixed → wrong region"},
-    {18, "Formal methods make a narrow claim strong"}
+    {2, "Both apps were reasonable"},
+    {3, "Both rules are reasonable"},
+    {4, "The loop nobody designed"},
+    {5, "Why wait until after deployment?"},
+    {6, "Tests and checks answer different questions"},
+    {7, "Four pieces"},
+    {8, "Reduce is not search"},
+    {9, "Four conflict categories"},
+    {10, "A narrow claim can be strong"},
+    {11, "Maude as an ordinary supervised dependency"},
+    {12, "Verify the term the runtime executes"},
+    {13, "Never turn “no answer” into “yes”"},
+    {14, "Every arrow deserves a test"},
+    {15, "Partition on interaction edges"},
+    {16, "Catch the conflict before the rule exists"},
+    {17, "Run the same shift change twice"},
+    {18, "Ask the running system why"},
+    {19, "An LLM may propose policy; it should not judge itself"},
+    {20, "Exactly seven categories"},
+    {21, "Put a deterministic gate around a probabilistic author"},
+    {22, "Approval missing → clean revision → wrong jurisdiction"},
+    {23, "Maude is not the only answer"},
+    {24, "Keep the claim attached to its evidence"},
+    {25, "Formal methods make a narrow claim strong"}
   ]
+
+  @identity :crypto.hash(:sha256, :erlang.term_to_binary(@slides))
+
+  @doc "Identity of the ordered deck, used to reject checkpoints from another sequence."
+  @spec identity() :: binary()
+  def identity, do: @identity
 
   @doc "Slide numbers and titles in stage order."
   @spec titles() :: [{pos_integer(), String.t()}]

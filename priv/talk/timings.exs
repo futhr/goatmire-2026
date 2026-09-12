@@ -1,36 +1,33 @@
-# Per-slide budgets for the /talk presenter, reloaded live with the `r` key —
-# tweak between rehearsal runs, no restart needed.
-#
-# {slide, seconds} or {slide, seconds, opts} with:
-#   panel: :split | :deck_full | :live_full   layout used when the panel is
-#                                             revealed; slides always enter
-#                                             deck-only
-#   tab:   the one pane this slide owns — :code, :warehouse, :rules,
-#          :diagnostics, :verify, :notebook, or :metrics
-#
-# Slide 18 contains the close and the reserve for recovery or questions.
-# Slides 1..17 must fit inside slot_seconds minus that reserve; the clock
-# warns at load time when they do not.
+# Rehearsal budgets for the 25-slide stage sequence. Reload with `r`.
+# Slides enter deck-only. Configured panes open when deliberately revealed.
+# Slide 25 includes the close and recovery/question reserve.
 %{
   slot_seconds: 1_800,
   slides: [
-    {1, 45},
-    {2, 90},
-    {3, 55},
+    {1, 40},
+    {2, 50},
+    {3, 35},
     {4, 35},
-    {5, 80, tab: :code},
-    {6, 80, tab: :code},
-    {7, 65, tab: :code},
+    {5, 30},
+    {6, 50, tab: :code},
+    {7, 45, tab: :code},
     {8, 65, tab: :code},
-    {9, 60, tab: :code},
-    {10, 70, tab: :code},
-    {11, 80, tab: :code},
-    {12, 60, tab: :code},
-    {13, 100, panel: :live_full, tab: :rules},
-    {14, 210, panel: :live_full, tab: :warehouse},
-    {15, 110, panel: :live_full, tab: :diagnostics},
-    {16, 90, tab: :code},
-    {17, 180, panel: :live_full, tab: :notebook},
-    {18, 325, tab: :metrics}
+    {9, 50, tab: :code},
+    {10, 45, tab: :code},
+    {11, 45, tab: :code},
+    {12, 50, tab: :code},
+    {13, 65, tab: :code},
+    {14, 40, tab: :code},
+    {15, 60, tab: :code},
+    {16, 90, panel: :live_full, tab: :rules},
+    {17, 195, panel: :live_full, tab: :warehouse},
+    {18, 100, panel: :live_full, tab: :diagnostics},
+    {19, 45, tab: :code},
+    {20, 45},
+    {21, 40},
+    {22, 160, panel: :live_full, tab: :notebook},
+    {23, 45},
+    {24, 50},
+    {25, 325, tab: :metrics}
   ]
 }
