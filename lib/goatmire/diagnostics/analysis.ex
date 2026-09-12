@@ -5,8 +5,9 @@ defmodule Goatmire.Diagnostics.Analysis do
   Checks provider availability and takes a skill snapshot before sending a
   single schema-constrained completion; idle snapshots and missing providers
   get deterministic answers with no model call. The model supplies only the
-  inference and the next check — evidence lines come straight from the
-  snapshot, so a hallucinated number cannot reach the screen. Exits and
+  inference and the next check. Both the evidence lines and eligibility for
+  each explanation template are constrained by the snapshot. An absent or
+  clean verdict cannot support conflict-witness prose. Exits and
   provider failures collapse to four public error reasons; LiveView never
   sees a pid or a raw call term.
   """
@@ -160,7 +161,7 @@ defmodule Goatmire.Diagnostics.Analysis do
              timeout: Keyword.fetch!(opts, :timeout),
              response_format: response_format
            ),
-         {:ok, response} <- Jason.decode(content),
+         {:ok, response} <- Goatmire.JSON.decode(content),
          {:ok, classification} <- response_parts(response) do
       {:ok,
        %{
@@ -195,7 +196,8 @@ defmodule Goatmire.Diagnostics.Analysis do
     next_check = response[:next_check] || response["next_check"]
     confidence = response[:confidence] || response["confidence"]
 
-    if inference in @inferences and next_check in @next_checks and confidence in @confidences do
+    if map_size(response) == 3 and inference in @inferences and next_check in @next_checks and
+         confidence in @confidences do
       {:ok, %{inference: inference, next_check: next_check, confidence: confidence}}
     else
       {:error, :invalid_response}
@@ -219,7 +221,11 @@ defmodule Goatmire.Diagnostics.Analysis do
         %{inference: "runtime_pressure", next_check: "inspect_runtime", confidence: "medium"}
 
       true ->
-        compatible_classification(classification)
+        compatible_classification(%{
+          classification
+          | inference: "insufficient_evidence",
+            confidence: "low"
+        })
     end
   end
 

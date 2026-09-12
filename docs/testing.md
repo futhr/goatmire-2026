@@ -14,6 +14,14 @@ mix coveralls
 
 Coverage is a guardrail, not the objective. The configured minimum is enforced without excluding low-coverage application modules. Additional tests must exercise a behavior, boundary, invariant, or failure mode; tests that only call lines or duplicate framework behavior are not accepted. Hardware socket loops, distributed peer boot, and external-process failures are kept visible in the report even when they require an integration environment.
 
+## Boundary regressions
+
+Regressions cover strict JSON object-key uniqueness at HTTP, MQTT,
+generated-policy, and diagnostic-response entry points. Native telemetry object
+keys normalize to JSON strings without changing scalar types. Diagnostic
+templates must remain compatible with the recorded verdict and runtime fields;
+a model classification alone is not conflict evidence.
+
 ## Connected dashboard E2E
 
 The browser lane follows the other Phoenix applications in this workspace: PhoenixTest drives Playwright's bundled Chromium, with no workstation Chrome or ChromeDriver coupling:

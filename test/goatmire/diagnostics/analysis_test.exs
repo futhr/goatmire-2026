@@ -124,7 +124,7 @@ defmodule Goatmire.Diagnostics.AnalysisTest do
     assert answer.grounded
   end
 
-  test "active model output is restricted to vetted explanation templates" do
+  test "a model cannot invent conflict evidence when no verdict was recorded" do
     answer =
       Analysis.build_stage_answer(
         %{
@@ -137,13 +137,56 @@ defmodule Goatmire.Diagnostics.AnalysisTest do
 
     summary = hd(answer.summaries)
     assert summary =~ "**not_recorded**"
-    assert summary =~ "rule composition"
-    assert summary =~ "first cause to test"
+    assert summary =~ "does not isolate one cause"
+    refute Enum.join(answer.hypotheses, " ") =~ "formal conflict evidence"
     refute summary =~ "iot-rules.maude"
 
     assert List.last(answer.hypotheses) ==
-             "Next: run the same staged storm in enforce mode and compare `window.alerts` " <>
-               "between the two runs."
+             "Next: read the named fields on the Metrics pane before forming a cause claim."
+
+    assert answer.confidence == [:low]
+  end
+
+  test "unsupported classifications cannot replace clean or missing evidence" do
+    for verdict <- [nil, %{status: :clean}],
+        inference <-
+          ~w(rule_semantics runtime_pressure verifier_unavailable insufficient_evidence) do
+      snapshot = put_in(active_snapshot(), [:current, :verification], verdict)
+
+      answer =
+        Analysis.build_stage_answer(
+          %{inference: inference, next_check: "inspect_conflict_witness", confidence: "high"},
+          snapshot
+        )
+
+      assert hd(answer.summaries) =~ "does not isolate one cause"
+      assert answer.confidence == [:low]
+      refute Enum.join(answer.hypotheses, " ") =~ "rule IDs"
+    end
+  end
+
+  test "recorded unverified and measured saturation constrain the explanation" do
+    classification = %{
+      inference: "rule_semantics",
+      next_check: "inspect_conflict_witness",
+      confidence: "high"
+    }
+
+    unverified = put_in(active_snapshot(), [:current, :verification], %{status: :unverified})
+    answer = Analysis.build_stage_answer(classification, unverified)
+    assert hd(answer.summaries) =~ "recorded status is **unverified**"
+    assert List.last(answer.hypotheses) =~ "restore Maude"
+
+    for verdict <- [nil, %{status: :clean}, %{status: :conflicts}] do
+      saturated =
+        active_snapshot()
+        |> put_in([:current, :verification], verdict)
+        |> put_in([:current, :beam, :run_queue], 3)
+
+      answer = Analysis.build_stage_answer(classification, saturated)
+      assert hd(answer.summaries) =~ "runtime itself is under load"
+      refute Enum.join(answer.hypotheses, " ") =~ "formal conflict evidence"
+    end
   end
 
   test "deterministic state corrects an incompatible model classification" do
