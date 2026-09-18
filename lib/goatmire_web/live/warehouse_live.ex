@@ -13,6 +13,9 @@ defmodule GoatmireWeb.WarehouseLive do
   alias Goatmire.Talk.Actions
 
   @refresh_ms 1_000
+  # Robots report every 250 ms during a storm; redrawing once a second made the
+  # floor jump. The fast cadence runs only while a scenario is running.
+  @storm_refresh_ms 250
   @device_render_limit 500
   @max_fleet_size 4_000
   @max_duration_seconds 300
@@ -22,7 +25,7 @@ defmodule GoatmireWeb.WarehouseLive do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Storm.topic())
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
-      :timer.send_interval(@refresh_ms, self(), :refresh)
+      schedule_refresh(@refresh_ms)
     end
 
     {:ok,
@@ -46,7 +49,7 @@ defmodule GoatmireWeb.WarehouseLive do
   def handle_event("stop_fleet", _, %{assigns: %{running: true}} = socket), do: {:noreply, socket}
 
   def handle_event("stop_fleet", _, socket) do
-    fleet_mutation(socket, &Fleet.stop_all/0)
+    fleet_mutation(assign(socket, frame: nil), &Storm.clear/0)
   end
 
   def handle_event("storm", _, %{assigns: %{running: true}} = socket), do: {:noreply, socket}
@@ -94,7 +97,11 @@ defmodule GoatmireWeb.WarehouseLive do
   end
 
   @impl true
-  def handle_info(:refresh, socket), do: {:noreply, refresh(socket)}
+  def handle_info(:refresh, socket) do
+    socket = refresh(socket)
+    schedule_refresh(if socket.assigns.running, do: @storm_refresh_ms, else: @refresh_ms)
+    {:noreply, socket}
+  end
 
   def handle_info({:storm_tick, frame}, socket), do: {:noreply, assign(socket, frame: frame)}
 
@@ -128,6 +135,8 @@ defmodule GoatmireWeb.WarehouseLive do
   catch
     :exit, _ -> send(view, {:storm_failed, "Storm could not complete. Reset and retry."})
   end
+
+  defp schedule_refresh(ms), do: Process.send_after(self(), :refresh, ms)
 
   defp refresh(socket) do
     scenario = Coordinator.status()
@@ -213,6 +222,14 @@ defmodule GoatmireWeb.WarehouseLive do
     Map.merge(%{driving: 0, charging: 0, low_battery: 0, idle: 0, stale: 0}, counts)
   end
 
+  # Width follows the card until the floor would be taller than half the
+  # screen; then height wins, so the legend and controls stay in view.
+  defp floor_style(width, height) do
+    "display:block;margin:0 auto;aspect-ratio:#{width} / #{height};" <>
+      "width:min(100%, calc(50dvh * #{width} / #{height}));height:auto;" <>
+      "background:var(--surface);border:1px solid var(--overlay);border-radius:0.5rem"
+  end
+
   defp position(%{position: %{x: x, y: y}}), do: {x, y}
   defp position(device), do: Warehouse.home_position(device.thing_id)
 
@@ -246,7 +263,11 @@ defmodule GoatmireWeb.WarehouseLive do
             do: "var(--verdict-conflict)",
             else: "var(--verdict-clean)"
         }
-        note="operator-visible actuations"
+        note={
+          if @frame,
+            do: "#{@frame.alerts_this_second} this second",
+            else: "operator-visible actuations"
+        }
       />
       <.stat
         label="throttled"
@@ -261,7 +282,7 @@ defmodule GoatmireWeb.WarehouseLive do
         <h2 style="margin-top:0">Floor</h2>
         <svg
           viewBox={"0 0 #{@hall_width} #{@hall_height}"}
-          style="width:100%;height:auto;background:var(--surface);border:1px solid var(--overlay);border-radius:0.5rem"
+          style={floor_style(@hall_width, @hall_height)}
           preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label="Live floor plan with one dot per device, coloured by status"
@@ -428,16 +449,6 @@ defmodule GoatmireWeb.WarehouseLive do
           <div class="row">
             <span class="badge idle">{@frame.mode}</span>
             <span class="note">second {@frame.second} / {@frame.duration}</span>
-          </div>
-          <div class="stat" style="margin-top:0.5rem">
-            <div class="label">alerts so far</div>
-            <div
-              class="value"
-              style={"color: #{if @frame.mode == :enforce, do: "var(--verdict-clean)", else: "var(--verdict-conflict)"}"}
-            >
-              {@frame.alerts_total}
-            </div>
-            <div class="note">{@frame.alerts_this_second} this second</div>
           </div>
         </div>
 

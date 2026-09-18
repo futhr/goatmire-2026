@@ -181,7 +181,7 @@ defmodule Goatmire.Talk.Actions do
   end
 
   defp execute(:warehouse, :clear, _) do
-    case Coordinator.exclusive(&Goatmire.Fleet.stop_all/0) do
+    case Coordinator.exclusive(&Storm.clear/0) do
       {:error, _} = error -> error
       _ -> {:ok, %{}}
     end

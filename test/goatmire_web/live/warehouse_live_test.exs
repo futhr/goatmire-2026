@@ -28,6 +28,18 @@ defmodule GoatmireWeb.WarehouseLiveTest do
     assert html =~ ~s(max="300")
   end
 
+  test "clear empties the floor, not just the fleet", %{conn: conn} do
+    {:ok, _} = Fleet.start_simulated_fleet(3, tick_ms: 50)
+    assert_eventually(fn -> Engine.status().observed_things != [] end)
+
+    {:ok, live, _} = live(conn, "/warehouse")
+    render_click(element(live, "#clear-fleet"))
+
+    assert Fleet.count() == 0
+    assert Engine.status().observed_things == []
+    refute render(live) =~ "<circle"
+  end
+
   test "bounds complete numeric input and rejects partial numbers", %{conn: conn} do
     {:ok, live, _} = live(conn, "/warehouse")
 
@@ -154,5 +166,15 @@ defmodule GoatmireWeb.WarehouseLiveTest do
 
     assert html =~ "1 Thing(s) tracked"
     assert html =~ "remote-agv-42 · observed · battery 44"
+  end
+
+  defp assert_eventually(fun, attempts \\ 40)
+  defp assert_eventually(fun, 0), do: assert(fun.())
+
+  defp assert_eventually(fun, attempts) do
+    unless fun.() do
+      Process.sleep(25)
+      assert_eventually(fun, attempts - 1)
+    end
   end
 end

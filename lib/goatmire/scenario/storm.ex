@@ -126,6 +126,19 @@ defmodule Goatmire.Scenario.Storm do
   end
 
   @doc """
+  Stops every simulated device and forgets what the engine saw.
+
+  Stopping the fleet alone leaves the engine's last reported positions, which
+  the floor keeps drawing, so nothing would appear to change. Deployed rules
+  stay; counters, alerts, and the observed world start empty.
+  """
+  @spec clear() :: :ok
+  def clear do
+    Fleet.stop_all()
+    Engine.reset()
+  end
+
+  @doc """
   Runs the same shift change twice — observe-only, then enforced.
 
   Returns both summaries plus the ratio between them, computed from the
