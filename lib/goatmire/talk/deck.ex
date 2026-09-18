@@ -7,7 +7,7 @@ defmodule Goatmire.Talk.Deck do
   """
 
   @slides [
-    {1, "Zero Alert Storms"},
+    {1, "Formal Verification"},
     {2, "Both apps were reasonable"},
     {3, "Both rules are reasonable"},
     {4, "The loop nobody designed"},

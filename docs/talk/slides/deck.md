@@ -4,19 +4,19 @@ theme: goatmire-livebook
 size: 16:9
 paginate: true
 html: true
-title: Zero Alert Storms
+title: Formal Verification
 description: Formal Verification for IoT Automation — Goatmire 2026
 author: Tobias Bohwalli
 ---
 
-<!-- slide 1: Zero Alert Storms -->
+<!-- slide 1: Formal Verification -->
 <!-- _class: title -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Goatmire 2026 · 30 minutes</div>
 
-# Zero Alert Storms
+# Formal Verification
 
 <p class="lede">Formal verification for IoT automation—at the deployment gate, before reasonable rules become an unreasonable system.</p>
 

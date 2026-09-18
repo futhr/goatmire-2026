@@ -81,7 +81,7 @@ defmodule Goatmire.Talk.ScriptTest do
     refute text =~ "*("
     refute text =~ "`"
     refute text =~ "*"
-    assert text =~ "composition means"
+    assert text =~ "composed behaviour"
     assert text =~ "A bad answer, a good answer, and no answer are three different things."
   end
 end

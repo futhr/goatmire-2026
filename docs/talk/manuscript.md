@@ -1,8 +1,8 @@
-# Talk manuscript — plain-language 30-minute cut
+# Talk manuscript — natural 30-minute cut
 
-This is the spoken reference for **“Zero Alert Storms: Formal Verification for IoT Automation.”** It follows the 25-slide stage deck at `/talk`.
+This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 25-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
 
-The target is to finish the prepared talk in about 25–26 minutes. The remaining time is for silence while the room reads, a slow live action, recovery, or questions. This manuscript is a safety net, not a text to memorize word for word. Learn the seven-beat spine and each slide's first sentence; keep the complete text available for recovery.
+This manuscript is a safety net, not a text to memorize word for word. Learn the seven-beat spine and each slide's first sentence in [`memorize.md`](./memorize.md); keep the complete text available for recovery. Bold marks the cue words; the iPad shows them in bold. Stage directions are in italics and are not spoken.
 
 Protect these lines:
 
@@ -10,347 +10,519 @@ Protect these lines:
 
 > Maude made the decision. The language model explained what the system observed.
 
-Stage directions are in italics and are not spoken.
+> Formal methods make a narrow claim strong. They do not make a broad claim true.
 
-
-The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter.
-Target starts below are cumulative rehearsal budgets, including the opening.
-The presenter timer starts automatically on leaving the holding slide. Start
-a separate rehearsal timer with the spoken opening for these full-talk targets,
-or call `Goatmire.Talk.Clock.start_talk/0` at that point.
+The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter. Start times below are the cumulative budgets from `priv/talk/timings.exs`, which also drive the presenter clock's drift warning. This cut speaks longer than the budgets assumed: if a timed run lands behind, trim the optional asides (the jokes on slides 4, 8, 10, 11 and 16) before touching a protected line, or rebalance the budgets. The presenter timer starts automatically on leaving the holding slide; for a full-talk rehearsal timer, call `Goatmire.Talk.Clock.start_talk/0` with the opening line.
 
 ---
 
-## 1 · Zero Alert Storms — 00:00
+## 1 · Formal Verification — 00:00
 
-*(Let the room read the title. Look up.)*
+*(Let the room read. Look up. Two beats.)*
 
-Hi. I’m Tobias.
+This talk is about bugs where **every part works** and the system still does the wrong thing.
 
-Today we are going to make two reasonable automation rules fight each other. Then we will stop the same conflict before either rule can run.
+Take two automation rules. Each was written by someone sensible, and each passes its own tests. Install them together and they **fight over the same device**.
 
-I have worked in software since 1998 and in IoT for eleven years. That has taught me one simple lesson: “be more careful” is not a deployment control.
+Tests show what happened in the runs we tried. I want to ask a different question, before anything runs: **can these rules fight?**
+
+Formal verification can answer that, as long as **the question stays small**.
+
+*(Change slide. Pause 2–3 seconds.)*
 
 ---
 
 ## 2 · Both apps were reasonable — 00:40
 
-This example comes from a published smart-home study called SOTERIA.
+This comes from the published smart-home study **SOTERIA**. In its multi-app evaluation, O3 and O4 react to the same contact-open event with **conflicting switch values**.
 
-Its multi-app evaluation reports two apps, O3 and O4, responding to the same contact-open event with conflicting switch values.
+One wants the switch on. The other wants it off.
 
-This repository reproduces that rule shape in a controlled simulation. It is not a story about a real damaged home, and I am not claiming this code prevented the published result.
+**Neither rule is absurd** when read alone.
+
+As the slide says, this repository reproduces the rule shape in a **controlled simulation**. It is **not a real incident**, and this code did not prevent their published result.
+
+The published pattern gives us the conflict. Our simulator gives us somewhere safe to make that conflict noisy.
+
+*(Change slide.)*
 
 ---
 
 ## 3 · Both rules are reasonable — 01:30
 
-Each rule is easy to explain on its own.
+This is what makes these bugs annoying.
 
-A contact opens: O3 turns the switch on. The same contact opens: O4 turns the same switch off.
+Review O3: contact opens, turn the switch on. Fine. Review O4: contact opens, turn the switch off. Also easy to understand.
 
-An isolated test can confirm that each app does what its author asked. The disagreement appears when we install both.
+An isolated test can confirm that both applications do exactly what their authors asked. **Both tests can pass.**
 
-You review one change. The system runs all of them together.
+The disagreement only appears when we **install them together**.
+
+That gap between **local correctness and composed behaviour** is where today's talk lives.
+
+*(Change slide.)*
 
 ---
 
 ## 4 · The loop nobody designed — 02:05
 
-Nobody asked for the combined behavior on this slide.
+**Nobody designed** the combined behaviour on this slide.
 
-The word composition means looking at what the rules do together. The O3/O4 example establishes conflicting writes; it does not by itself establish a repeating alert storm.
+*(Point to the quote.)*
 
-Later, the warehouse simulator will repeatedly activate a synthetic conflicting set so we can measure that separate effect.
+**You review one change. The system runs all of them together.**
 
-Keep the published pattern and the simulated load distinct.
+One caveat. The published O3/O4 example does not prove an alert loop. It establishes **conflicting writes**.
+
+Later I deliberately activate a **synthetic conflicting set** repeatedly in the warehouse simulator so we can measure that separate repeated effect.
+
+The important point is the irony. Nobody has to write a function called `create_distributed_mess()`. We are perfectly capable of getting there by **composing sensible things**.
+
+*(Let that sit. Change slide.)*
 
 ---
 
 ## 5 · Why wait until after deployment? — 02:40
 
-The relationship between these rules exists before a device moves and before an alert fires.
+The relationship between these rules exists before a device moves, before an alert fires, and before deployment.
 
-Runtime monitoring still matters. But if we can see this conflict before deployment, why wait for telemetry to discover it afterwards?
+**Runtime monitoring still matters.** Sensors fail, networks lie, hardware does surprising things.
 
-The check belongs between “submit this rule” and “let this rule run.”
+But this disagreement is **already sitting in the rule set**.
+
+So if we can see it before deployment, **why wait for telemetry** to discover it afterwards?
+
+The check belongs in a boring place: **between "submit this rule" and "let this rule run."**
+
+That is the architectural move.
+
+*(Change slide.)*
 
 ---
 
 ## 6 · Tests and checks answer different questions — 03:10
 
-Why not solve this with more tests?
+Why not just write more tests?
 
-Tests are essential. They run the software and show what happened in selected cases. Property-based tests try many generated cases and often find surprises.
+**Absolutely write more tests.**
 
-The formal checker asks a different question. It reads the rules before they run and asks: can these rules fight in one of the ways we defined?
+Tests are essential. Property-based tests are excellent. They execute software and show us what happened in selected or generated cases.
 
-That question is smaller than “is the whole system safe?” The smaller question is exactly why the answer can be stronger.
+Formal checking asks **a different question**. It reads a model of the rules before they run and asks whether a represented bad interaction is possible.
+
+That is not proving the entire installation safe. It is a smaller claim.
+
+And the smaller claim is exactly why **the answer can be stronger**.
+
+We are not asking Maude to understand the universe. We are asking it **a specific question** we bothered to define.
+
+*(Change slide.)*
 
 ---
 
 ## 7 · Four pieces — 04:00
 
-You need four Maude words to read the next slide.
+Maude looks intimidating at first. For this talk you need about **four words**.
 
-Sorts describe types. Operators construct terms or name functions. Equations simplify terms. Rewrite rules describe possible state transitions.
+**Sorts** describe types. **Operators** construct terms or name functions. **Equations** simplify terms. **Rewrite rules** describe possible state transitions.
 
-For an Elixir developer, think of pattern-matched function clauses for simplification, and a state machine for transitions.
+For an Elixir developer, equations are not a million miles from pattern-matched simplification, while rewrite rules feel like state-machine transitions.
 
-That distinction tells us which question a command can answer.
+That distinction matters because different Maude commands answer different questions.
+
+*(Change slide.)*
 
 ---
 
 ## 8 · Reduce is not search — 04:45
 
-Reduce and search answer different questions.
+`reduce` is not `search`.
 
-`reduce` simplifies a term using equations. In the small switch example, toggling twice reduces to `on`. Our finite, validated conflict detector uses equations to compute its answer.
+Reduce simplifies a term using equations. The first line on screen: toggle twice, and you are back at `on`.
 
-`search` explores transitions looking for a reachable state. A returned path is a witness. No witness within a bound is not an unbounded proof of safety; ExMaude's bounded safety and liveness helpers preserve `unverified`.
+Search explores transitions looking for a reachable state.
 
-The IoT gate in this talk uses the equational detector, not an unrestricted search of every possible execution.
+If search returns a path, that path is useful: **it is a witness**. It tells us how we got there.
+
+But if a bounded search does not find a witness, that is **not an unbounded proof of safety**.
+
+That distinction is important enough that the surrounding code preserves `unverified` instead of pretending uncertainty means success.
+
+Today's IoT gate deliberately uses a finite validated **equational detector**. We are not throwing the entire physical world at an unrestricted state-space search and hoping my laptop achieves enlightenment before the coffee break.
+
+We ask **the narrow question** we actually modeled.
+
+*(Change slide.)*
 
 ---
 
 ## 9 · Four conflict categories — 05:50
 
-This demo checks four kinds of interaction.
+This demo has **four categories**.
 
-Two rules can write opposite values. They can push the same environment in opposite directions. One rule can trigger another. Or that chain can cross between device state and the environment.
+Two rules can write opposite values. They can push the same environment in opposite directions. One rule can trigger another. Or that chain can cross between device state and environment.
 
-You do not need to remember the list. Remember the limit: if a problem is not represented here, this checker does not see it.
+You do not need to memorize them.
+
+**Remember the boundary**: if a problem is not represented in what this checker understands, this checker **does not see it**.
+
+That sounds disappointingly obvious. It is also easy to forget once the word formal appears on a slide.
+
+*(Change slide.)*
 
 ---
 
 ## 10 · A narrow claim can be strong — 06:40
 
-So let’s say exactly what a clean result means.
+**What does a clean result mean?**
 
-It means this check completed and found none of these four conflict types in these rules.
+It means this check completed, on these validated rules, and found none of the four conflict types represented by this model.
 
-It does not mean the whole installation is safe. It says nothing about a sensor mounted backwards, a late message, missing authorization, or a hazard we forgot to model.
+**It does not mean the entire installation is safe.**
 
-That narrower sentence is less dramatic. It is also one I can defend.
+Nothing here proves a sensor is mounted correctly, a message cannot arrive late, authorization is correct, or that we remembered every hazard.
+
+That narrower sentence is less impressive on LinkedIn.
+
+It is also **one I can defend**.
+
+*(Change slide.)*
 
 ---
 
 ## 11 · Maude as an ordinary supervised dependency — 07:25
 
-Inside this Elixir application, Maude behaves like an ordinary dependency.
+Inside this Elixir application, Maude is not a sacred process living on a university workstation somewhere.
 
-A supervised worker pool owns separate Maude processes. If one worker dies, its supervisor restarts it. The application call returns a normal tagged result.
+It is an **ordinary supervised dependency**.
 
-The operational point is simple: formal checking does not have to live in a separate academic universe. It can sit inside the same failure-handling structure as the rest of the application.
+A worker pool owns separate Maude processes. If one dies, **supervision can restart it**. The application gets a normal tagged result.
+
+Formal checking can therefore live inside the **same failure-handling discipline** as the rest of the application.
+
+The maths can be unusual. The process lifecycle does not have to be.
+
+*(Change slide.)*
 
 ---
 
 ## 12 · Verify the term the runtime executes — 08:10
 
-This is the implementation choice I care about most.
+This is probably the implementation decision **I care about most**.
 
-The map on screen is the rule. The checker reads that map, and the runtime executes that same map.
+The map on screen is the rule. The checker reads that representation. The runtime executes **that same representation**.
 
-If we checked a second handwritten copy, the copy could drift away from reality. Then we could prove something precise about the wrong rule.
+If I verify a second handwritten copy, **the copy can drift**.
 
-Sharing the representation does not remove every translation risk, but it makes the boundary smaller and easier to test.
+Then I get the wonderful situation where I checked something very precise about **software I am not actually running**.
+
+Sharing the representation does not remove every translation risk. It makes the boundary smaller, and smaller boundaries are easier to test.
+
+*(Change slide.)*
 
 ---
 
 ## 13 · Never turn “no answer” into “yes” — 09:00
 
-The gate keeps three answers, not two.
+The gate has **three answers**. Not two.
 
-`clean` means the check completed and found no conflict represented by this model.
+`clean`. `conflicts`. And `unverified`.
 
-`conflicts` means it found a concrete problem and names the rules involved.
+Clean means the check completed and found no represented conflict. Conflicts means it found a concrete problem and can name the rules. Unverified means it could not answer: Maude unavailable, rejected input, timeout, and so on.
 
-`unverified` means it could not answer—for example because Maude was unavailable, the input was rejected, or the command timed out.
+**A bad answer, a good answer, and no answer are three different things.**
 
-A bad answer, a good answer, and no answer are three different things.
+For this demo an unverified candidate is **not deployed**.
 
-This demo fails closed: an unverified rule is not deployed. That is an application policy we chose explicitly.
+That fail-closed behaviour is not a theorem from Maude. It is **application policy** we chose explicitly.
+
+*(Pause. Change slide.)*
 
 ---
 
 ## 14 · Every arrow deserves a test — 10:05
 
-Formal checking is only as trustworthy as the path around it.
+Formal checking does not make the plumbing **trustworthy by association**.
 
-The Elixir rule becomes an encoded rule. Maude produces text. The application turns that text into a typed answer and then into “deploy” or “stop.”
+The Elixir rule becomes an encoded term. Maude produces output. The application parses that into a typed answer. Another piece of code turns the answer into deploy or stop.
 
-Every arrow deserves a test: validate the input, test the encoder, test the parser, and test what deployment does with all three answers.
+**Every arrow deserves a test.**
+
+Validate input. Test the encoder. Test the parser. Test deployment with clean, conflicts, and unverified.
+
+Otherwise the formal core can be perfectly correct while **the glue quietly lies**.
+
+*(Change slide.)*
 
 ---
 
 ## 15 · Partition on interaction edges — 10:45
 
-Partitioning reduces the comparisons we ask Maude to make.
+Comparing every rule with every other rule is not particularly clever.
 
-We join rules that share a Thing, write the same action target, or connect a writer to a trigger property. Grouping only by Thing would miss cross-Thing interactions.
+So we partition based on **interaction edges**: rules that share a Thing, write the same action target, or connect a writer to a trigger property.
 
-The graph deliberately over-groups when uncertain. The resulting partitions still have to preserve every interaction the model can detect.
+Grouping only by Thing would miss **cross-Thing interactions**.
 
-Read the rule, partition, and skipped-pair counts from the current run. A ratio from another corpus is not a scaling guarantee.
+The partitioner deliberately **over-groups** when uncertain. That can cost comparisons. It must not optimize away an interaction the model could have found.
+
+*(Reveal the code pane and run it. Point to the counts and read the actual values.)*
+
+Those are **today's run counts**, not a universal scaling claim.
+
+*(Change slide. Prepare Rules demo.)*
 
 ---
 
 ## 16 · Catch the conflict before the rule exists — 11:45
 
-*(Reveal the Rules pane.)*
+Okay. **Enough slides.** Let's actually do it.
 
-Now we will put the gate in the deployment path.
+*(Reveal Rules pane. Pause while switching windows.)*
 
-I’ll deploy the switch-on rule first. Then I’ll load the switch-off rule as the candidate and press “Check and create.”
+I deploy the switch-on rule first.
 
-*(Run the three scripted steps. Point to the answer and rule ids.)*
+*(Run scripted step. Let UI settle.)*
 
-The answer is `state_conflict`, and it names both rules. The checker does not decide which rule is morally better. It only knows they disagree, so the gate stops the new combination and leaves that decision to a person.
+Nothing dramatic.
 
-The conflicting pair never exists in the active set.
+Now I load the switch-off rule as the candidate. Instead of creating it directly, I press **Check and create**.
 
-*(Fallback: `mix goatmire.scenario 1`.)*
+*(Run. Pause for result. Point instead of talking over the UI.)*
+
+There.
+
+The answer is `state_conflict`, and it **names both rules**.
+
+Notice what the checker did not do. It did not decide that on is morally superior to off. It does not know which application has the better product manager.
+
+It knows these rules disagree under the model we gave it.
+
+So the gate stops the new combination and **leaves the policy decision to a person**.
+
+The conflicting pair **never exists in the active rule set**.
+
+*(Allow 5–10 seconds for room to read. Return to deck.)*
 
 ---
 
 ## 17 · Run the same shift change twice — 13:15
 
-*(Reveal the Warehouse pane. Use the rehearsed fleet size.)*
+Now I want to **make the difference visible**.
 
-Now we will run the same simulated shift change twice.
+*(Reveal Warehouse pane. Pause.)*
 
-First is observe mode. The checker records the conflict but allows it to run so we can see the symptom.
+We run the same simulated shift change twice.
 
-*(Run Observe. Pause and read the displayed counters.)*
+First: **observe mode**. The checker records the conflict, but we allow activation so we can see the symptom.
 
-Those are measurements from this simulator, on this laptop, with the settings on screen. They are not a customer incident or a universal benchmark.
+*(Run Observe. Each run takes about 30 seconds.)*
 
-Now we reset and run with the same fleet, tick, and shift settings in enforce mode. Scheduling and random readings can differ between runs.
+**Watch the alert counter.**
 
-*(Run Enforce. Read the withheld rules and alert count.)*
+*(Then stay quiet. Let counters settle.)*
 
-The load did not disappear, and the broker did not become faster. The difference is earlier: the conflicting rules never reached activation.
+Those are measurements from this simulator, on this laptop, with these settings. They are **not a customer incident** and not a universal benchmark.
 
-The screen keeps the current verdict and counters together, so we can compare evidence from the same staged run.
+Same fleet, tick and shift settings, this time **enforce mode**. Scheduling and random readings can still differ between runs; this is not cycle-accurate comparison.
+
+*(Run Enforce. Do not press Clear: each run resets the engine itself.)*
+
+Same counter. Watch it again.
+
+*(Pause. Point to withheld rules and alert count.)*
+
+The broker did not become faster. The load did not magically disappear.
+
+The difference happened earlier: the conflicting rules **never reached activation**.
+
+That is what I care about — **moving the decision left**, before runtime experiences the disagreement.
+
+*(Let room inspect. Return to deck.)*
 
 ---
 
 ## 18 · Ask the running system why — 16:30
 
-*(Reveal Diagnostics. Point to the provider name.)*
+We have counters. Somebody still has to interpret them.
 
-We have numbers. Now let’s ask the running system to explain them.
+*(Reveal Diagnostics. Point to provider.)*
 
-The diagnostic tool receives a small, read-only snapshot. We ask why alerts rose, what formal answer came with the run, and what to inspect next.
+The diagnostic tool receives a **small, read-only snapshot**. We ask why alerts rose, what formal answer came with the run, and what to inspect next.
 
-*(Submit. Point to cited fields and the observation/inference split.)*
+*(Submit. Wait. Do not narrate spinner.)*
 
-The observations point back to structured fields. Suggestions are labelled as inference. The provider name shows whether Codex or the local Ollama fallback produced the explanation. With Ollama the snapshot stays on this laptop; with Codex that limited context goes to the signed-in service.
+Look at the split.
 
-Most importantly: Maude made the decision. The language model explained what the system observed. It cannot deploy a rule or change `conflicts` into `clean`.
+**Observations point back to structured fields**. Suggestions are **labelled inference**. The provider name tells us whether Codex or local Ollama produced the explanation.
+
+With Ollama the snapshot stays on this laptop. With Codex that limited context goes to the signed-in service.
+
+Most importantly: **Maude made the decision. The language model explained what the system observed.**
+
+The model **cannot deploy the candidate**. It cannot talk `conflicts` into becoming `clean`.
+
+That separation is more interesting to me than putting an LLM in front of every button.
+
+*(Return to slides.)*
 
 ---
 
 ## 19 · An LLM may propose policy; it should not judge itself — 18:10
 
-The same boundary is useful when an LLM proposes a policy.
+The same boundary applies when **the language model is the author**.
 
-This structured invocation names a high-impact tool, a capability, and a jurisdiction. That data can be validated and passed to a separate deterministic policy model.
+Suppose an LLM proposes a policy or structured tool invocation. Fine.
 
-We are checking the emitted policy, not verifying the language model itself.
+*(Point to the code.)*
 
-The author does not grade its own work.
+On screen: a high-impact tool called `dose`, in the EU jurisdiction.
+
+Take the structured result, validate it, and give it to a **separate deterministic policy model**.
+
+We are checking the emitted policy. We are **not formally verifying the language model**.
+
+*(Change slide.)*
 
 ---
 
 ## 20 · Exactly seven categories — 18:55
 
-The AI-policy detector has exactly seven categories.
+The AI-policy detector has **exactly seven categories**. They are on the slide, so I will not read them all.
 
-They are tool-call conflict, capability shadowing, pack/tool composition mismatch, sovereignty violation, authority escalation, approval-gate bypass, and agent-loop cascade.
+The number is useful mostly because it tells us **what we did not check**.
 
-The next live example focuses on approval and jurisdiction. It does not establish every possible policy property.
+Budget ceilings are not secretly category eight. Provider routing is not secretly category nine.
 
-Budget, cost-ceiling, and provider-routing checks are not implemented results of this detector. If a property is not in the model, this detector did not check it.
+If a property is not in the model, this detector did not check it.
+
+The next demo uses two of them: **approval-gate bypass and sovereignty violation**. Nothing more heroic than that.
+
+*(Change slide.)*
 
 ---
 
 ## 21 · Put a deterministic gate around a probabilistic author — 19:40
 
-A typed conflict gives the author something concrete to revise.
+A typed conflict gives a probabilistic author **something concrete to revise**.
 
-The optional generation scenario asks the configured model for structured rules, validates them, checks them, and can feed a conflict back for another attempt. It keeps the result of each completed pass.
+The optional generation scenario can ask the configured model for structured rules, validate them, check them, and feed a conflict back for another attempt.
 
-A revised policy may still conflict, and generation may fail. There is no promise that a second attempt succeeds.
+But there is **no magic second-turn guarantee**.
 
-If the model is unavailable, show that failure and continue to the deterministic policy check.
+The revised policy can still be wrong. Generation can fail. The provider can be unavailable.
+
+So we **preserve each completed result** instead of rewriting history until the screen becomes green.
+
+If the model is unavailable, show that failure and continue to the deterministic check.
+
+*(Point to the quote.)*
+
+**The author does not grade its own work.**
+
+*(Change slide. Prepare Notebook demo.)*
 
 ---
 
 ## 22 · Approval missing → clean revision → wrong jurisdiction — 20:20
 
-*(Reveal the Notebook pane.)*
+*(Reveal Notebook pane. Run Initialize, Check interpreter and Define policy while speaking. They are setup cells.)*
 
-This last demo has no fleet, broker, language model, or network. It is deliberately boring—and therefore a good recovery path.
+This final demo is **deliberately boring**.
 
-First, a high-impact tool is used without approval. The checker reports `approval_gate_bypass`.
+No fleet. No broker. No language model. No network.
 
-Then we add approval. The checker finds none of the conflict types it was asked to check.
+First: a high-impact tool **without approval**.
 
-Finally, we send an action to the US when the allowed regions are the EU and Switzerland. The answer is `sovereignty_violation`.
+*(Run Missing approval. Pause.)*
 
-Three inputs. Three readable answers. The generated Maude command stays attached to the structured policy we just read.
+`approval_gate_bypass`.
+
+Now **add required approval**.
+
+*(Run Approval added. Pause.)*
+
+For the conflict categories this checker was asked to inspect: clean.
+
+Finally, send the action to **the US** while allowed regions are the EU and Switzerland.
+
+*(Run Wrong region. Pause.)*
+
+`sovereignty_violation`.
+
+**Three structured inputs. Three readable answers.**
+
+The generated Maude command stays attached to the policy we just inspected.
+
+Nothing had to persuade itself that it was correct.
+
+*(Return to slides.)*
 
 ---
 
 ## 23 · Maude is not the only answer — 23:00
 
-Choose the tool that makes your property easiest to state precisely.
+Maude is **not the answer to every formal-methods problem**.
 
-Maude fits algebraic terms and concurrent transitions. TLA+ or PlusCal can make temporal distributed behavior clearer. Alloy explores bounded relations; SMT tools such as Z3 solve constraints.
+Choose the tool that makes your property **easiest to state precisely**.
 
-Types and protocol models can help with conformance. None removes the need to test the translation into the model.
+Maude fits algebraic terms and concurrent transitions. TLA+ or PlusCal can make temporal distributed behaviour clearer. Alloy is excellent for bounded relational structures. SMT solvers such as Z3 fit constraint problems.
 
-Tool choice follows the property, not loyalty to this demo.
+Types and protocol models solve other pieces.
+
+Tool choice should **follow the property**, not loyalty to the tool I happened to put in a conference talk.
+
+*(Change slide.)*
 
 ---
 
 ## 24 · Keep the claim attached to its evidence — 23:45
 
-Before production, keep the claim attached to its evidence.
+Before taking this toward production, **keep the claim attached to its evidence**.
 
-Validate inputs, test the translation steps, bound checking work, and recover uncertain workers. Record which model, interpreter, validated input, verdict, and activation decision belong together.
+Validate inputs. Test every translation step. Bound checking work. Recover uncertain workers. Record which model, interpreter, validated input, verdict and activation decision belong together.
 
-Those are engineering requirements, not a claim that this demo is production proven. Its state is in memory, its broker is a trusted local support service, and the fleet is simulated.
+Those are engineering requirements. They are **not a claim that this demo is production proven**.
 
-An audit artifact supports review. It does not automatically satisfy a regulation or prove an omitted property.
+Its state is in memory. Its broker is a trusted local support service. **Its fleet is simulated.**
+
+An audit artifact helps review what happened. It does not automatically satisfy a regulation, and it definitely does not prove a property we **never modeled**.
+
+*(Change to final slide.)*
 
 ---
 
 ## 25 · Formal methods make a narrow claim strong — 24:35
 
-The code, notebooks, and demo are available if you want to try this pattern.
+The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
-Please take away three things.
+What I'm working on now is **Wotex**. It's **not finished**. It's an attempt at **one unified protocol** for the Web of Things. Others have tried, and nobody has succeeded yet. Maude is a smaller part of it. It sits in the testing and execution logic.
 
-First: check rules together before deployment, because reasonable rules can become unreasonable together.
+So, what I'd like you to take with you. You saw **rules fight** when we let them run, and you saw the gate hold them back before they could. When the checker can't answer, treat that as **its own answer, never as a yes**. And check **the rule you actually run**, with tests on every step in between.
 
-Second: keep `clean`, `conflicts`, and `unverified` separate. Never turn “I could not check” into “yes.”
+*(Point to the quote.)*
 
-Third: check the same rule the runtime will execute, and test every translation step around it.
+**Formal methods make a narrow claim strong.**
 
-Formal methods make a narrow claim strong. They do not make a broad claim true.
+**They do not make a broad claim true.**
 
 Thank you.
 
-*(Stop. Let the ending stand.)*
+*(Stop. Let the ending stand. Do not rush to fill the silence.)*
 
 ---
 
 ## Hard-cut map
 
-- On slides 7–9, keep the four-word vocabulary, reduce/search distinction, and model boundary; omit elaboration.
+- On slides 7–9, keep the four-word vocabulary, the reduce/search distinction, and the model boundary; omit elaboration.
 - On slide 15, name the three interaction edges and read only the current partition count.
 - On slide 18, protect the observation/inference sentence and the Maude/LLM boundary.
-- If LIVE 04 (slide 22) would start after 23:30, skip it and use one sentence each on tool choice (23) and production limits (24).
-- Begin the close (25) no later than 26:00. Keep the three takeaways and final scope sentence.
+- If LIVE 04 (slide 22) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
+- Begin the close (25) no later than 26:00. Keep the takeaways and the final quote.
+
+## Delivery
+
+- Protect real silence while UI actions execute; point at what to watch instead of narrating the wait.
+- Read current counters and results; do not memorize benchmark-looking values.
+- No introduction, CV, or self-promotion anywhere. Problem first.
+- Keep the GitHub and Wotex mentions shallow: somewhere to try or break the ideas, and what I'm working on. Not another technical section.
