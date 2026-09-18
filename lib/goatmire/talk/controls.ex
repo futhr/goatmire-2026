@@ -40,6 +40,32 @@ defmodule Goatmire.Talk.Controls do
     notebook: [{:run_next, "Run next cell"}, {:reset, "Reset notebook"}]
   }
 
+  # {abbreviation, full name} for the speaker-note key hints.
+  @pane_names %{
+    code: {"Code", "code card"},
+    warehouse: {"Whse", "Warehouse pane"},
+    rules: {"Rules", "Rules pane"},
+    diagnostics: {"Diag", "Diagnostics pane"},
+    verify: {"Vrfy", "Verify pane"},
+    notebook: {"NB", "Notebook pane"},
+    metrics: {"Metr", "Metrics pane"}
+  }
+
+  @step_abbreviations %{
+    "Deploy rule A" => "Dep A",
+    "Load rule B" => "Load B",
+    "Check and create" => "Check",
+    "Observe" => "Obs",
+    "Enforce" => "Enf",
+    "Ask" => "Ask",
+    "Initialize" => "Init",
+    "Check interpreter" => "Maude",
+    "Define policy" => "Policy",
+    "Missing approval" => "−Appr",
+    "Approval added" => "+Appr",
+    "Wrong region" => "Region"
+  }
+
   @type pane :: :warehouse | :rules | :diagnostics | :verify | :notebook
   @type step :: atom()
   @type labeled_step :: {step(), String.t()}
@@ -47,6 +73,49 @@ defmodule Goatmire.Talk.Controls do
   @doc "Returns the ordered scripted sequence for a slide, when it has one."
   @spec scripted(pos_integer()) :: {pane(), [labeled_step()]} | nil
   def scripted(slide), do: Map.get(@scripted, slide)
+
+  @doc """
+  Interactive presenter keys for one slide, as `{key, icon, abbreviation, full}`.
+
+  Built from the scripted steps and the slide's configured pane, the same
+  data the projector keymap acts on, so the speaker notes cannot promise a
+  key the slide ignores. Plain navigation is left out: every slide has it.
+  """
+  @spec keys(pos_integer(), %{optional(:tab) => atom() | nil}) ::
+          [{String.t(), atom(), String.t(), String.t()}]
+  def keys(slide, timing) do
+    setup =
+      if slide == 1,
+        do: [{"f", :fullscreen, "Full", "Fullscreen"}, {"q", :qr, "QR", "QR code for the notes"}],
+        else: []
+
+    pane =
+      case Map.get(timing, :tab) do
+        nil ->
+          []
+
+        tab ->
+          {short, full} = Map.get(@pane_names, tab, {"Pane", "live pane"})
+
+          [
+            {"c", :live_full, short, "Reveal the " <> full},
+            {"z", :deck_full, "Deck", "Slides only"}
+          ]
+      end
+
+    play =
+      case scripted(slide) do
+        {_, steps} ->
+          labels = Enum.map(steps, &elem(&1, 1))
+          short = Enum.map_join(labels, " · ", &Map.get(@step_abbreviations, &1, &1))
+          [{"v", :play, short, Enum.join(labels, " → ")}]
+
+        nil ->
+          []
+      end
+
+    setup ++ pane ++ play
+  end
 
   @doc "Returns the actions supported by a live pane."
   @spec pane_actions(atom() | nil) :: [labeled_step()]

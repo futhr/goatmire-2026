@@ -31,7 +31,8 @@ defmodule GoatmireWeb.SpeakerNotesLive do
        authorized?: true,
        snap: snap,
        confirm_reset: false,
-       sections: Script.sections()
+       sections: Script.sections(),
+       timings: Clock.timings()
      ), layout: false}
   end
 
@@ -158,8 +159,16 @@ defmodule GoatmireWeb.SpeakerNotesLive do
           <span class="speaker-note-label">
             {String.pad_leading(Integer.to_string(section.number), 2, "0")} — {section.title}
           </span>
-          <span :for={paragraph <- section.paragraphs} class="speaker-note-paragraph">
-            {paragraph}
+          <span :for={segments <- section.rich} class="speaker-note-paragraph">
+            {rich_text(segments)}
+          </span>
+          <span
+            :if={(keys = Controls.keys(section.number, @timings[section.number])) != []}
+            class="speaker-note-keys"
+          >
+            <span :for={{key, icon, short, full} <- keys} class="speaker-note-key">
+              <.control_icon name={icon} /><kbd>{key}</kbd><abbr title={full}>{short}</abbr>
+            </span>
           </span>
         </button>
       </div>
@@ -319,7 +328,7 @@ defmodule GoatmireWeb.SpeakerNotesLive do
             aria-label={label}
             title={label}
           >
-            <.control_icon name={step_icon(state)} />
+            <.control_icon name={step_icon(state, @snap.slide, index)} />
           </button>
           <button
             :for={{step, label} <- actions}
@@ -337,6 +346,17 @@ defmodule GoatmireWeb.SpeakerNotesLive do
     </main>
     """
   end
+
+  # Each segment is escaped on its own, so the only markup is the strong tag.
+  defp rich_text(segments) do
+    {:safe,
+     Enum.map(segments, fn
+       {:strong, text} -> ["<strong>", escape(text), "</strong>"]
+       {:text, text} -> escape(text)
+     end)}
+  end
+
+  defp escape(text), do: elem(Phoenix.HTML.html_escape(text), 1)
 
   attr :name, :atom, required: true
 
@@ -371,6 +391,16 @@ defmodule GoatmireWeb.SpeakerNotesLive do
           <path d="m5 12.5 4.5 4.5L19 7" />
         <% :play -> %>
           <path d="m9 7 9 5-9 5z" class="fill" />
+        <% :fullscreen -> %>
+          <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+        <% :qr -> %>
+          <rect x="4" y="4" width="6" height="6" rx="1" /><rect
+            x="14"
+            y="4"
+            width="6"
+            height="6"
+            rx="1"
+          /><rect x="4" y="14" width="6" height="6" rx="1" /><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2" />
         <% :done -> %>
           <path d="m5 12.5 4.5 4.5L19 7" />
         <% :queued -> %>
@@ -404,9 +434,13 @@ defmodule GoatmireWeb.SpeakerNotesLive do
     """
   end
 
-  defp step_icon(:done), do: :done
-  defp step_icon(:next), do: :play
-  defp step_icon(:todo), do: :queued
+  # A waiting step shows what it will do; only a finished one becomes a tick.
+  defp step_icon(:done, _, _), do: :done
+
+  defp step_icon(_, slide, index) do
+    {_, steps} = Controls.scripted(slide)
+    action_icon(elem(Enum.at(steps, index), 0))
+  end
 
   defp action_icon(:seed_deployed), do: :deploy
   defp action_icon(:load_example), do: :load
@@ -416,6 +450,7 @@ defmodule GoatmireWeb.SpeakerNotesLive do
   defp action_icon(:clear), do: :clear
   defp action_icon(:diagnose), do: :diagnose
   defp action_icon(:run_policy), do: :verify
+  defp action_icon(:initialize_policy), do: :load
   defp action_icon(:run_next), do: :play
   defp action_icon(:reset), do: :notebook_reset
 

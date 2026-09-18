@@ -95,6 +95,53 @@ html {
   font-size: var(--speaker-current-font-size, clamp(1.8rem, 4.25vw, 2.8rem));
 }
 
+/* Interactive keys for this slide, under its text. The divider and muted
+   colour keep them from being read aloud; the size matches the text. */
+.speaker-note-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em 1.1em;
+  margin-top: 1.1em;
+  padding-top: 0.8em;
+  border-top: 1px solid #d9dee5;
+  color: #5b6573;
+  font-size: clamp(1.35rem, 3.4vw, 2.35rem);
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.speaker-note.current .speaker-note-keys {
+  font-size: var(--speaker-current-font-size, clamp(1.8rem, 4.25vw, 2.8rem));
+}
+
+/* Inline flow with a hanging indent: a long step list wraps past its icon. */
+.speaker-note-key {
+  padding-left: 1.4em;
+  text-indent: -1.4em;
+}
+
+.speaker-note-key .speaker-control-icon {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.3em;
+  vertical-align: -0.2em;
+}
+
+.speaker-note-key abbr {
+  text-decoration: none;
+}
+
+.speaker-note-key kbd {
+  margin-right: 0.35em;
+  color: #111111;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.speaker-note-paragraph strong {
+  font-weight: 600;
+}
+
 .speaker-note:focus-visible {
   outline: 3px solid #111111;
   outline-offset: 0.7rem;
@@ -227,8 +274,10 @@ html {
     padding-top: 28svh;
   }
 
-  .speaker-note-paragraph { font-size: clamp(1.3rem, 2.35vw, 2.1rem); }
-  .speaker-note.current .speaker-note-paragraph {
+  .speaker-note-paragraph,
+  .speaker-note-keys { font-size: clamp(1.3rem, 2.35vw, 2.1rem); }
+  .speaker-note.current .speaker-note-paragraph,
+  .speaker-note.current .speaker-note-keys {
     font-size: var(--speaker-current-font-size, clamp(1.65rem, 3vw, 2.45rem));
   }
 }

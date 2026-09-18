@@ -100,4 +100,30 @@ defmodule Goatmire.Talk.ControlsTest do
       assert {false, [], [{:run_policy, _}]} = Controls.dock_items(1, :verify, %{})
     end
   end
+
+  describe "keys/2" do
+    test "a demo slide lists its reveal and every scripted step under v" do
+      keys = Controls.keys(16, %{tab: :rules})
+
+      assert {"c", :live_full, "Rules", "Reveal the Rules pane"} in keys
+
+      assert {"v", :play, "Dep A · Load B · Check",
+              "Deploy rule A → Load rule B → Check and create"} in keys
+    end
+
+    test "setup keys belong to the first slide; plain navigation is never listed" do
+      assert {"q", :qr, "QR", "QR code for the notes"} in Controls.keys(1, %{tab: nil})
+      assert Controls.keys(2, %{tab: nil}) == []
+
+      for n <- 1..Deck.count(), {key, _, _, _} <- Controls.keys(n, %{tab: :code}) do
+        refute key in ["→", "←"]
+      end
+    end
+
+    test "v is offered only where it plays something" do
+      for n <- 1..Deck.count(), {"v", _, _, _} <- Controls.keys(n, %{tab: nil}) do
+        assert Controls.scripted(n)
+      end
+    end
+  end
 end

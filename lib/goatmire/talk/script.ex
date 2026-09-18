@@ -20,22 +20,29 @@ defmodule Goatmire.Talk.Script do
               |> Enum.map(fn [_, number, title, time, body] ->
                 number = String.to_integer(number)
 
-                paragraphs =
+                # Bold and code spans become emphasis; stray markers are dropped.
+                rich =
                   body
                   |> String.split(~r/\n\s*\n/)
                   |> Enum.map(&String.trim/1)
                   |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "*(")))
                   |> Enum.map(fn paragraph ->
-                    paragraph
-                    |> String.replace(~r/[\*`]/, "")
-                    |> String.trim()
+                    ~r/\*\*(.+?)\*\*|`([^`]+)`|[^*`]+|[*`]/
+                    |> Regex.scan(paragraph)
+                    |> Enum.map(fn
+                      [_, strong] -> {:strong, String.replace(strong, "`", "")}
+                      [_, "", code] -> {:strong, code}
+                      [text] -> {:text, String.replace(text, ~r/[\*`]/, "")}
+                    end)
+                    |> Enum.reject(&(elem(&1, 1) == ""))
                   end)
 
                 %{
                   number: number,
                   title: title,
                   time: time,
-                  paragraphs: paragraphs
+                  paragraphs: Enum.map(rich, &String.trim(Enum.map_join(&1, fn {_, t} -> t end))),
+                  rich: rich
                 }
               end)
             )
@@ -48,7 +55,8 @@ defmodule Goatmire.Talk.Script do
           number: pos_integer(),
           title: String.t(),
           time: String.t(),
-          paragraphs: [String.t()]
+          paragraphs: [String.t()],
+          rich: [[{:text | :strong, String.t()}]]
         }
 
   @doc "All spoken sections in deck order."

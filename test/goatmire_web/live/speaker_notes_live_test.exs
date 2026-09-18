@@ -6,7 +6,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
   import Phoenix.{ConnTest, LiveViewTest}
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.Clock
+  alias Goatmire.Talk.{Clock, Pairing}
 
   @endpoint GoatmireWeb.Endpoint
 
@@ -50,6 +50,36 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     assert html =~ "Both apps were reasonable"
     assert html =~ "A bad answer, a good answer, and no answer are three different things."
     refute html =~ "<img"
+  end
+
+  test "a presenter QR code unlocks the notes from the network once" do
+    {:ok, code} = Pairing.issue()
+    tablet = %{build_conn() | remote_ip: {192, 0, 2, 10}}
+
+    paired = get(tablet, "/talk/notes/pair/#{code}")
+    assert redirected_to(paired) == "/talk/notes"
+
+    {:ok, _, html} = live(recycle(paired), "/talk/notes")
+    assert html =~ ~s(id="speaker-notes")
+
+    reused = get(tablet, "/talk/notes/pair/#{code}")
+    assert response(reused, 404) =~ "Press q for a new one"
+    assert response_content_type(reused, :text)
+  end
+
+  test "each slide's notes list the presenter keys that act on it", %{conn: conn} do
+    {:ok, notes, _} = authorized_live(conn)
+
+    first = render(element(notes, "#speaker-note-1"))
+    assert first =~ ~s(<kbd>q</kbd><abbr title="QR code for the notes">QR</abbr>)
+
+    demo = render(element(notes, "#speaker-note-16"))
+    assert demo =~ ~s(<kbd>c</kbd><abbr title="Reveal the Rules pane">Rules</abbr>)
+
+    assert demo =~
+             "<kbd>v</kbd><abbr title=\"Deploy rule A → Load rule B → Check and create\">Dep A · Load B · Check</abbr>"
+
+    refute render(element(notes, "#speaker-note-2")) =~ "speaker-note-keys"
   end
 
   test "token rotation revokes an already connected notes session", %{conn: conn} do
@@ -133,6 +163,18 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     |> render_click()
 
     assert_eventually(fn -> render(projector) =~ ~s(id="deck-slide-10") end)
+  end
+
+  test "waiting demo steps show their action instead of a bare dot", %{conn: conn} do
+    Clock.goto(16)
+    {:ok, notes, _} = authorized_live(conn)
+
+    for index <- 0..2 do
+      button = render(element(notes, "#speaker-play-step-#{index}"))
+      refute button =~ ~s(<circle cx="12" cy="12" r="3")
+    end
+
+    assert render(element(notes, "#speaker-play-step-2")) =~ "M12 3 20 6v6c0 4-3.4 7-8 9"
   end
 
   test "touch controls navigate, switch layout, and zoom the shared stage", %{conn: conn} do

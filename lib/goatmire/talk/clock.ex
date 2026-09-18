@@ -63,6 +63,12 @@ defmodule Goatmire.Talk.Clock do
   @spec snapshot() :: snapshot()
   def snapshot, do: GenServer.call(__MODULE__, :snapshot)
 
+  @doc "Per-slide budget, reveal layout, and pane as loaded from `priv/talk/timings.exs`."
+  @spec timings() :: %{
+          pos_integer() => %{seconds: pos_integer(), panel: atom(), tab: tab() | nil}
+        }
+  def timings, do: GenServer.call(__MODULE__, :timings)
+
   @doc "Starts the talk clock at the current slide; a no-op when already running."
   @spec start_talk() :: snapshot()
   def start_talk, do: GenServer.call(__MODULE__, :start_talk)
@@ -154,6 +160,7 @@ defmodule Goatmire.Talk.Clock do
 
   @impl true
   def handle_call(:snapshot, _, state), do: {:reply, build_snapshot(state), state}
+  def handle_call(:timings, _, state), do: {:reply, state.timings, state}
 
   def handle_call(:start_talk, _, state) do
     state = if state.started_at_ms, do: state, else: start_now(state)
