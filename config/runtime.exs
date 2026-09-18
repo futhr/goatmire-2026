@@ -31,6 +31,8 @@ config :goatmire, GoatmireWeb.Endpoint,
 if talk_remote? do
   stage_host = System.fetch_env!("GOATMIRE_TALK_HOST")
 
+  config :goatmire, talk_host: stage_host
+
   config :goatmire, GoatmireWeb.Endpoint,
     check_origin: ["//localhost", "//127.0.0.1", "//" <> stage_host]
 end

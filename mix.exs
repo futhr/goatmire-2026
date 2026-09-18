@@ -85,6 +85,9 @@ defmodule Goatmire.MixProject do
       # Renders the verifier's rule terms with Livebook editor colours.
       {:makeup_elixir, "~> 1.0"},
 
+      # Draws the one-time pairing QR code on the presenter screen.
+      {:eqrcode, "~> 0.2.1"},
+
       # Plug is a transitive runtime dependency of Phoenix; it cannot be
       # `only: :test` even though the test suite is what uses it directly.
       {:plug, "~> 1.20"},

@@ -91,6 +91,10 @@ defmodule Goatmire.Config do
   @spec talk_remote_token() :: String.t() | nil
   def talk_remote_token, do: get(:talk_remote_token)
 
+  @doc "LAN host the tablet uses to reach the stage server; nil when remote notes are off."
+  @spec talk_host() :: String.t() | nil
+  def talk_host, do: get(:talk_host)
+
   @doc "BAML client registry pointing only at Goatmire's loopback provider bridge."
   @spec diagnostics_client_registry() :: map()
   def diagnostics_client_registry do

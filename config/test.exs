@@ -11,7 +11,8 @@ config :goatmire,
   llm_test_model: "qwen3.5:4b-q4_K_M",
   metrics_enabled: false,
   talk_state_path: nil,
-  talk_remote_token: "test-speaker-notes"
+  talk_remote_token: "test-speaker-notes",
+  talk_host: "192.0.2.1"
 
 config :goatmire, GoatmireWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 0],

@@ -43,6 +43,7 @@ defmodule GoatmireWeb.Router do
     pipe_through :browser
 
     get "/talk/notes/unlock/:token", SpeakerNotesController, :unlock
+    get "/talk/notes/pair/:code", SpeakerNotesController, :pair
 
     live_session :talk, root_layout: {GoatmireWeb.Layouts, :presenter_root} do
       live "/talk", PresenterLive, :index
