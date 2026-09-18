@@ -174,6 +174,54 @@ defmodule GoatmireWeb.CoreComponents do
     """
   end
 
+  attr :code, :string, required: true
+
+  @doc "Maude command excerpt coloured with the token classes of `code_block/1`."
+  # Every token is escaped before it is wrapped, so the raw render below
+  # cannot carry markup from the source text.
+  # sobelow_skip ["XSS.Raw"]
+  @spec maude_block(map()) :: Phoenix.LiveView.Rendered.t()
+  def maude_block(assigns) do
+    assigns = assign(assigns, :highlighted, highlight_maude(assigns.code))
+
+    ~H"""
+    {Phoenix.HTML.raw(@highlighted)}
+    """
+  end
+
+  @maude_keywords ~w(reduce red rewrite rew frewrite frew search in)
+
+  # Makeup has no Maude lexer; a slide command needs only these token kinds.
+  defp highlight_maude(source) do
+    tokens =
+      ~r/\s+|=>[*+!]?|[A-Za-z][\w-]*|\d+|./u
+      |> Regex.scan(source)
+      |> Enum.map_join(fn [token] -> maude_token(token) end)
+
+    ~s(<pre class="highlight"><code>#{tokens}</code></pre>)
+  end
+
+  defp maude_token(token) do
+    escaped = Phoenix.HTML.safe_to_string(Phoenix.HTML.html_escape(token))
+
+    case maude_class(token) do
+      nil -> escaped
+      class -> ~s(<span class="#{class}">#{escaped}</span>)
+    end
+  end
+
+  defp maude_class(token) do
+    cond do
+      token in @maude_keywords -> "k"
+      String.trim(token) == "" -> nil
+      token =~ ~r/^[A-Z][A-Z0-9-]*$/ -> "nc"
+      token =~ ~r/^\d+$/ -> "mi"
+      token =~ ~r/^(=>|:)/ -> "o"
+      token =~ ~r/^[A-Za-z]/ -> "n"
+      true -> "p"
+    end
+  end
+
   attr :status, :atom, required: true
 
   @doc "Renders the verdict state."

@@ -112,6 +112,28 @@
   line-height: 1.3;
 }
 
+/* Several takeaways share one bar and read as a numbered list, rather than
+   stacking a bar per line. */
+.sl-points {
+  margin: 0;
+  padding: 0.5cqw 0 0.5cqw 1.9cqw;
+  border-left: clamp(2px, 0.3cqw, 5px) solid var(--sl-accent);
+  color: var(--sl-text);
+  font-size: clamp(0.95rem, 2.27cqw, 2.1rem);
+  line-height: 1.3;
+  list-style: decimal inside;
+}
+
+.sl-points li + li {
+  margin-top: 1cqw;
+}
+
+.sl-points li::marker {
+  color: var(--sl-accent);
+  font-family: var(--sl-mono);
+  font-size: 0.85em;
+}
+
 .slide table {
   width: 100%;
   margin-top: 2.2cqw;
@@ -255,10 +277,14 @@
   color: inherit;
 }
 
+/* Diagram boxes share the flow nodes' type so every node on every slide
+   reads at one size. */
 .sl-panel--center {
   display: grid;
   place-items: center;
+  gap: 0.4cqw;
   color: var(--sl-heading);
+  font-size: clamp(0.75rem, 1.72cqw, 1.6rem);
   font-weight: 600;
   text-align: center;
 }
@@ -308,12 +334,29 @@
   font-size: clamp(1rem, 2.2cqw, 2rem);
 }
 
+/* Flow nodes can carry the verdict colours and a small label. */
+.sl-flow .sl-node .sl-label {
+  color: inherit;
+}
+
+.sl-flow .sl-node--clean {
+  border-color: transparent;
+  background: var(--sl-verdict-clean-soft);
+  color: var(--sl-verdict-clean);
+}
+
+.sl-flow .sl-node--conflict {
+  border-color: var(--sl-verdict-conflict);
+  background: var(--sl-verdict-conflict-soft);
+  color: var(--sl-verdict-conflict);
+}
+
 .sl-branch-source {
   display: grid;
   place-items: center;
   max-width: 44cqw;
   min-height: 7.5cqw;
-  margin: 1.6cqw auto 0;
+  margin: 0 auto;
   padding: 1.4cqw;
   border: 1px solid var(--sl-border);
   border-radius: clamp(0.5rem, 1.1cqw, 1rem);
@@ -321,12 +364,21 @@
   color: var(--sl-heading);
   font-family: var(--sl-mono);
   font-size: clamp(0.85rem, 1.8cqw, 1.65rem);
+  font-weight: 600;
   text-align: center;
+}
+
+.sl-branch-source--conflict {
+  border-color: var(--sl-verdict-conflict);
+  background: var(--sl-verdict-conflict-soft);
+  color: var(--sl-verdict-conflict);
 }
 
 .sl-branch-arrow {
   display: flex;
   justify-content: space-between;
+  /* Auto margins in a flex column shrink to content; keep the full span. */
+  width: 100%;
   max-width: 34cqw;
   margin: 0.4cqw auto;
   color: var(--sl-accent);
@@ -345,7 +397,7 @@
   color: inherit;
   font-family: var(--sl-mono);
   font-size: clamp(0.95rem, 2cqw, 1.85rem);
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .sl-verdict span {
@@ -434,28 +486,62 @@
   letter-spacing: -0.045em;
 }
 
-.slide--closing .sl-small {
-  margin: 3.4cqw 0 0;
+.sl-repos {
+  display: flex;
+  justify-content: center;
+  gap: 6cqw;
+  margin-top: 3.4cqw;
 }
 
-/* Default and statement slides: eyebrow pinned absolute at the top, all
-   other content vertically centered. Title, demo, and closing slides center
-   themselves. */
+.sl-repo {
+  display: grid;
+  justify-items: center;
+  gap: 1.2cqw;
+  margin: 0;
+}
+
+.sl-repo figcaption {
+  color: var(--sl-subtext);
+  font-size: clamp(0.8rem, 1.8cqw, 1.7rem);
+  font-weight: 600;
+}
+
+/* Large enough to scan from the back of the room on a projector. */
+.sl-repo .qr-code {
+  width: 22cqw;
+  border-radius: clamp(0.5rem, 1.1cqw, 1rem);
+}
+
+/* Default and statement slides: eyebrow pinned absolute at the top, content
+   hanging from one fixed title line so the title never moves between slides.
+   The line is a share of the slide width and leaves room for the tallest
+   slide (the slide 2 diagram) on a 16:9 projector. Title, demo, and closing
+   slides center themselves. */
 .slide--default,
 .slide--statement {
   display: flex;
   flex-direction: column;
-  /* `safe` falls back to top-aligned when content overflows, and the extra
-     top padding reserves the eyebrow band so tall slides never cover it. */
-  justify-content: safe center;
-  padding-top: 11%;
+  justify-content: flex-start;
+  padding-top: 12%;
 }
 
-.sl-two,
-.sl-three,
-.sl-four,
-.sl-flow {
-  margin-bottom: 2.6cqw;
+/* One vertical rhythm on content slides: every stacked block sits exactly one
+   title gap below the element above it. Flex items do not collapse margins,
+   so a block never carries its own and only the sibling rule adds the gap.
+   Branch arrows keep their own tight spacing inside a diagram. */
+:is(.slide--default, .slide--statement)
+  > :is(.sl-statement, pre, blockquote, .sl-lede, .sl-points, .sl-value, .sl-two, .sl-three, .sl-four, .sl-flow,
+    .sl-branch-source) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+:is(.slide--default, .slide--statement)
+  > :is(.sl-statement, pre, blockquote, .sl-lede, .sl-points, .sl-value, .sl-two, .sl-three, .sl-four, .sl-flow,
+    .sl-branch-source)
+  + :is(.sl-statement, pre, blockquote, .sl-lede, .sl-points, .sl-value, .sl-two, .sl-three, .sl-four, .sl-flow,
+    .sl-branch-source) {
+  margin-top: 2.2cqw;
 }
 
 @container (max-width: 640px) {

@@ -8,7 +8,18 @@ defmodule GoatmireWeb.Presenter.Slides do
 
   use Phoenix.Component
 
+  import GoatmireWeb.CoreComponents, only: [code_block: 1, maude_block: 1]
+
   alias Goatmire.Talk.Deck
+  alias GoatmireWeb.Presenter.QRCode
+
+  # Encoded once at compile time; the closing slide shows fixed links.
+  @repos for {name, path} <- [
+               {"ex_maude", "futhr/ex_maude"},
+               {"goatmire-2026", "futhr/goatmire-2026"},
+               {"wotex", "wotex"}
+             ],
+             do: {name, "github.com/" <> path, QRCode.data_uri("https://github.com/" <> path)}
 
   @doc "Slide numbers and titles, in deck order, for every talk surface."
   @spec titles() :: [{pos_integer(), String.t()}]
@@ -35,10 +46,22 @@ defmodule GoatmireWeb.Presenter.Slides do
   def slide(%{n: 2} = assigns) do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-2 slide--default">
-      <div class="sl-eyebrow">A published interaction</div><h1>{Deck.title(@n)}</h1>
-      <div class="sl-value">SOTERIA · O3 + O4</div><p class="sl-lede sl-mt">
-        The same contact-open event sets one switch to conflicting values.
-      </p>
+      <div class="sl-eyebrow">SOTERIA · multi-app evaluation</div>
+      <h1>{Deck.title(@n)}</h1>
+      <div class="sl-branch-source">contact: open</div>
+      <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
+      <div class="sl-two">
+        <div class="sl-panel sl-panel--center">
+          <div class="sl-label">O3</div>
+          <div>switch → on</div>
+        </div>
+        <div class="sl-panel sl-panel--center">
+          <div class="sl-label">O4</div>
+          <div>switch → off</div>
+        </div>
+      </div>
+      <div class="sl-branch-arrow"><span>↘</span><span>↙</span></div>
+      <div class="sl-branch-source sl-branch-source--conflict">switch: on ↔ off</div>
       <blockquote>
         Published pattern · controlled reproduction · no historical prevention claim
       </blockquote>
@@ -63,7 +86,9 @@ defmodule GoatmireWeb.Presenter.Slides do
           <p>Set <code>switch</code> to <code>off</code>.</p>
         </div>
       </div>
-      <p class="sl-small">Published pattern · controlled reproduction · no real home involved</p>
+      <p class="sl-lede sl-mt">
+        Published pattern · controlled reproduction · no real home involved
+      </p>
     </section>
     """
   end
@@ -90,6 +115,20 @@ defmodule GoatmireWeb.Presenter.Slides do
     <section aria-label={Deck.title(@n)} class="slide slide-5 slide--statement">
       <div class="sl-eyebrow">The deployment question</div>
       <div class="sl-statement">If the conflict exists now, why discover it after deployment?</div>
+      <div class="sl-flow">
+        <div class="sl-node">submit rule</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node sl-node--clean">
+          <span class="sl-label">before activation</span> check
+        </div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">activate</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node sl-node--conflict">
+          <span class="sl-label">after deployment</span> alert
+        </div>
+      </div>
+      <p class="sl-lede">Move the discovery left, into the request that creates the rule.</p>
     </section>
     """
   end
@@ -140,9 +179,8 @@ defmodule GoatmireWeb.Presenter.Slides do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-8 slide--default">
       <div class="sl-eyebrow">Two commands · two claims</div><h1>{Deck.title(@n)}</h1>
-      <pre><code>reduce in SWITCH : toggle(toggle(on)) .
-    search [1] in CELL : idle =&gt;* ready .</code></pre>
-      <div class="sl-two">
+      <.maude_block code={maude_commands()} />
+      <div class="sl-two sl-mt">
         <div class="sl-panel">
           <h2>reduce</h2><p>normal form under equations</p>
         </div>
@@ -150,7 +188,7 @@ defmodule GoatmireWeb.Presenter.Slides do
           <h2>search</h2><p>reachable witness under transitions</p>
         </div>
       </div>
-      <p class="sl-small sl-mt">No witness within a bound is not an unbounded safety proof.</p>
+      <p class="sl-lede sl-mt">No witness within a bound is not an unbounded safety proof.</p>
     </section>
     """
   end
@@ -212,7 +250,7 @@ defmodule GoatmireWeb.Presenter.Slides do
         <div class="sl-arrow">→</div>
         <div class="sl-node">typed answer</div>
       </div>
-      <pre><code>ExMaude.IoT.detect_conflicts(rules)</code></pre>
+      <.code_block code="ExMaude.IoT.detect_conflicts(rules)" />
     </section>
     """
   end
@@ -336,11 +374,11 @@ defmodule GoatmireWeb.Presenter.Slides do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-19 slide--default">
       <div class="sl-eyebrow">The pattern transfers</div><h1>{Deck.title(@n)}</h1>
-      <pre phx-no-curly-interpolation><code>invocations: [
-    {:invoke_tool, "dose", %{}, "high_impact", :eu}
-    ]</code></pre>
-      <p class="sl-lede">Structured output in. Deterministic policy equations out.</p>
-      <blockquote>This checks a policy, not the language model.</blockquote>
+      <.code_block code={~s|invocations: [\n  {:invoke_tool, "dose", %{}, "high_impact", :eu}\n]|} />
+      <ol class="sl-points">
+        <li>Structured output in. Deterministic policy equations out.</li>
+        <li>This checks a policy, not the language model.</li>
+      </ol>
     </section>
     """
   end
@@ -410,7 +448,7 @@ defmodule GoatmireWeb.Presenter.Slides do
           <p>Maude<br />TLA+ / PlusCal<br />Alloy<br />SMT / Z3<br />types and model checking</p>
         </div>
       </div>
-      <p class="sl-small sl-mt">Choose the model that makes the property clearest.</p>
+      <p class="sl-lede sl-mt">Choose the model that makes the property clearest.</p>
     </section>
     """
   end
@@ -431,7 +469,7 @@ defmodule GoatmireWeb.Presenter.Slides do
           </p>
         </div>
       </div>
-      <p class="sl-small sl-mt">
+      <p class="sl-lede sl-mt">
         This simulation is not production evidence or a regulatory safety case.
       </p>
     </section>
@@ -446,9 +484,24 @@ defmodule GoatmireWeb.Presenter.Slides do
         <blockquote>
           Formal methods make a narrow claim strong. They do not make a broad claim true.
         </blockquote>
-        <p class="sl-small sl-mono">github.com/futhr/ex_maude · github.com/futhr/goatmire-2026</p>
+        <div class="sl-repos">
+          <figure :for={{name, url, qr} <- repos()} class="sl-repo">
+            <figcaption>{name}</figcaption>
+            <QRCode.qr_code src={qr} alt={"QR code for " <> url} />
+          </figure>
+        </div>
       </div>
     </section>
     """
   end
+
+  # A function, not an attribute string: HEEx attribute text has no escapes.
+  defp maude_commands do
+    """
+    reduce in SWITCH : toggle(toggle(on)) .
+    search [1] in CELL : idle =>* ready .\
+    """
+  end
+
+  defp repos, do: @repos
 end
