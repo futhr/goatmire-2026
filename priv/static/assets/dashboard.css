@@ -249,6 +249,9 @@ p.lede { max-width: 72ch; margin: 0 0 2rem; color: var(--subtext); font-size: 1r
   line-height: 1.2;
 }
 .stat .note { margin-top: 0.2rem; color: var(--subtext); font-size: 0.76rem; }
+/* A long value wraps inside its tile instead of running into the next one. */
+.stat .value { overflow-wrap: anywhere; }
+#deterministic-evidence { white-space: pre-wrap; overflow-wrap: anywhere; }
 .stat .sparkline { display: block; margin-top: 0.45rem; }
 .badge {
   display: inline-block;
@@ -508,6 +511,20 @@ select {
 details summary { color: var(--subtext); }
 ul { padding-left: 1.2rem; }
 li + li { margin-top: 0.3rem; }
+/* Inside the presenter the window is wide but the live pane is not. The pane
+   body is a size container, so these match the media rules below by the
+   pane's own width; on ordinary pages there is no container and they never
+   apply. */
+@container (max-width: 900px) {
+  .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrics .stat:nth-child(3) { border-left: 0; border-top: 1px solid var(--overlay); }
+  .metrics .stat:nth-child(4) { border-top: 1px solid var(--overlay); }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 420px) {
+  .cols-2, .cols-4 { grid-template-columns: minmax(0, 1fr); }
+  .metrics .stat + .stat { border-top: 1px solid var(--overlay); border-left: 0; }
+}
 @media (max-width: 900px) {
   .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metrics .stat:nth-child(3) { border-left: 0; border-top: 1px solid var(--overlay); }

@@ -31,7 +31,7 @@ defmodule GoatmireWeb.DiagnosticsLiveTest do
     {:ok, _, html} = live(build_conn(), "/diagnostics")
 
     assert html =~ "Ask the running system"
-    assert html =~ "alerts / second"
+    assert html =~ "alerts/s"
     assert html =~ "BEAM run queue"
     assert html =~ "Ask"
     assert html =~ "reasoner not used yet" or html =~ "Codex" or html =~ "Ollama"

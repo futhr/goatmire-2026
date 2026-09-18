@@ -14,7 +14,7 @@ defmodule GoatmireWeb.MetricsLiveTest do
   test "renders the tiles with server-rendered sparklines", %{conn: conn} do
     {:ok, _, html} = live(conn, "/metrics")
 
-    assert html =~ "Alerts / s"
+    assert html =~ "Alerts/s"
     assert html =~ "Maude pool in use"
     assert html =~ "sparkline"
     assert html =~ "<svg"
@@ -25,17 +25,17 @@ defmodule GoatmireWeb.MetricsLiveTest do
 
     render_click(element(view, ~s(button[phx-value-seconds="60"])))
 
-    assert render(view) =~ "last 60 s"
+    assert render(view) =~ "last 60s"
   end
 
   test "a malformed window payload falls back instead of killing the view", %{conn: conn} do
     {:ok, view, _} = live(conn, "/metrics")
 
     for payload <- ["not-a-number", "60.5", "", "3000"] do
-      assert render_click(view, "window", %{"seconds" => payload}) =~ "last 300 s"
+      assert render_click(view, "window", %{"seconds" => payload}) =~ "last 300s"
     end
 
-    assert render_click(view, "window", %{"seconds" => 60}) =~ "last 60 s"
+    assert render_click(view, "window", %{"seconds" => 60}) =~ "last 60s"
     assert Process.alive?(view.pid)
   end
 

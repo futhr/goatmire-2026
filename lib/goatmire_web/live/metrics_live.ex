@@ -71,7 +71,7 @@ defmodule GoatmireWeb.MetricsLive do
     ~H"""
     <h1>Metrics</h1>
     <p class="lede">
-      The verifier and engine over the last {@window} s, from the same in-memory
+      The verifier and engine over the last {@window}s, from the same in-memory
       ring buffer the diagnostics chat cites. Sampled once per second; the window
       dies with the node, and that window is the story.
     </p>
@@ -84,7 +84,7 @@ defmodule GoatmireWeb.MetricsLive do
         phx-click="window"
         phx-value-seconds={seconds}
       >
-        Last {seconds} s
+        Last {seconds}s
       </button>
     </div>
 
@@ -96,9 +96,9 @@ defmodule GoatmireWeb.MetricsLive do
     <div :if={@sample}>
       <div class="section-label">Engine</div>
       <section class="grid cols-4 metrics">
-        <.metric label="Alerts / s" points={@sample.series.alerts} />
-        <.metric label="Events / s" points={@sample.series.events} />
-        <.metric label="Throttled / s" points={@sample.series.throttled} />
+        <.metric label="Alerts/s" points={@sample.series.alerts} />
+        <.metric label="Events/s" points={@sample.series.events} />
+        <.metric label="Throttled/s" points={@sample.series.throttled} />
         <.metric label="Rules withheld" points={@sample.series.withheld} />
       </section>
 
@@ -169,6 +169,7 @@ defmodule GoatmireWeb.MetricsLive do
   end
 
   defp format_value(nil, _), do: "0"
+  defp format_value(value, nil) when is_float(value), do: to_string(Float.round(value, 1))
   defp format_value(value, nil), do: "#{value}"
   defp format_value(value, format), do: format.(value)
 
@@ -177,9 +178,9 @@ defmodule GoatmireWeb.MetricsLive do
 
   defp table_rows(series) do
     [
-      {"alerts / s", series.alerts},
-      {"events / s", series.events},
-      {"throttled / s", series.throttled},
+      {"alerts/s", series.alerts},
+      {"events/s", series.events},
+      {"throttled/s", series.throttled},
       {"rules withheld", series.withheld},
       {"maude pool in use", series.maude_in_use},
       {"checkout µs", series.maude_checkout_us},

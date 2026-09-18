@@ -181,7 +181,9 @@ defmodule Goatmire.Diagnostics.Sampler do
 
     deltas = current_run_counts(state.history, engine[:run_id], deltas)
 
-    rates = Map.new(deltas, fn {key, value} -> {key, value / elapsed} end)
+    # One decimal: the dashboard, the sparklines, and the diagnostics citations
+    # all read these, and a 13-digit rate helps none of them.
+    rates = Map.new(deltas, fn {key, value} -> {key, Float.round(value / elapsed, 1)} end)
 
     sample = %{
       monotonic_ms: now,

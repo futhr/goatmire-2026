@@ -295,7 +295,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
     </div>
 
     <div id="diagnostic-metrics" class="grid cols-4 metrics">
-      <.stat label="alerts / second" value={to_string(@rates[:alerts] || 0)} />
+      <.stat label="alerts/s" value={to_string(@rates[:alerts] || 0)} />
       <.stat label="BEAM run queue" value={to_string(@beam[:run_queue] || 0)} />
       <.stat
         label="Maude pool"
