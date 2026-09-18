@@ -2,6 +2,8 @@
 
 This is the technical study guide behind “Zero Alert Storms: Formal Verification for IoT Automation.” It describes the code that exists in the local `ex_maude` and `goatmire-2026` repositories as of 19 August 2026. When this guide and the code disagree, the code and its tests win.
 
+It is also the talk's dictionary. If a word from the speech is hard to explain in one breath, [section 15](#15-talk-dictionary) explains it in plain terms, in the order the talk uses it.
+
 Local library changes may be unreleased even when their version strings match Hex. The application installs locked Hex ExMaude by default; see [dependency maintenance](dependencies.md) for how that resolution works.
 
 ## 1. The useful mental model
@@ -328,3 +330,226 @@ Not that the speaker can point at, and the talk says so. What exists is a public
 The memorable line is:
 
 > Formal methods make a narrow claim strong; they do not make a broad claim true.
+
+## 15. Talk dictionary
+
+These are the harder words the speech uses, in the order it uses them. Each entry says what the thing is, gives you an Elixir handle on it, and names the slide where it comes up. The entries were checked against the code on 18 September 2026.
+
+### SOTERIA
+
+SOTERIA is a published research system from USENIX ATC 2018. It reads the source code of SmartThings smart-home apps, builds a state model from it, and checks that model against safety and security properties.
+
+Its multi-app evaluation looks at what happens when several apps are installed together. That's where the talk's example comes from.
+
+SOTERIA did not use Maude, and this repo does not implement SOTERIA. The demo reproduces one rule shape from the paper inside ExMaude's smaller IoT model. The paper motivates the problem; it does not validate this code.
+
+On stage: slide 2. Source: [the paper](https://www.usenix.org/conference/atc18/presentation/celik).
+
+### O3 and O4, and conflicting writes
+
+O3 and O4 are two apps from SOTERIA's multi-app evaluation. Both react to the same event, a contact sensor opening. O3 turns a switch on. O4 turns the same switch off.
+
+Here is the repo's reproduction, from `Goatmire.Rules.research_state_conflict_pair/0`:
+
+```elixir
+%{id: "soteria-o3-contact-open-turn-on", thing_id: "smart-switch-1",
+  trigger: {:prop_eq, "contact", "open"},
+  actions: [{:set_prop, "smart-switch-1", "switch", "on"}], priority: 1}
+
+%{id: "soteria-o4-contact-open-turn-off", thing_id: "smart-switch-1",
+  trigger: {:prop_eq, "contact", "open"},
+  actions: [{:set_prop, "smart-switch-1", "switch", "off"}], priority: 1}
+```
+
+A conflicting write is exactly this: two rules that can fire together write different values to the same property of the same device. Think of two processes both calling `Agent.update/2` on one key with opposite values. Each call is fine. Together, the final value depends on who runs last.
+
+The O3/O4 pair shows conflicting writes. It does not show an alert loop by itself. The loop comes later, from the synthetic set.
+
+On stage: slides 2–4 and the LIVE 01 demo on slide 16.
+
+### Synthetic conflicting set and the alert storm
+
+The synthetic conflicting set is a rule set the repo invented to make the conflict noisy. It is not from any paper and not from any customer.
+
+`Goatmire.Rules.fleet/1` gives every simulated AGV (a warehouse robot) two rules:
+
+```elixir
+%{id: "agv-1-low-battery-route", trigger: {:prop_lt, "battery", 20},
+  actions: [{:set_prop, "agv-1", "destination", "dock-7"}]}
+
+%{id: "agv-1-zone7-day-shift", trigger: {:prop_gte, "hour", 9},
+  actions: [{:set_prop, "agv-1", "destination", "dock-19"}]}
+```
+
+Each rule is sensible on its own. A robot with a low battery should go to the charging dock. A robot on the day shift should go to Zone 7.
+
+The storm scenario stages a shift change: the clock passes 09:00 and a batch of robots drops below 20% battery. Now both rules fire on every telemetry tick, and each robot's `destination` keeps flipping between `dock-7` and `dock-19`.
+
+The engine raises an alert whenever a property actually changes, not when a value is re-asserted. So every flip is an alert, and a fleet of flipping robots makes an alert storm.
+
+On stage: slide 4 and the LIVE 02 demo on slide 17.
+
+### Observe mode and enforce mode
+
+These are the two ways the storm demo deploys the same rule set.
+
+In observe mode, the checker runs and records its verdict, but every rule is deployed anyway. You see the symptom: the alert counter climbs.
+
+In enforce mode, the checker runs and the gate withholds every rule named in a conflict. Both rules of a pair are held back, because the gate doesn't guess which author was right. The alert counter stays quiet.
+
+Same fleet size, same tick rate, same shift change. Scheduling and random readings still differ between runs, so the two runs are a like-for-like comparison, not an exact replay.
+
+On stage: slide 17.
+
+### Sort
+
+A sort is a type. Read `sort State .` like `@type state :: ...`.
+
+On stage: slide 7. See the `SWITCH` module in [section 2](#2-small-maude-example).
+
+### Operator
+
+An operator builds a value or computes one. `ops on off : -> State [ctor] .` declares two constructors, like the atoms `:on` and `:off`. `op toggle : State -> State .` declares a function from state to state.
+
+On stage: slide 7.
+
+### Equation
+
+An equation says two terms are equal, and Maude uses it left to right to simplify. `eq toggle(on) = off .` works like the function clause `def toggle(:on), do: :off`.
+
+Maude keeps applying equations until nothing matches any more. That final term is the normal form.
+
+On stage: slides 7–8.
+
+### Rewrite rule
+
+A rewrite rule says what can happen next, not what something equals. `rl [start] : idle => running .` means "from `idle`, the system may move to `running`."
+
+Think of it as one transition in a state machine, like one clause of a `:gen_statem` state function. Several rules can apply to the same state, and that's where branching comes from.
+
+On stage: slide 7.
+
+### reduce
+
+`reduce` simplifies a term with the equations and returns the normal form:
+
+```text
+reduce in SWITCH : toggle(toggle(on)) .
+```
+
+This returns `on`. It's like calling a pure function: same input, same answer, no exploring.
+
+Goatmire's conflict gate is a `reduce`. The detector's equations take the encoded rule set and compute the list of conflicts.
+
+On stage: slide 8, and behind every gate check.
+
+### search and witness
+
+`search` explores the rewrite rules, looking for a reachable state that matches a pattern:
+
+```text
+search [1] in CELL : idle =>* ready .
+```
+
+If it finds one, it returns the path that got there. That path is a witness: concrete, replayable evidence that the bad state can happen in the model.
+
+If it finds nothing within its bound, you've learned that it gave up before finding trouble. That is "we don't know", never "it's safe".
+
+On stage: slide 8. The talk's IoT gate does not use `search`.
+
+### Equational detector
+
+This is the talk's name for a checker built from equations only. The IoT detector in `priv/maude/iot-rules.maude` takes a finite, validated rule set and computes every conflict it knows how to recognise, with `reduce`.
+
+Because the input is finite and the equations cover every case, the answer is a real decision for those four conflict types. It works like an exhaustive `case` over a closed set: no branch can be missed.
+
+On stage: slide 8.
+
+### state_conflict and the other three IoT conflict types
+
+`:state_conflict` is the atom ExMaude returns when two rules write incompatible values to the same device property. The O3/O4 pair and the AGV pair are both state conflicts.
+
+A conflict comes back as a plain map that names both rules:
+
+```elixir
+%{type: :state_conflict, rule1: "r1", rule2: "r2", reason: "Conflicting state changes"}
+```
+
+The IoT model knows exactly four types, and these are their real atoms:
+
+- `:state_conflict` — two rules write different values to one device property.
+- `:env_conflict` — two actions push a shared environment value, like room temperature, in opposite directions.
+- `:state_cascade` — one rule's action satisfies another rule's trigger. A chain reaction.
+- `:state_env_cascade` — the same chain, crossing between device state and the environment.
+
+If a problem is not one of these four, this detector does not see it.
+
+On stage: slide 9, and the LIVE 01 answer on slide 16.
+
+### clean, conflicts, unverified
+
+The gate returns one of three answers. `Goatmire.Verifier` never merges them.
+
+`:clean` means the check ran to the end and found none of the modelled conflicts. `:conflicts` means it found at least one, and it names the rules. `:unverified` means there is no usable answer: Maude was unavailable, the input was rejected, or the call timed out.
+
+`:unverified` is an error value, not a softer `:ok`. Treat it like `{:error, reason}`, never like `{:ok, []}`.
+
+On stage: slide 13. See [section 9](#9-how-the-demo-consumes-the-results).
+
+### Fail closed
+
+Fail closed means that when the gate has no answer, it deploys nothing. `Goatmire.Verifier.split_on_verdict/2` admits no rules on an `:unverified` verdict.
+
+This is an application decision, not a Maude theorem. Another application could choose to fail open. This demo chooses closed on purpose.
+
+On stage: slide 13.
+
+### Partitioning, interaction edges, and over-grouping
+
+Checking every rule against every other rule gets expensive as the rule count grows. So `Goatmire.Rules.partition/1` first splits the rules into groups that can't affect each other, and Maude checks each group on its own.
+
+Two rules land in the same group when an interaction edge joins them. There are three kinds of edge:
+
+- The two rules are bound to the same Thing.
+- The two rules write the same action target, the same device property or environment key.
+- One rule writes a property that the other rule triggers on. This is the cascade edge.
+
+The groups are the connected components of that graph. If you've written a union-find in Elixir, it's that.
+
+Grouping by Thing alone would be wrong. A cascade crosses Things by definition, so the two rules would land in different groups, never be compared, and the gate would say `:clean`.
+
+Over-grouping is the deliberate safety margin. The cascade edge matches on property name only, and ignores which Thing and which value. That joins some rules that can't actually interact. It costs extra comparisons, but it can't hide an interaction the model would have found.
+
+The slide shows the counts from today's run: rules, partitions, and pairs skipped. They are not a scaling claim.
+
+On stage: slide 15.
+
+### Deterministic policy model
+
+This is the AI-policy detector: `ExMaude.AI.detect_conflicts/2` over `priv/maude/ai-rules.maude`. It is built from equations, like the IoT detector, so the same input always gives the same answer. No sampling, no temperature, no second opinion.
+
+In the talk's pattern, a language model may propose a policy as structured data. The application validates that data and hands it to this model. The model that writes the policy never grades it.
+
+It checks exactly seven conflict types, listed in [section 7](#7-ai-policy-conflict-model). The LIVE 04 demo on slide 22 hits two of them. `:approval_gate_bypass` means a high-impact tool is invoked with no approval step before it. `:sovereignty_violation` means an action goes to a jurisdiction outside the allowed set, like the US when only the EU and Switzerland are allowed.
+
+On stage: slides 19–22.
+
+### TLA+, PlusCal, Alloy, SMT, and Z3
+
+These are the usual alternatives to Maude. None of them is an Elixir library, and none is specific to IoT. They are general formal-methods tools used in cloud systems, distributed protocols, security, and hardware. When an Elixir or Erlang team uses one, it runs beside the code to check a design, not inside the application.
+
+**TLA+** is a language for describing how a system behaves over time: its states and the steps between them. Its model checker, TLC, tries the possible orderings and reports a sequence of steps that breaks a property. Leslie Lamport created it. Amazon Web Services and Microsoft have written publicly about using it on distributed storage and replication protocols. Reach for it when the question is "can these concurrent steps interleave into a bad state?"
+
+**PlusCal** is a friendlier front end for TLA+. You write the algorithm as pseudocode with processes and loops, and a translator turns it into TLA+. Same checker, less maths to write.
+
+**Alloy** describes structures and the relationships between them: users, roles, permissions, files. Its analyser searches all small examples for one that breaks a rule, on the bet that most design bugs already show up in small cases. Reach for it when the question is "can this data model or access-control design contradict itself?"
+
+**SMT** stands for Satisfiability Modulo Theories. It's a family of solvers, not one tool. You give it constraints over numbers, booleans, and similar values, like `x > 3` and `x + y == 10`. It either finds values that satisfy them or proves that none exist. SMT solvers often run inside other tools. HOMEGUARD, an IoT interference checker on the reading list, uses SMT.
+
+**Z3** is the best-known SMT solver, from Microsoft Research. You usually drive it from Python or another host language.
+
+Where Maude sits among them: Maude describes states as terms and changes as rewrite rules, then simplifies, searches, or checks them. That fits rule sets like this demo's well, and ExMaude plugs it into a supervision tree. The talk's point is not that Maude wins. It's that you pick the tool whose language states your property most directly.
+
+A safe Q&A answer: "I haven't used them in production. They're the usual alternatives. I chose Maude because rule rewriting fits this problem and it runs under Elixir supervision."
+
+On stage: slide 23. The short version is in [`qa-bank.md`](talk/qa-bank.md).
