@@ -14,8 +14,13 @@ defmodule Goatmire.Talk.Supervisor do
 
   @impl true
   def init(_) do
+    # Tests drive the clock through arbitrary slides; an automatic clear there
+    # would stop fleets that unrelated tests own.
+    cleanup = if Goatmire.Config.stage_cleanup?(), do: [Goatmire.Talk.StageCleanup], else: []
+
     Supervisor.init(
-      [Goatmire.Talk.Store, Goatmire.Talk.Clock, Goatmire.Talk.Actions, Goatmire.Talk.Pairing],
+      [Goatmire.Talk.Store, Goatmire.Talk.Clock, Goatmire.Talk.Actions, Goatmire.Talk.Pairing] ++
+        cleanup,
       strategy: :rest_for_one,
       max_restarts: 20,
       max_seconds: 10

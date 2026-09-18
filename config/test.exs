@@ -12,7 +12,8 @@ config :goatmire,
   metrics_enabled: false,
   talk_state_path: nil,
   talk_remote_token: "test-speaker-notes",
-  talk_host: "192.0.2.1"
+  talk_host: "192.0.2.1",
+  stage_cleanup: false
 
 config :goatmire, GoatmireWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 0],

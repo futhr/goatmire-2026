@@ -91,6 +91,10 @@ defmodule Goatmire.Config do
   @spec talk_remote_token() :: String.t() | nil
   def talk_remote_token, do: get(:talk_remote_token)
 
+  @doc "Whether leaving the storm slides clears the warehouse automatically."
+  @spec stage_cleanup?() :: boolean()
+  def stage_cleanup?, do: get(:stage_cleanup)
+
   @doc "LAN host the tablet uses to reach the stage server; nil when remote notes are off."
   @spec talk_host() :: String.t() | nil
   def talk_host, do: get(:talk_host)
