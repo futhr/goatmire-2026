@@ -12,8 +12,8 @@ defmodule GoatmireWeb.PresenterLive do
   use GoatmireWeb, :live_view
 
   alias Goatmire.Talk
-  alias Goatmire.Talk.{Actions, Clock}
-  alias GoatmireWeb.Presenter.{CodeExamples, Slides}
+  alias Goatmire.Talk.{Actions, Clock, Pairing}
+  alias GoatmireWeb.Presenter.{CodeExamples, PairingCode, QRCode, Slides}
 
   @panes %{
     warehouse: GoatmireWeb.WarehouseLive,
@@ -29,12 +29,14 @@ defmodule GoatmireWeb.PresenterLive do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Clock.topic())
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Talk.play_topic())
+      Phoenix.PubSub.subscribe(Goatmire.PubSub, Pairing.topic())
     end
 
     {:ok,
      socket
      |> assign(page_title: "Talk", panes: @panes)
      |> assign(snap: safe(&Clock.snapshot/0), shortcuts_open: false)
+     |> assign(pairing: nil, pairing_ref: nil)
      |> assign(code_results: Actions.get(:presenter)[:code_results] || %{}), layout: false}
   end
 
@@ -46,6 +48,12 @@ defmodule GoatmireWeb.PresenterLive do
   def handle_info({:talk_action_failed, :presenter, _}, socket),
     do: {:noreply, put_flash(socket, :error, "The code card did not complete. Retry.")}
 
+  def handle_info(:talk_paired, socket),
+    do: {:noreply, assign(socket, pairing: nil, pairing_ref: nil)}
+
+  def handle_info({:pairing_expired, ref}, %{assigns: %{pairing_ref: ref}} = socket),
+    do: {:noreply, close_pairing(socket)}
+
   def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
@@ -56,12 +64,18 @@ defmodule GoatmireWeb.PresenterLive do
   def handle_event("hide_shortcuts", _, socket),
     do: {:noreply, assign(socket, :shortcuts_open, false)}
 
+  def handle_event("hide_pairing", _, socket), do: {:noreply, close_pairing(socket)}
+
   def handle_event("key", %{"interactive" => true}, socket), do: {:noreply, socket}
+
+  def handle_event("key", %{"key" => key}, %{assigns: %{pairing: {_, _}}} = socket) do
+    if key in ["Escape", "q"], do: {:noreply, close_pairing(socket)}, else: {:noreply, socket}
+  end
 
   def handle_event("key", %{"key" => key}, %{assigns: %{shortcuts_open: true}} = socket) do
     case key do
       "Escape" -> {:noreply, assign(socket, :shortcuts_open, false)}
-      "?" -> {:noreply, assign(socket, :shortcuts_open, false)}
+      "-" -> {:noreply, assign(socket, :shortcuts_open, false)}
       _ -> {:noreply, socket}
     end
   end
@@ -77,6 +91,12 @@ defmodule GoatmireWeb.PresenterLive do
       :toggle_shortcuts ->
         {:noreply, assign(socket, :shortcuts_open, not socket.assigns.shortcuts_open)}
 
+      :pair ->
+        {:noreply, open_pairing(socket)}
+
+      :metrics ->
+        {:noreply, clock(socket, fn -> toggle_metrics(socket.assigns.snap) end)}
+
       :last_slide ->
         {:noreply, clock(socket, fn -> Clock.goto(socket.assigns.snap.slide_count) end)}
 
@@ -85,20 +105,45 @@ defmodule GoatmireWeb.PresenterLive do
     end
   end
 
-  # The stage keymap, as a table: PageUp/PageDown are what a clicker sends.
+  # The stage keymap, as a table. Arrows navigate and PageUp/PageDown are what
+  # a clicker sends. Every other key is an unshifted letter or the bottom-row
+  # punctuation, so Swedish and US layouts type them the same way.
   defp keybinding(key) when key in ["ArrowRight", "PageDown", " "], do: &Clock.next/0
   defp keybinding(key) when key in ["ArrowLeft", "PageUp"], do: &Clock.prev/0
-  defp keybinding(key) when key in ["+", "="], do: fn -> Clock.zoom(:in) end
-  defp keybinding("-"), do: fn -> Clock.zoom(:out) end
   defp keybinding("Home"), do: fn -> Clock.goto(1) end
   defp keybinding("End"), do: :last_slide
-  defp keybinding("["), do: fn -> Clock.set_panel(:deck_full) end
-  defp keybinding("]"), do: &Clock.reveal/0
-  defp keybinding("\\"), do: fn -> Clock.set_panel(:split) end
-  defp keybinding("r"), do: &Clock.reload_timings/0
-  defp keybinding("p"), do: :play
-  defp keybinding("?"), do: :toggle_shortcuts
+  defp keybinding("z"), do: fn -> Clock.set_panel(:deck_full) end
+  defp keybinding("x"), do: fn -> Clock.set_panel(:split) end
+  defp keybinding("c"), do: &Clock.reveal/0
+  defp keybinding("v"), do: :play
+  defp keybinding("q"), do: :pair
+  defp keybinding("m"), do: :metrics
+  defp keybinding(","), do: fn -> Clock.zoom(:out) end
+  defp keybinding("."), do: fn -> Clock.zoom(:in) end
+  defp keybinding("-"), do: :toggle_shortcuts
   defp keybinding(_), do: nil
+
+  # Metrics opens beside the slide; pressing m again returns to slides only.
+  defp toggle_metrics(%{tab: :metrics, panel: panel}) when panel != :deck_full,
+    do: Clock.set_panel(:deck_full)
+
+  defp toggle_metrics(_) do
+    Clock.set_tab(:metrics)
+    Clock.set_panel(:split)
+  end
+
+  # The timer carries a ref so an expiry from an earlier overlay cannot close
+  # the one on screen now.
+  defp open_pairing(socket) do
+    ref = make_ref()
+    Process.send_after(self(), {:pairing_expired, ref}, Pairing.ttl_ms())
+    assign(socket, pairing: PairingCode.start(), pairing_ref: ref)
+  end
+
+  defp close_pairing(socket) do
+    Pairing.revoke()
+    assign(socket, pairing: nil, pairing_ref: nil)
+  end
 
   defp clock(socket, fun) do
     case safe(fun) do
@@ -220,13 +265,13 @@ defmodule GoatmireWeb.PresenterLive do
               <h3>Stage</h3>
               <dl>
                 <div>
-                  <dt><kbd>[</kbd> <kbd>\\</kbd> <kbd>]</kbd></dt><dd>Deck / split / reveal pane</dd>
+                  <dt><kbd>z</kbd> <kbd>x</kbd> <kbd>c</kbd></dt><dd>Slides / split / reveal pane</dd>
                 </div>
                 <div>
-                  <dt><kbd>p</kbd></dt><dd>Next live action</dd>
+                  <dt><kbd>v</kbd></dt><dd>Next live action</dd>
                 </div>
                 <div>
-                  <dt><kbd>−</kbd> <kbd>+</kbd></dt><dd>Text size</dd>
+                  <dt><kbd>,</kbd> <kbd>.</kbd></dt><dd>Text smaller / larger</dd>
                 </div>
               </dl>
             </section>
@@ -237,15 +282,13 @@ defmodule GoatmireWeb.PresenterLive do
                   <dt><kbd>f</kbd></dt><dd>Fullscreen</dd>
                 </div>
                 <div>
-                  <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Help / close</dd>
+                  <dt><kbd>m</kbd></dt><dd>Metrics / back to slides</dd>
                 </div>
-              </dl>
-            </section>
-            <section>
-              <h3>Rehearsal</h3>
-              <dl>
                 <div>
-                  <dt><kbd>r</kbd></dt><dd>Reload timings</dd>
+                  <dt><kbd>q</kbd></dt><dd>QR for speaker notes</dd>
+                </div>
+                <div>
+                  <dt><kbd>-</kbd> <kbd>Esc</kbd></dt><dd>Help / close</dd>
                 </div>
               </dl>
             </section>
@@ -254,6 +297,34 @@ defmodule GoatmireWeb.PresenterLive do
             Touch controls live on the private speaker-notes screen. Typing in a form never drives
             the deck.
           </p>
+        </div>
+      </div>
+
+      <div :if={@pairing} id="presenter-pairing" class="presenter-modal">
+        <button
+          type="button"
+          class="presenter-modal-backdrop"
+          phx-click="hide_pairing"
+          aria-label="Close the speaker-notes QR code"
+        ></button>
+        <div
+          class="presenter-modal-card presenter-pairing-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="presenter-pairing-title"
+        >
+          <h2 id="presenter-pairing-title">Scan for speaker notes</h2>
+          <%= case @pairing do %>
+            <% {:ok, code} -> %>
+              <QRCode.qr_code
+                class="presenter-pairing-qr"
+                src={code.qr}
+                alt="QR code that opens the speaker notes"
+              />
+              <p>{code.host} · single use · {div(Pairing.ttl_ms(), 60_000)} min</p>
+            <% {:error, :remote_disabled} -> %>
+              <p>Remote notes are off. Start the stage server with <code>make talk-stage</code>.</p>
+          <% end %>
         </div>
       </div>
     </div>

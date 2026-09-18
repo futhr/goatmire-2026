@@ -165,7 +165,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     assert_eventually(fn -> render(notes) =~ ~s(id="speaker-play-step-0") end)
     assert render(notes) =~ ~r/speaker-controls-core.*speaker-controls-dynamic/s
 
-    render_keydown(projector, "key", %{"key" => "p"})
+    render_keydown(projector, "key", %{"key" => "v"})
 
     assert_eventually(fn ->
       Clock.snapshot().play_done[16] == 1 and

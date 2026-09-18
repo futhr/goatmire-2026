@@ -6,8 +6,9 @@ defmodule GoatmireWeb.PresenterLiveTest do
   import Phoenix.{ConnTest, LiveViewTest}
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.Clock
-  alias GoatmireWeb.Presenter.CodeExamples
+  alias Goatmire.Talk.{Clock, Pairing}
+  alias GoatmireWeb.CoreComponents
+  alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
   @endpoint GoatmireWeb.Endpoint
 
@@ -70,7 +71,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     Clock.goto(16)
     assert_eventually(fn -> render(view) =~ "deck-full" end)
 
-    render_keydown(view, "key", %{"key" => "]"})
+    render_keydown(view, "key", %{"key" => "c"})
 
     assert_eventually(fn -> render(view) =~ "live-full" end)
   end
@@ -87,7 +88,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(16)
-    render_keydown(view, "key", %{"key" => "p"})
+    render_keydown(view, "key", %{"key" => "v"})
 
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
     assert_eventually(fn -> Clock.snapshot().play_done[16] == 1 end)
@@ -111,10 +112,10 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute html =~ "live-tabs"
   end
 
-  test "question mark opens keyboard help and escape closes it", %{conn: conn} do
+  test "minus opens keyboard help and escape closes it", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
-    render_keydown(view, "key", %{"key" => "?"})
+    render_keydown(view, "key", %{"key" => "-"})
 
     html = render(view)
     assert html =~ ~s(id="presenter-shortcuts")
@@ -125,16 +126,61 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute render(view) =~ ~s(id="presenter-shortcuts")
   end
 
+  test "q shows the speaker-notes QR code, which owns the keyboard until escape", %{
+    conn: conn
+  } do
+    {:ok, view, _} = live(conn, "/talk")
+
+    render_keydown(view, "key", %{"key" => "q"})
+    assert render(view) =~ "Scan for speaker notes"
+
+    render_keydown(view, "key", %{"key" => "ArrowRight"})
+    assert Clock.snapshot().slide == 1
+
+    render_keydown(view, "key", %{"key" => "Escape"})
+    refute render(view) =~ ~s(id="presenter-pairing")
+  end
+
+  test "a redeemed pairing code closes the QR code", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/talk")
+
+    render_keydown(view, "key", %{"key" => "q"})
+    Phoenix.PubSub.broadcast(Goatmire.PubSub, Pairing.topic(), :talk_paired)
+
+    assert_eventually(fn -> not (render(view) =~ ~s(id="presenter-pairing")) end)
+  end
+
+  test "slide code carries syntax colours and escapes its source" do
+    maude = render_component(&Slides.slide/1, n: 8)
+    assert maude =~ ~s(<span class="k">reduce</span>)
+    assert maude =~ ~s(<span class="nc">SWITCH</span>)
+    assert maude =~ ~s(<span class="o">=&gt;*</span>)
+
+    assert render_component(&Slides.slide/1, n: 19) =~ ~s(<span class="ss">:invoke_tool</span>)
+
+    refute render_component(&CoreComponents.maude_block/1, code: "<script>") =~ "<script>"
+  end
+
+  test "the closing slide carries a scannable code under each repository name" do
+    html = render_component(&Slides.slide/1, n: 25)
+
+    for url <- ~w(github.com/futhr/ex_maude github.com/futhr/goatmire-2026 github.com/wotex) do
+      assert html =~ ~s(alt="QR code for #{url}")
+    end
+
+    assert length(Regex.scan(~r/class="qr-code-mark"/, html)) == 3
+  end
+
   test "keyboard help owns the keyboard while it is open", %{conn: conn} do
     {:ok, view, _} = live(conn, "/talk")
 
     Clock.goto(7)
-    render_keydown(view, "key", %{"key" => "?"})
+    render_keydown(view, "key", %{"key" => "-"})
     render_keydown(view, "key", %{"key" => "ArrowRight"})
 
     assert Clock.snapshot().slide == 7
 
-    render_keydown(view, "key", %{"key" => "?"})
+    render_keydown(view, "key", %{"key" => "-"})
     refute render(view) =~ ~s(id="presenter-shortcuts")
   end
 

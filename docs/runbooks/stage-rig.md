@@ -54,17 +54,20 @@ With the server already running from `make talk-stage`, run `make talk` in anoth
 
 | Input | Does |
 |---|---|
-| `←/→`, PageUp/PageDown, space | previous / next slide |
+| `←` / `→`, PageUp/PageDown, space | previous / next slide |
 | Home / End | first / last slide |
-| `[` `\` `]` | deck only · split · reveal this slide's configured pane |
-| `-` / `+` | text zoom, held across refreshes |
-| `p` or the next blue iPad action | next scripted demo step |
+| `z` `x` `c` | slides only · split · reveal this slide's configured pane |
+| `v` or the next blue iPad action | next scripted demo step |
 | tapping a later blue iPad action | runs the remaining steps in order |
+| `q` | one-time QR code that pairs the iPad notes; `q` or Escape closes it |
+| `m` | metrics beside the slide; `m` again returns to slides only |
 | `f` | enter / leave fullscreen |
-| `?` | keyboard help; `?` or Escape closes it |
-| `r` | reload `priv/talk/timings.exs` |
+| `,` / `.` | text smaller / larger, held across refreshes |
+| `-` | keyboard help; `-` or Escape closes it |
 
-Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: press `]` or tap an iPad layout icon. The blue live actions change with the current slide and stay at the right edge of the same bottom row.
+Every key is an unshifted letter or bottom-row punctuation, so nothing needs Shift or Alt on a Swedish layout. Reloading `priv/talk/timings.exs` is deliberately not a key: restart the server, or call `Goatmire.Talk.Clock.reload_timings/0` from IEx during rehearsal.
+
+Every slide opens deck-only so the room reads the claim before the evidence, and the right panel offers only the pane that slide owns. Revealing is deliberate: press `c` or tap an iPad layout icon. The blue live actions change with the current slide and stay at the right edge of the same bottom row.
 
 Slide, panel, zoom, completed steps, and timer state live in the server. Browser refresh restores that state and the shared pane results. Versioned clock checkpoints also survive application restart, excluding time spent offline; malformed or older checkpoint schemas and checkpoints from another deck sequence start from slide 1. The 25-slide deck uses checkpoint version 3 and cannot restore the old 18-slide positions. In-memory pane results survive clock or action-worker restart, but a full application restart clears them. That is the recovery move: Cmd+R, not window juggling.
 
@@ -74,7 +77,7 @@ One terminal beside the manuscript, running `mix phx.server`. Deploy and verify 
 
 ## The fallback ladder
 
-1. The live pane, driven by the blue iPad actions or the `p` key.
+1. The live pane, driven by the blue iPad actions or the `v` key.
 2. The command line: every scenario runs headless (`mix goatmire.scenario N`), and a spoken verdict from the terminal is still a real verdict.
 3. If Maude itself is gone, say "unverified" — that is the talk's own rule.
 
