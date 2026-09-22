@@ -48,7 +48,7 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 | 22 | This final demo is deliberately boring. | Nothing had to persuade itself that it was correct. |
 | 23 | Maude is not the answer to every formal-methods problem. | Tool choice should follow the property, not loyalty to the tool I happened to put in a conference talk. |
 | 24 | Before taking this toward production, keep the claim attached to its evidence. | It does not automatically satisfy a regulation, and it definitely does not prove a property we never modeled. |
-| 25 | At this point there is a very new question I expect people to ask: why not use Jev instead of Maude? | Jev gives a probability about an ambiguous question. Maude gives the result of an explicit predicate. |
+| 25 | There is a timely question here: why not use Jev instead of Maude? | Jev asks what is likely. Maude asks what the model allows. |
 | 26 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
 
 ## Protected lines
@@ -57,7 +57,7 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 - “A bad answer, a good answer, and no answer are three different things.”
 - “For this demo an unverified candidate is not deployed.”
 - “Maude made the decision. The language model explained what the system observed.”
-- “Formal methods make a narrow claim strong. They do not make a broad claim true.”
+- “Formal methods strengthen narrow claims. They cannot prove broad ones.”
 
 ## Practice method
 

@@ -10,7 +10,7 @@ Protect these lines:
 
 > Maude made the decision. The language model explained what the system observed.
 
-> Formal methods make a narrow claim strong. They do not make a broad claim true.
+> Formal methods strengthen narrow claims. They cannot prove broad ones.
 
 The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter. Start times below are the cumulative budgets from `priv/talk/timings.exs`, which also drive the presenter clock's drift warning. This cut speaks longer than the budgets assumed: if a timed run lands behind, trim the optional asides (the jokes on slides 4, 8, 10, 11 and 16) before touching a protected line, or rebalance the budgets. The presenter timer starts automatically on leaving the holding slide; for a full-talk rehearsal timer, call `Goatmire.Talk.Clock.start_talk/0` with the opening line.
 
@@ -492,27 +492,23 @@ An audit artifact helps review what happened. It does not automatically satisfy 
 
 ---
 
-## 25 · Why not Jev instead? — 24:35
+## 25 · Jev + Maude — 24:35
 
-At this point there is a **very new question** I expect people to ask: why not use **Jev instead of Maude?**
+*(If time permits.)*
 
-Jev is TypeSafe AI's first public **System One Model**. It gives up string generation: program state and typed questions in, **typed probabilistic decisions with confidence** out.
+There is a timely question here: why not use **Jev instead of Maude?**
 
-Architecturally, that is surprisingly close to where this gate sits. Software asks a question and gets a machine-readable answer. But the **contract is different**.
+I would use both. **Jev handles ambiguity**: what is likely, and with what probability? **Maude checks explicit invariants**: is this allowed by the model?
 
-Jev is for judgement under uncertainty: does this trace look suspicious, which category fits, how confident are we? The application thresholds that probability or escalates uncertainty.
+That gives us flexible judgement inside explicit boundaries. Jev can classify uncertain input; Maude can stop a formal conflict; the application can act or escalate.
 
-This Maude detector is for properties we have **written down exactly**. Given the same validated term and the same equational model, the encoded predicate has a fixed result. It understands less, but its answer is **not a probability**.
-
-So I would not choose **Jev or Maude**. Use Jev where hard rules are brittle; use Maude where an invariant is important enough to state exactly. They can sit in the same pipeline.
-
-**Jev gives a probability about an ambiguous question. Maude gives the result of an explicit predicate.**
+**Jev asks what is likely. Maude asks what the model allows.**
 
 *(Change to final slide.)*
 
 ---
 
-## 26 · Formal methods make a narrow claim strong — 25:55
+## 26 · Formal methods strengthen narrow claims — 25:15
 
 The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
@@ -522,9 +518,9 @@ So, what I'd like you to take with you. You saw **rules fight** when we let them
 
 *(Point to the quote.)*
 
-**Formal methods make a narrow claim strong.**
+**Formal methods strengthen narrow claims.**
 
-**They do not make a broad claim true.**
+**They cannot prove broad ones.**
 
 Thank you.
 
@@ -538,7 +534,7 @@ Thank you.
 - On slide 15, name the three interaction edges and read only the current partition count.
 - On slide 18, protect the observation/inference sentence and the Maude/LLM boundary.
 - If LIVE 04 (slide 22) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
-- On slide 25, if late, keep only the distinction: Jev returns a probabilistic decision; this Maude detector evaluates an explicit predicate. They can coexist.
+- Slide 25 is the first clean cut when late. If used, keep it to: Jev asks what is likely; Maude asks what the model allows; they can coexist.
 - Begin the close (26) no later than 26:00. Keep the takeaways and the final quote.
 
 ## Delivery

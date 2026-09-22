@@ -16,12 +16,16 @@ defmodule GoatmireWeb.MetricsLive do
   @default_window 300
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket), do: schedule_refresh()
 
     {:ok,
      socket
-     |> assign(page_title: "Metrics", window: @default_window, show_table: false)
+     |> assign(
+       page_title: GoatmireWeb.page_title(session, "Metrics"),
+       window: @default_window,
+       show_table: false
+     )
      |> load()}
   end
 

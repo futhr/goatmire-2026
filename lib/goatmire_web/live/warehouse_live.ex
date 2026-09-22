@@ -21,7 +21,7 @@ defmodule GoatmireWeb.WarehouseLive do
   @max_duration_seconds 300
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Storm.topic())
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
@@ -30,7 +30,7 @@ defmodule GoatmireWeb.WarehouseLive do
 
     {:ok,
      socket
-     |> assign(page_title: "Warehouse")
+     |> assign(page_title: GoatmireWeb.page_title(session, "Warehouse"))
      |> assign(devices: [], device_count: 0, alerts: [], storm: nil, frame: nil, running: false)
      |> assign(fleet_size: 60, duration: 30)
      |> refresh()}

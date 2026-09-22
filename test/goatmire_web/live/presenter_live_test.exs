@@ -161,13 +161,15 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute render_component(&CoreComponents.maude_block/1, code: "<script>") =~ "<script>"
   end
 
-  test "the Jev comparison slide shows the two decision contracts" do
+  test "the Jev comparison slide shows the combined decision path" do
     html = render_component(&Slides.slide/1, n: 25)
 
-    assert html =~ "System One Model"
-    assert html =~ "typed probability"
-    assert html =~ "explicit predicate"
     assert html =~ "Same architectural slot"
+    assert html =~ "machine-readable decision"
+    assert html =~ "typed probability"
+    assert html =~ "explicit check"
+    assert html =~ "act or escalate"
+    assert html =~ "Flexible judgement inside explicit boundaries"
   end
 
   test "the closing slide carries a scannable code under each repository name" do

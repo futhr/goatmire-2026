@@ -158,6 +158,16 @@ th { color: var(--muted); font-size: 14px; letter-spacing: 0.06em; text-transfor
   font-weight: 650;
   text-align: center;
 }
+.branch-source--code { color: #4b5563; }
+.panel.center {
+  display: grid;
+  min-height: 122px;
+  place-items: center;
+  gap: 5px;
+  font-size: 22px;
+  font-weight: 650;
+  text-align: center;
+}
 .branch-arrow { margin: 5px 0; color: var(--indigo); font-size: 28px; text-align: center; }
 .verdict {
   min-height: 220px;

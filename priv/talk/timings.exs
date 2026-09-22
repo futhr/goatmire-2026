@@ -29,7 +29,7 @@
     {22, 160, panel: :live_full, tab: :notebook},
     {23, 45},
     {24, 50},
-    {25, 80},
-    {26, 245, tab: :metrics}
+    {25, 40},
+    {26, 285, tab: :metrics}
   ]
 }

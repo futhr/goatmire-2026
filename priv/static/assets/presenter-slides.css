@@ -374,6 +374,10 @@
   color: var(--sl-verdict-conflict);
 }
 
+.sl-branch-source--code {
+  color: #4b5563;
+}
+
 .sl-branch-arrow {
   display: flex;
   justify-content: space-between;
@@ -562,4 +566,5 @@
   .sl-flow .sl-arrow {
     transform: rotate(90deg);
   }
+
 }

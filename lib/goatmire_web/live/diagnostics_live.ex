@@ -16,7 +16,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
   @analysis_timeout 30_000
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Provider.topic())
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
@@ -25,7 +25,7 @@ defmodule GoatmireWeb.DiagnosticsLive do
 
     {:ok,
      assign(socket,
-       page_title: "Diagnostics",
+       page_title: GoatmireWeb.page_title(session, "Diagnostics"),
        prompt:
          "Why did alerts rise in the last minute, what formal verdict accompanies this run, and what should I inspect next? Cite exact fields.",
        running: false,

@@ -226,7 +226,10 @@ defmodule GoatmireWeb.PresenterLive do
               :for={{tab, module} <- @panes}
               class={effective_tab(@snap.tab, @snap.slide) != tab && "hidden-pane"}
             >
-              {live_render(@socket, module, id: "pane-#{tab}", session: @stage_session)}
+              {live_render(@socket, module,
+                id: "pane-#{tab}",
+                session: Map.put(@stage_session, "presenter_embed", true)
+              )}
             </div>
           </div>
         </div>

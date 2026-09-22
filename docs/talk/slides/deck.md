@@ -243,7 +243,7 @@ an implementation of a complete external system.
   </div>
   <div class="panel">
     <h2>Outside</h2>
-    <p>physics · firmware timing · authorization · omitted hazards · deployment reality</p>
+    <p>physics<br>firmware timing<br>authorization<br>omitted hazards<br>deployment reality</p>
   </div>
 </div>
 
@@ -270,9 +270,7 @@ system is safe in every respect.
   <div class="node">typed result</div>
 </div>
 
-```elixir
-ExMaude.IoT.detect_conflicts(rules)
-```
+<pre style="color:#383a41;font-weight:700"><code>ExMaude.IoT.detect_conflicts(rules)</code></pre>
 
 <!--
 The application owns the pool in its supervision tree. The default port
@@ -291,7 +289,7 @@ this talk makes no universal latency ranking.
 
 # Verify the term the runtime executes
 
-<div class="branch-source">%{trigger: …, actions: …}</div>
+<div class="branch-source branch-source--code">%{trigger: …, actions: …}</div>
 <div class="branch-arrow">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
 <div class="two">
   <div class="panel" style="text-align:center;font-weight:650">ExMaude encoder + detector</div>
@@ -607,34 +605,29 @@ an error or unverified. The activation layer owns fail-open/fail-closed policy.
 
 ---
 
-<!-- slide 25: Why not Jev instead? -->
+<!-- slide 25: Jev + Maude -->
 <div class="eyebrow">Same architectural slot · different contract</div>
 
-# Why not Jev instead?
+# Jev + Maude
 
-<div class="branch-source">machine-readable decision point</div>
+<div class="branch-source">machine-readable decision</div>
 <div class="branch-arrow">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
 
 <div class="two">
-  <div class="panel">
-    <div class="label">Jev · System One Model</div>
-    <div class="value">typed probability</div>
-    <p class="small">learned judgement under uncertainty</p>
+  <div class="panel center">
+    <div class="label">Jev</div>
+    <div><strong>typed probability</strong><br><span class="small">What is likely?</span></div>
   </div>
-  <div class="panel">
-    <div class="label">Maude · this equational detector</div>
-    <div class="value">explicit predicate</div>
-    <p class="small">model-relative formal result</p>
+  <div class="panel center">
+    <div class="label">Maude</div>
+    <div><strong>explicit check</strong><br><span class="small">Is it allowed?</span></div>
   </div>
 </div>
 
-<div class="flow" style="margin-top:26px">
-  <div class="node">Jev: ambiguity</div><div class="arrow">→</div>
-  <div class="node">validate + threshold</div><div class="arrow">→</div>
-  <div class="node">Maude: explicit invariants</div>
-</div>
+<div class="branch-arrow">↘ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↙</div>
+<div class="branch-source">act or escalate</div>
 
-<blockquote>Use probabilities where the rule is fuzzy. Use formal semantics where the rule must be exact.</blockquote>
+<blockquote>Flexible judgement inside explicit boundaries</blockquote>
 
 <!--
 Jev is TypeSafe AI's first public System One Model, announced on 15 September
@@ -658,13 +651,13 @@ Jev must not turn a formal conflict or unverified result into clean.
 
 ---
 
-<!-- slide 26: Formal methods make a narrow claim strong -->
+<!-- slide 26: Formal methods strengthen narrow claims -->
 <!-- _class: closing -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div>
-  <blockquote>Formal methods make a narrow claim strong. They do not make a broad claim true.</blockquote>
+  <blockquote>Formal methods strengthen narrow claims. They cannot prove broad ones.</blockquote>
   <p class="small mono">github.com/futhr/ex_maude · github.com/futhr/goatmire-2026</p>
 </div>
 

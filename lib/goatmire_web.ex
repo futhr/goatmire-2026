@@ -10,6 +10,11 @@ defmodule GoatmireWeb do
   def static_paths,
     do: ~w(assets vendor fonts images favicon.ico robots.txt speaker-notes.webmanifest)
 
+  @doc "Keeps embedded presenter panes from replacing the browser tab title."
+  @spec page_title(map(), String.t()) :: String.t()
+  def page_title(%{"presenter_embed" => true}, _fallback), do: "Goatmire - 2026"
+  def page_title(_session, fallback), do: fallback
+
   @doc "Quoted imports and configuration shared by the router."
   @spec router() :: Macro.t()
   def router do

@@ -101,7 +101,7 @@ Use the seven-beat spine and slide anchors from [`../talk/memorize.md`](../talk/
 | LIVE 03 starts | 16:30 |
 | AI-policy transfer starts | 18:10 |
 | Jev comparison begins | 24:35 |
-| closing begins | 25:55 |
+| closing begins | 25:15 |
 | prepared talk stops | 26:45–27:15 |
 
 If late, use the hard-cut map in the manuscript. Never cut the three-verdict slide, the Maude/language-model boundary, or the final scope sentence.

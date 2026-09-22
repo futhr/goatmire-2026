@@ -13,7 +13,7 @@ defmodule GoatmireWeb.RuleLive do
   alias Goatmire.Talk.Actions
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Engine.topic())
@@ -21,7 +21,7 @@ defmodule GoatmireWeb.RuleLive do
 
     {:ok,
      socket
-     |> assign(page_title: "New rule")
+     |> assign(page_title: GoatmireWeb.page_title(session, "New rule"))
      |> assign(form: to_form(default_params()))
      |> assign(verdict: nil, submitted_rule: nil, deployed: false, running: false)
      |> assign_deployed_rules()

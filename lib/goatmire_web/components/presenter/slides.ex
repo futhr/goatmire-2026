@@ -229,7 +229,7 @@ defmodule GoatmireWeb.Presenter.Slides do
         </div>
         <div class="sl-panel">
           <h2>Not checked</h2>
-          <p>physics · timing · permissions · hazards we did not model</p>
+          <p>physics<br />timing<br />permissions<br />hazards we did not model</p>
         </div>
       </div>
     </section>
@@ -250,7 +250,7 @@ defmodule GoatmireWeb.Presenter.Slides do
         <div class="sl-arrow">→</div>
         <div class="sl-node">typed answer</div>
       </div>
-      <.code_block code="ExMaude.IoT.detect_conflicts(rules)" />
+      <pre style="color: #383a41; font-weight: 700"><code>ExMaude.IoT.detect_conflicts(rules)</code></pre>
     </section>
     """
   end
@@ -260,7 +260,13 @@ defmodule GoatmireWeb.Presenter.Slides do
     <section aria-label={Deck.title(@n)} class="slide slide-12 slide--default">
       <div class="sl-eyebrow">One rule representation · two uses</div>
       <h1>{Deck.title(@n)}</h1>
-      <div class="sl-branch-source" phx-no-curly-interpolation>%{trigger: …, actions: …}</div>
+      <div
+        class="sl-branch-source sl-branch-source--code"
+        style="color: #4b5563"
+        phx-no-curly-interpolation
+      >
+        %{trigger: …, actions: …}
+      </div>
       <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
       <div class="sl-two">
         <div class="sl-panel sl-panel--center">checker</div>
@@ -479,36 +485,22 @@ defmodule GoatmireWeb.Presenter.Slides do
   def slide(%{n: 25} = assigns) do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-25 slide--default">
-      <div class="sl-eyebrow">Same architectural slot · different contract</div>
-      <h1>{Deck.title(@n)}</h1>
-
-      <div class="sl-branch-source">machine-readable decision point</div>
+      <div class="sl-eyebrow">Same architectural slot · different contract</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-branch-source">machine-readable decision</div>
       <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
-
       <div class="sl-two">
-        <div class="sl-panel">
-          <div class="sl-label">Jev · System One Model</div>
-          <div class="sl-value">typed probability</div>
-          <p>learned judgement under uncertainty</p>
+        <div class="sl-panel sl-panel--center">
+          <div class="sl-label">Jev</div>
+          <div><strong>typed probability</strong><br /><span class="sl-small">What is likely?</span></div>
         </div>
-        <div class="sl-panel">
-          <div class="sl-label">Maude · this equational detector</div>
-          <div class="sl-value">explicit predicate</div>
-          <p>model-relative formal result</p>
+        <div class="sl-panel sl-panel--center">
+          <div class="sl-label">Maude</div>
+          <div><strong>explicit check</strong><br /><span class="sl-small">Is it allowed?</span></div>
         </div>
       </div>
-
-      <div class="sl-flow sl-mt">
-        <div class="sl-node">Jev: ambiguity</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">validate + threshold</div>
-        <div class="sl-arrow">→</div>
-        <div class="sl-node">Maude: explicit invariants</div>
-      </div>
-
-      <blockquote>
-        Use probabilities where the rule is fuzzy. Use formal semantics where the rule must be exact.
-      </blockquote>
+      <div class="sl-branch-arrow"><span>↘</span><span>↙</span></div>
+      <div class="sl-branch-source">act or escalate</div>
+      <blockquote>Flexible judgement inside explicit boundaries</blockquote>
     </section>
     """
   end
@@ -519,7 +511,7 @@ defmodule GoatmireWeb.Presenter.Slides do
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>
-          Formal methods make a narrow claim strong. They do not make a broad claim true.
+          Formal methods strengthen narrow claims. They cannot prove broad ones.
         </blockquote>
         <div class="sl-repos">
           <figure :for={{name, url, qr} <- repos()} class="sl-repo">

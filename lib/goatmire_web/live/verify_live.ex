@@ -12,14 +12,14 @@ defmodule GoatmireWeb.VerifyLive do
   alias Goatmire.Talk.Actions
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
     end
 
     {:ok,
      socket
-     |> assign(page_title: "Verify")
+     |> assign(page_title: GoatmireWeb.page_title(session, "Verify"))
      |> assign(
        results: %{},
        running: nil,

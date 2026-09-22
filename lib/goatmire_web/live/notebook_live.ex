@@ -17,13 +17,16 @@ defmodule GoatmireWeb.NotebookLive do
   @default_slug "05_agent_policy_proof"
 
   @impl true
-  def mount(_, _, socket) do
+  def mount(_, session, socket) do
     if connected?(socket),
       do: Phoenix.PubSub.subscribe(Goatmire.PubSub, Goatmire.Talk.play_topic())
 
     {:ok,
      socket
-     |> assign(page_title: "Notebook", notebooks: Notebook.list())
+     |> assign(
+       page_title: GoatmireWeb.page_title(session, "Notebook"),
+       notebooks: Notebook.list()
+     )
      |> restore()}
   end
 

@@ -329,7 +329,7 @@ Not that the speaker can point at, and the talk says so. What exists is a public
 
 The memorable line is:
 
-> Formal methods make a narrow claim strong; they do not make a broad claim true.
+> Formal methods strengthen narrow claims. They cannot prove broad ones.
 
 ## 15. Talk dictionary
 
