@@ -1,7 +1,7 @@
-# Rehearsal budgets for the 25-slide stage sequence. Not a stage key: restart
+# Rehearsal budgets for the 26-slide stage sequence. Not a stage key: restart
 # the server, or call Goatmire.Talk.Clock.reload_timings/0 from IEx.
 # Slides enter deck-only. Configured panes open when deliberately revealed.
-# Slide 25 includes the close and recovery/question reserve.
+# Slide 26 includes the close and recovery/question reserve.
 %{
   slot_seconds: 1_800,
   slides: [
@@ -29,6 +29,7 @@
     {22, 160, panel: :live_full, tab: :notebook},
     {23, 45},
     {24, 50},
-    {25, 325, tab: :metrics}
+    {25, 80},
+    {26, 245, tab: :metrics}
   ]
 }

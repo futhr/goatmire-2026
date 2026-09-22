@@ -67,6 +67,8 @@ defmodule Goatmire.Talk.ScriptTest do
     assert Enum.join(Script.section(15).paragraphs) =~ "cross-Thing"
     assert Enum.join(Script.section(20).paragraphs) =~ "exactly seven"
     assert Enum.join(Script.section(23).paragraphs) =~ "TLA+"
+    assert Enum.join(Script.section(25).paragraphs) =~ "Jev"
+    assert Enum.join(Script.section(25).paragraphs) =~ "typed probabilistic decisions"
 
     assert Enum.join(Script.section(24).paragraphs) =~
              "not a claim that this demo is production proven"

@@ -1,4 +1,4 @@
-# Learn the talk — seven beats and twenty-five anchors
+# Learn the talk — seven beats and twenty-six anchors
 
 The full wording lives in [`manuscript.md`](./manuscript.md) and on the private iPad notes view. It is a recovery aid, not a memorization assignment.
 
@@ -18,7 +18,7 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 4. The gate must keep `clean`, `conflicts`, and `unverified` separate.
 5. Check the same rule the runtime will execute.
 6. The live comparison shows the effect of stopping the conflict early.
-7. AI may explain or suggest; it does not make the formal decision.
+7. Probabilistic models can judge uncertainty; formal models decide the invariants we explicitly encode.
 
 ## Slide anchors
 
@@ -48,7 +48,8 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 | 22 | This final demo is deliberately boring. | Nothing had to persuade itself that it was correct. |
 | 23 | Maude is not the answer to every formal-methods problem. | Tool choice should follow the property, not loyalty to the tool I happened to put in a conference talk. |
 | 24 | Before taking this toward production, keep the claim attached to its evidence. | It does not automatically satisfy a regulation, and it definitely does not prove a property we never modeled. |
-| 25 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
+| 25 | At this point there is a very new question I expect people to ask: why not use Jev instead of Maude? | Jev gives a probability about an ambiguous question. Maude gives the result of an explicit predicate. |
+| 26 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
 
 ## Protected lines
 

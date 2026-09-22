@@ -6,7 +6,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   import Phoenix.{ConnTest, LiveViewTest}
 
   alias Goatmire.{Engine, StubVerifier}
-  alias Goatmire.Talk.{Clock, Pairing}
+  alias Goatmire.Talk.{Clock, Deck, Pairing}
   alias GoatmireWeb.CoreComponents
   alias GoatmireWeb.Presenter.{CodeExamples, Slides}
 
@@ -161,8 +161,17 @@ defmodule GoatmireWeb.PresenterLiveTest do
     refute render_component(&CoreComponents.maude_block/1, code: "<script>") =~ "<script>"
   end
 
-  test "the closing slide carries a scannable code under each repository name" do
+  test "the Jev comparison slide shows the two decision contracts" do
     html = render_component(&Slides.slide/1, n: 25)
+
+    assert html =~ "System One Model"
+    assert html =~ "typed probability"
+    assert html =~ "explicit predicate"
+    assert html =~ "Same architectural slot"
+  end
+
+  test "the closing slide carries a scannable code under each repository name" do
+    html = render_component(&Slides.slide/1, n: Deck.count())
 
     for url <- ~w(github.com/futhr/ex_maude github.com/futhr/goatmire-2026 github.com/wotex) do
       assert html =~ ~s(alt="QR code for #{url}")
@@ -187,7 +196,7 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "every code card is runnable code, not commentary", %{conn: conn} do
     {:ok, _, _} = live(conn, "/talk")
 
-    for slide <- 1..25, example = CodeExamples.example(slide) do
+    for slide <- 1..Deck.count(), example = CodeExamples.example(slide) do
       refute example.code =~ ~r/^\s*defp?\s/m,
              "slide #{slide} quotes a definition instead of a call"
 

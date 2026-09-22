@@ -87,7 +87,7 @@ The plain-language manuscript deliberately keeps necessary scope language while 
 5. Use shared directional language (`we`, `you`, `now`, `let's`, `watch`) to move the room through technical transitions.
 6. Put resources before the takeaways and let the narrow formal-method claim, not a URL or disclaimer, be the final sound.
 
-These patterns informed the earlier 18-slide manuscript (1,361 spoken tokens on 2026-09-06). The current 25-slide sequence restores the Maude commands, partitioning, AI-policy inventory, tool selection, and production limits. Its revised timings are rehearsal targets; the earlier token count and delivery evidence do not validate this expanded cut.
+These patterns informed the earlier 18-slide manuscript (1,361 spoken tokens on 2026-09-06). The current 26-slide sequence restores the Maude commands, partitioning, AI-policy inventory, tool selection, and production limits, and adds a source-grounded Jev/Maude comparison immediately before the close. Its revised timings are rehearsal targets; the earlier token count and delivery evidence do not validate this expanded cut.
 
 ## What remains
 

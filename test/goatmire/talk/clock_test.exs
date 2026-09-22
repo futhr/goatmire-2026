@@ -32,7 +32,7 @@ defmodule Goatmire.Talk.ClockTest do
     snap = Clock.snapshot()
 
     assert snap.warnings == []
-    assert snap.slide_count == 25
+    assert snap.slide_count == 26
     assert snap.budget_total_s <= snap.slot_s
   end
 

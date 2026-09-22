@@ -607,7 +607,58 @@ an error or unverified. The activation layer owns fail-open/fail-closed policy.
 
 ---
 
-<!-- slide 25: Formal methods make a narrow claim strong -->
+<!-- slide 25: Why not Jev instead? -->
+<div class="eyebrow">Same architectural slot · different contract</div>
+
+# Why not Jev instead?
+
+<div class="branch-source">machine-readable decision point</div>
+<div class="branch-arrow">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
+
+<div class="two">
+  <div class="panel">
+    <div class="label">Jev · System One Model</div>
+    <div class="value">typed probability</div>
+    <p class="small">learned judgement under uncertainty</p>
+  </div>
+  <div class="panel">
+    <div class="label">Maude · this equational detector</div>
+    <div class="value">explicit predicate</div>
+    <p class="small">model-relative formal result</p>
+  </div>
+</div>
+
+<div class="flow" style="margin-top:26px">
+  <div class="node">Jev: ambiguity</div><div class="arrow">→</div>
+  <div class="node">validate + threshold</div><div class="arrow">→</div>
+  <div class="node">Maude: explicit invariants</div>
+</div>
+
+<blockquote>Use probabilities where the rule is fuzzy. Use formal semantics where the rule must be exact.</blockquote>
+
+<!--
+Jev is TypeSafe AI's first public System One Model, announced on 15 September
+2026. TypeSafe describes the interface as program state plus typed questions in,
+typed probabilistic decisions and confidence out. It gives up string generation.
+
+The comparison is deliberately narrow. Do not call Jev deterministic, and do
+not describe Maude in general as deterministic: this slide contrasts Jev with
+the talk's finite equational detector, whose same validated term + model has a
+fixed result for the encoded predicates. The architectural similarity is that
+both can sit in a machine-facing decision path. The contract differs: learned
+probabilistic judgement versus explicit formal semantics. They can coexist;
+Jev must not turn a formal conflict or unverified result into clean.
+
+[Sources]
+- TypeSafe AI launch: https://typesafe.ai/blog/introducing-system-one-models-and-jev
+- TypeSafe AI API: https://api.typesafe.ai/docs
+- Maude manual: https://maude.cs.illinois.edu/wiki/The_Maude_System
+[/Sources]
+-->
+
+---
+
+<!-- slide 26: Formal methods make a narrow claim strong -->
 <!-- _class: closing -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->

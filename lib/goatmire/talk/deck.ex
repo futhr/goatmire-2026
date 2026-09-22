@@ -31,7 +31,8 @@ defmodule Goatmire.Talk.Deck do
     {22, "Approval missing → clean revision → wrong jurisdiction"},
     {23, "Maude is not the only answer"},
     {24, "Keep the claim attached to its evidence"},
-    {25, "Formal methods make a narrow claim strong"}
+    {25, "Why not Jev instead?"},
+    {26, "Formal methods make a narrow claim strong"}
   ]
 
   @identity :crypto.hash(:sha256, :erlang.term_to_binary(@slides))

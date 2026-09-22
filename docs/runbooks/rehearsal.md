@@ -8,7 +8,7 @@ Companion setup: [`demo-setup.md`](./demo-setup.md). The displays, the presenter
 
 A dress rehearsal passes only when all of these are true:
 
-- prepared talk ends in 25–26 minutes, leaving at least four minutes for recovery or questions
+- prepared talk ends in 26–27 minutes, leaving roughly three minutes for recovery or questions
 - Scenario 1 is introduced as a SOTERIA-derived reproduction
 - Scenario 2 says **observe** and **enforce**, uses the same staged load, and reads current counters rather than memorized ones
 - `clean`, `conflicts`, and `unverified` are each described accurately
@@ -17,6 +17,7 @@ A dress rehearsal passes only when all of these are true:
 - the active Codex/Ollama provider and privacy boundary are spoken aloud
 - the Metrics pane remains optional raw corroboration
 - the talk ends with properties not proved by the model.
+- the Jev comparison calls Jev a typed probabilistic System One Model, compares it specifically with this equational detector, and does not claim Maude is universally deterministic.
 
 ## Before every rehearsal
 
@@ -99,8 +100,9 @@ Use the seven-beat spine and slide anchors from [`../talk/memorize.md`](../talk/
 | LIVE 02 starts | 13:15 |
 | LIVE 03 starts | 16:30 |
 | AI-policy transfer starts | 18:10 |
-| closing begins | 24:35 |
-| prepared talk stops | 25:00–26:00 |
+| Jev comparison begins | 24:35 |
+| closing begins | 25:55 |
+| prepared talk stops | 26:45–27:15 |
 
 If late, use the hard-cut map in the manuscript. Never cut the three-verdict slide, the Maude/language-model boundary, or the final scope sentence.
 
@@ -184,6 +186,7 @@ Ask a reviewer to interrupt with:
 - “What if the explanation is wrong?”
 - “What if Maude times out?”
 - “How fast is it at 100,000 rules?”
+- “Why not use Jev instead of Maude?”
 
 Use [`../talk/qa-bank.md`](../talk/qa-bank.md) to score the answers. Any answer that widens the evidence fails even if it sounds persuasive.
 

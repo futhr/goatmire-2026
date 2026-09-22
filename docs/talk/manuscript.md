@@ -1,6 +1,6 @@
 # Talk manuscript — natural 30-minute cut
 
-This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 25-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
+This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 26-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
 
 This manuscript is a safety net, not a text to memorize word for word. Learn the seven-beat spine and each slide's first sentence in [`memorize.md`](./memorize.md); keep the complete text available for recovery. Bold marks the cue words; the iPad shows them in bold. Stage directions are in italics and are not spoken.
 
@@ -488,11 +488,31 @@ Its state is in memory. Its broker is a trusted local support service. **Its fle
 
 An audit artifact helps review what happened. It does not automatically satisfy a regulation, and it definitely does not prove a property we **never modeled**.
 
+*(Change slide.)*
+
+---
+
+## 25 · Why not Jev instead? — 24:35
+
+At this point there is a **very new question** I expect people to ask: why not use **Jev instead of Maude?**
+
+Jev is TypeSafe AI's first public **System One Model**. It gives up string generation: program state and typed questions in, **typed probabilistic decisions with confidence** out.
+
+Architecturally, that is surprisingly close to where this gate sits. Software asks a question and gets a machine-readable answer. But the **contract is different**.
+
+Jev is for judgement under uncertainty: does this trace look suspicious, which category fits, how confident are we? The application thresholds that probability or escalates uncertainty.
+
+This Maude detector is for properties we have **written down exactly**. Given the same validated term and the same equational model, the encoded predicate has a fixed result. It understands less, but its answer is **not a probability**.
+
+So I would not choose **Jev or Maude**. Use Jev where hard rules are brittle; use Maude where an invariant is important enough to state exactly. They can sit in the same pipeline.
+
+**Jev gives a probability about an ambiguous question. Maude gives the result of an explicit predicate.**
+
 *(Change to final slide.)*
 
 ---
 
-## 25 · Formal methods make a narrow claim strong — 24:35
+## 26 · Formal methods make a narrow claim strong — 25:55
 
 The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
@@ -518,7 +538,8 @@ Thank you.
 - On slide 15, name the three interaction edges and read only the current partition count.
 - On slide 18, protect the observation/inference sentence and the Maude/LLM boundary.
 - If LIVE 04 (slide 22) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
-- Begin the close (25) no later than 26:00. Keep the takeaways and the final quote.
+- On slide 25, if late, keep only the distinction: Jev returns a probabilistic decision; this Maude detector evaluates an explicit predicate. They can coexist.
+- Begin the close (26) no later than 26:00. Keep the takeaways and the final quote.
 
 ## Delivery
 

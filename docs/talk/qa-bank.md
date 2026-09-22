@@ -18,6 +18,8 @@ Answers are intentionally narrower than the most tempting stage claim. When a qu
 
 **“Why Maude rather than TLA+, Alloy, or Z3?”** The rule domain maps naturally to algebraic terms and rewrite semantics. TLA+ is often clearer for temporal distributed behavior, Alloy for bounded relations, and SMT/Z3 for constraints. Tool choice should follow property shape and the translation boundary you can validate.
 
+**“Why not Jev instead of Maude?”** Jev, announced by TypeSafe AI in September 2026 as its first public System One Model, is a machine-facing probabilistic decision model rather than a traditional text-generating judge. It returns typed decisions with probabilities or confidence, which is useful for fuzzy semantic judgement. The gate in this talk checks properties we can state exactly: the same validated term under the same equational detector has a fixed model-relative result. They can coexist — Jev can classify or score uncertain state, code can threshold and validate it, and Maude can check explicit invariants. Jev must not turn a Maude conflict or `unverified` result into `clean`.
+
 **“Why not property-based testing?”** Use it too. Simulation and generated tests exercise runtime behavior. The equational detector decides a specific predicate over this validated finite term. Neither subsumes the other, and neither supports a property omitted from its model.
 
 **“What if Maude crashes or times out?”** The application returns `unverified`, records telemetry, and enforce mode deploys nothing. Observe mode also fails closed for `unverified`. It deploys `clean` sets normally and — unlike enforce — also deploys a known `conflicts` set, which is what enables the controlled comparison. Pool workers are replaced after uncertain failures.

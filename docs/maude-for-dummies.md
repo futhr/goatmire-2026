@@ -2,7 +2,7 @@
 
 This is the technical study guide behind “Zero Alert Storms: Formal Verification for IoT Automation.” It describes the code that exists in the local `ex_maude` and `goatmire-2026` repositories as of 19 August 2026. When this guide and the code disagree, the code and its tests win.
 
-It is also the talk's dictionary. If a word from the speech is hard to explain in one breath, [section 15](#15-talk-dictionary) explains it in plain terms, in the order the talk uses it.
+It is also the talk's dictionary. If a word from the speech is hard to explain in one breath, [section 15](#15-talk-dictionary) explains it in plain terms, in the order the talk uses it. [Section 16](#16-jev-and-maude--same-slot-different-contract) covers the Jev comparison and why the two decision models can coexist.
 
 Local library changes may be unreleased even when their version strings match Hex. The application installs locked Hex ExMaude by default; see [dependency maintenance](dependencies.md) for how that resolution works.
 
@@ -553,3 +553,229 @@ Where Maude sits among them: Maude describes states as terms and changes as rewr
 A safe Q&A answer: "I haven't used them in production. They're the usual alternatives. I chose Maude because rule rewriting fits this problem and it runs under Elixir supervision."
 
 On stage: slide 23. The short version is in [`qa-bank.md`](talk/qa-bank.md).
+
+
+## 16. Jev and Maude — same slot, different contract
+
+This section exists because **“why not Jev instead of Maude?”** is now a credible senior-engineer question for the talk. TypeSafe AI announced Jev on 15 September 2026 as its first public **System One Model**. The facts here were checked against TypeSafe's launch material and public API documentation on 22 September 2026. Jev is new and in early access, so re-check the official material before the conference rather than relying on this section as timeless documentation.
+
+Primary sources:
+
+- [TypeSafe AI — Introducing System One Models & Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
+- [TypeSafe AI public API](https://api.typesafe.ai/docs)
+- [TypeSafe AI](https://typesafe.ai/)
+- [The Maude System](https://maude.cs.illinois.edu/wiki/The_Maude_System)
+
+### What Jev actually is
+
+Jev is not best described as “a second LLM judge.” TypeSafe presents System One Models as a model class designed for decisions inside software rather than free-form conversation. Its launch description deliberately gives up string generation and frames the interface as:
+
+```text
+program state + typed questions
+  → typed probabilistic decisions + probability/confidence
+```
+
+The public interface is therefore closer to a decision primitive than a chat completion. The calling program declares the shape of the question and answer, receives a result in that shape, and also receives uncertainty information that it can threshold or escalate.
+
+That distinction matters. **Typed output does not make the semantic judgement infallible.** A Jev result can have the correct schema and still be a wrong prediction. The probability/confidence is part of the contract precisely because the decision is probabilistic.
+
+TypeSafe uses strong marketing language around eliminating hallucinated output. For this talk, use the narrower engineering statement:
+
+> **Jev constrains the output shape; the judgement inside that shape remains probabilistic.**
+
+That is the useful property without implying that Jev “cannot be wrong.”
+
+### Why Jev and Maude look similar architecturally
+
+They can occupy a surprisingly similar slot in an application.
+
+With Jev:
+
+```text
+program state
+  → machine decision component
+  → typed probability / class / score
+  → application policy
+```
+
+With the equational detector in this talk:
+
+```text
+validated rule term
+  → machine decision component
+  → formal model result
+  → application policy
+```
+
+Neither path needs a prose answer. Both can return machine-readable values that ordinary software branches on. That is why “why not Jev instead?” is a legitimate architecture question rather than a category error.
+
+The difference is the **meaning of the answer**.
+
+### Jev: learned judgement under uncertainty
+
+Jev fits questions that are meaningful but hard or brittle to reduce to exact hand-written semantics.
+
+Examples:
+
+- Does this agent trace look suspicious enough to require review?
+- Which known category best matches this request?
+- How urgent does this event appear?
+- How likely is this generated action to need human escalation?
+- Which route should this ambiguous case take?
+
+Those are judgement problems. The boundary is learned rather than fully written down in application equations.
+
+The program still owns the policy around the result. A simplified caller might decide:
+
+```text
+high confidence + low risk → continue
+low confidence            → human review
+high estimated risk       → escalate
+```
+
+Jev supplies a probabilistic decision. It does not own the side effect.
+
+### Maude in this talk: explicit semantics over a validated term
+
+The comparison with Maude must be equally precise.
+
+Do **not** make the broad statement “Maude is deterministic.” Rewriting logic can describe branching and nondeterministic transition systems, and `search` can explore those possibilities.
+
+The comparison on slide 25 is narrower: **Jev versus the finite equational detectors used by this talk**.
+
+For `ExMaude.IoT.detect_conflicts/2` and the AI-policy conflict detector shown here:
+
+- the input is validated and finite;
+- the encoder constructs a Maude term;
+- the selected model explicitly defines the represented conflict predicates;
+- the detector reduces the same term under the same equations to the same model-relative result.
+
+There is no learned confidence score deciding whether two encoded writes meet the definition of `state_conflict`. The semantics were written down.
+
+That gives a stronger answer to a much smaller question.
+
+The usual model boundary still applies. A formally correct result can be irrelevant if the encoder mistranslates the rule, a necessary property was omitted, or the model does not capture the part of reality that matters.
+
+### The core comparison
+
+| Dimension | Jev | This talk's Maude equational detector |
+|---|---|---|
+| Main job | learned judgement | explicit property checking |
+| Input | program/state context plus typed questions | validated structured term |
+| Output | typed probabilistic decision plus probability/confidence | model-relative detector result, wrapped by Goatmire as `clean`, `conflicts`, or `unverified` |
+| Source of behaviour | trained model | explicitly encoded equations and semantics |
+| Uncertainty | represented in the result | detector result is not a probability; operational failure remains `unverified` |
+| Strong fit | fuzzy classification, scoring, routing, semantic risk | invariants and conflicts that can be stated exactly |
+| Failure to remember | a valid typed answer can still be a wrong judgement | a correct formal result can concern an incomplete or mistranslated model |
+| Application owns | thresholds, escalation and side effects | activation policy, translation tests and treatment of `unverified` |
+
+The short distinction for rehearsal is:
+
+> **Jev gives a probability about an ambiguous question. Maude gives the result of an explicit predicate.**
+
+### Where they can coexist
+
+The interesting architecture is not necessarily Jev **or** Maude.
+
+#### Jev before Maude
+
+```text
+messy state / generated trace
+        ↓
+       Jev
+semantic classification or risk
+        ↓
+threshold + validate in code
+        ↓
+structured candidate
+        ↓
+      Maude
+explicit invariant check
+        ↓
+application activation policy
+```
+
+Jev can turn ambiguity into a typed decision that ordinary code can handle. Once a candidate reaches a property the system can state exactly, Maude can check that explicit property.
+
+For example, Jev might judge whether an unstructured agent trajectory should be treated as high-impact. Once the validated policy is explicitly marked high-impact, the Maude policy model can enforce the exact rule that a high-impact invocation requires an approval step.
+
+Do not use Jev to infer a fact that already has an authoritative structured source. If jurisdiction, authority, capability, or approval is already validated metadata, read the metadata.
+
+#### Jev and Maude in parallel
+
+The same candidate can be inspected along two independent dimensions:
+
+```text
+                         ┌→ Jev: semantic risk / ambiguity ─┐
+validated candidate ─────┤                                  ├→ application policy
+                         └→ Maude: explicit invariants ─────┘
+```
+
+The application combines two different contracts.
+
+A conservative policy might say:
+
+- a Maude conflict is a hard stop;
+- Maude `unverified` follows the application's explicit fail-open/fail-closed policy;
+- high Jev risk or low Jev confidence sends the candidate to review;
+- a Jev decision never relabels a Maude conflict or `unverified` result as `clean`.
+
+That last point preserves the three-verdict distinction at the centre of the talk.
+
+#### Maude first, Jev for residual uncertainty
+
+For a high-impact path, explicit hard constraints can run first.
+
+If Maude finds a represented conflict, stop. If the formal invariants pass, Jev can still inspect questions intentionally outside the formal model: suspicious intent, unusual context, semantic mismatch, or review priority.
+
+This expands practical coverage without pretending the probabilistic judgement became part of the formal proof.
+
+### Concrete examples from the talk
+
+**Good Maude question**
+
+> Does this structured policy invoke a high-impact tool without a required approval step?
+
+The property is explicit and the required fields are structured.
+
+**Good Jev question**
+
+> Does this free-form agent trace look suspicious enough to require review?
+
+“Suspicious” is a semantic judgement. A typed probabilistic decision and confidence can be useful.
+
+**Probably neither model**
+
+> Which jurisdiction did the caller explicitly select in a validated enum field?
+
+That is already authoritative data. Read the field in ordinary code.
+
+**Jev plus Maude**
+
+> Does this natural-language request appear to describe a high-impact operation, and if the resulting structured policy is high-impact, does it contain the mandatory approval step?
+
+Jev can help with the first, fuzzy classification. After validation, Maude can check the second, explicit invariant.
+
+### Why Jev does not make Maude obsolete
+
+Jev addresses a real problem with AI in automation: free-form generated text is an awkward contract for ordinary software. Typed probabilistic decisions are much easier to compose, threshold and audit than prose.
+
+That still leaves a distinction between **prediction** and **specification**.
+
+If a property is genuinely fuzzy, forcing it into a brittle equation creates false precision. A learned decision model is appropriate there.
+
+If a property is important and precise enough to state exactly, replacing the explicit predicate with a probability weakens the kind of claim the gate can make.
+
+The useful boundary is therefore:
+
+> **Use learned probabilities where the rule is genuinely fuzzy. Use explicit formal semantics where ambiguity is unacceptable.**
+
+### Honest Q&A answer
+
+**“Why not Jev instead of Maude?”**
+
+> Jev is interesting because it sits in almost the same machine-facing decision slot without being a traditional text-generating LLM. It returns typed probabilistic decisions and confidence, which is useful for judgement under uncertainty. The Maude detector I'm showing handles properties I can state exactly. Given the same validated term and model, that predicate has a fixed result rather than a probability. I would use Jev for fuzzy semantic questions, Maude for explicit invariants, and keep the application policy that combines them visible.
+
+If somebody asks which is “better,” do not rank them. Ask what kind of question the system needs to answer.
+
+On stage: slide 25.

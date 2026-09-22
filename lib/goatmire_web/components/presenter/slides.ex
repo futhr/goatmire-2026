@@ -1,6 +1,6 @@
 defmodule GoatmireWeb.Presenter.Slides do
   @moduledoc """
-  The 25-slide conference sequence as Phoenix function components.
+  The 26-slide conference sequence as Phoenix function components.
 
   Slide order agrees with the manuscript and Markdown source. Claims remain
   scoped to the demonstrated model, simulation, and measured run.
@@ -478,7 +478,44 @@ defmodule GoatmireWeb.Presenter.Slides do
 
   def slide(%{n: 25} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--closing">
+    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--default">
+      <div class="sl-eyebrow">Same architectural slot · different contract</div>
+      <h1>{Deck.title(@n)}</h1>
+
+      <div class="sl-branch-source">machine-readable decision point</div>
+      <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
+
+      <div class="sl-two">
+        <div class="sl-panel">
+          <div class="sl-label">Jev · System One Model</div>
+          <div class="sl-value">typed probability</div>
+          <p>learned judgement under uncertainty</p>
+        </div>
+        <div class="sl-panel">
+          <div class="sl-label">Maude · this equational detector</div>
+          <div class="sl-value">explicit predicate</div>
+          <p>model-relative formal result</p>
+        </div>
+      </div>
+
+      <div class="sl-flow sl-mt">
+        <div class="sl-node">Jev: ambiguity</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">validate + threshold</div>
+        <div class="sl-arrow">→</div>
+        <div class="sl-node">Maude: explicit invariants</div>
+      </div>
+
+      <blockquote>
+        Use probabilities where the rule is fuzzy. Use formal semantics where the rule must be exact.
+      </blockquote>
+    </section>
+    """
+  end
+
+  def slide(%{n: 26} = assigns) do
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-26 slide--closing">
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>

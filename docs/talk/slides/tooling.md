@@ -1,6 +1,6 @@
 # Stage deck sources
 
-The maintained stage sequence has 25 slides. [`deck.md`](./deck.md) records its
+The maintained stage sequence has 26 slides. [`deck.md`](./deck.md) records its
 content and sources; `Goatmire.Talk.Deck` and the Phoenix slide components render
 that sequence at `/talk`. The manuscript, memorization anchors, code cards,
 scripted actions, and `priv/talk/timings.exs` must change together when the
