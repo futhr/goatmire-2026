@@ -13,7 +13,7 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 ## The seven-beat story
 
 1. Two reasonable rules can fight when they run together.
-2. That relationship exists before deployment.
+2. That conflict exists before the rule is ever activated.
 3. A formal checker can answer one small, precise question.
 4. The gate must keep `clean`, `conflicts`, and `unverified` separate.
 5. Check the same rule the runtime will execute.
@@ -24,38 +24,38 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 
 | Slide | Anchor | Exit |
 |---:|---|---|
-| 1 | This talk is about bugs where every part works and the system still does the wrong thing. | Formal verification can answer that, as long as the question stays small. |
-| 2 | This comes from the published smart-home study SOTERIA. In its multi-app evaluation, O3 and O4 react to the same contact-open event with conflicting switch values. | Our simulator gives us somewhere safe to make that conflict noisy. |
+| 1 | This talk is about one kind of bug, where every part works but the system still does the wrong thing. | Formal verification can answer that, if we keep the question small. |
+| 2 | This example comes from a smart-home research paper called SOTERIA. They looked at what happens when you compose several apps. Two of them, O3 and O4, react to the same event: a contact sensor opens. And they set the same switch to different values. | The simulator gives us a safe place to let it get noisy. |
 | 3 | This is what makes these bugs annoying. | That gap between local correctness and composed behaviour is where today's talk lives. |
-| 4 | Nobody designed the combined behaviour on this slide. | We are perfectly capable of getting there by composing sensible things. |
-| 5 | The relationship between these rules exists before a device moves, before an alert fires, and before deployment. | That is the architectural move. |
-| 6 | Why not just write more tests? | We are asking it a specific question we bothered to define. |
-| 7 | Maude looks intimidating at first. For this talk you need about four words. | That distinction matters because different Maude commands answer different questions. |
+| 4 | Nobody designed the combined behaviour on this slide. | We are perfectly capable of getting there by composing reasonable things. |
+| 5 | These two rules already disagree before a device moves, before an alert fires, and before either rule is active. | That's the key idea: move the check left, to the moment someone creates the rule. |
+| 6 | Why not just write more tests? | We just ask it one specific question, and we are very clear about what that question is. |
+| 7 | Maude looks unfamiliar at first. But from here on, you only need four words. | That distinction matters because different Maude commands answer different questions. |
 | 8 | reduce is not search. | We ask the narrow question we actually modeled. |
-| 9 | This demo has four categories. | It is also easy to forget once the word formal appears on a slide. |
+| 9 | This checker knows four categories of conflict. A category is one kind of conflict it can spot between two rules, and these four are the only things it looks for. | It is also easy to forget once the word formal appears on a slide. |
 | 10 | What does a clean result mean? | It is also one I can defend. |
-| 11 | Inside this Elixir application, Maude is not a sacred process living on a university workstation somewhere. | The process lifecycle does not have to be. |
-| 12 | This is probably the implementation decision I care about most. | It makes the boundary smaller, and smaller boundaries are easier to test. |
-| 13 | The gate has three answers. Not two. | It is application policy we chose explicitly. |
+| 11 | Inside this Elixir application, Maude is not a separate service running as a sidecar. | The process lifecycle does not have to be. |
+| 12 | If you remember one design decision from this talk, make it this one. | But that piece is small, and small pieces are easy to test. |
+| 13 | The gate has three answers. Not two. | It is application policy, and I chose it explicitly. |
 | 14 | Formal checking does not make the plumbing trustworthy by association. | Otherwise the formal core can be perfectly correct while the glue quietly lies. |
 | 15 | Comparing every rule with every other rule is not particularly clever. | Those are today's run counts, not a universal scaling claim. |
 | 16 | Okay. Enough slides. Let's actually do it. | The conflicting pair never exists in the active rule set. |
-| 17 | Now I want to make the difference visible. | That is what I care about — moving the decision left, before runtime experiences the disagreement. |
+| 17 | Now I want to make the difference visible. | That is the whole point. Move the decision left, before the rules ever run. |
 | 18 | We have counters. Somebody still has to interpret them. | That separation is more interesting to me than putting an LLM in front of every button. |
-| 19 | The same boundary applies when the language model is the author. | We are not formally verifying the language model. |
-| 20 | The AI-policy detector has exactly seven categories. They are on the slide, so I will not read them all. | Nothing more heroic than that. |
-| 21 | A typed conflict gives a probabilistic author something concrete to revise. | The author does not grade its own work. |
+| 19 | The same boundary applies when the language model is the author. | We are not verifying the model itself. |
+| 20 | The AI-policy detector has exactly seven categories of conflict. They are on the slide, so I will not read them all. | Nothing more heroic than that. |
+| 21 | When the check finds a conflict, it comes back with a type. Approval gate bypass, for example. That gives the model something concrete to fix. | The model does not judge its own work. |
 | 22 | This final demo is deliberately boring. | Nothing had to persuade itself that it was correct. |
 | 23 | Maude is not the answer to every formal-methods problem. | Tool choice should follow the property, not loyalty to the tool I happened to put in a conference talk. |
 | 24 | Before taking this toward production, keep the claim attached to its evidence. | It does not automatically satisfy a regulation, and it definitely does not prove a property we never modeled. |
-| 25 | There is a timely question here: why not use Jev instead of Maude? | Jev asks what is likely. Maude asks what the model allows. |
+| 25 | A fair question, especially now that Jev is out: why not a decision model instead of Maude? | The decision model asks what is likely. Maude asks what the model allows. |
 | 26 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
 
 ## Protected lines
 
 - “You review one change. The system runs all of them together.”
 - “A bad answer, a good answer, and no answer are three different things.”
-- “For this demo an unverified candidate is not deployed.”
+- “For this demo, if the checker cannot answer, the rule is not activated.”
 - “Maude made the decision. The language model explained what the system observed.”
 - “Formal methods strengthen narrow claims. They cannot prove broad ones.”
 

@@ -114,7 +114,7 @@ defmodule GoatmireWeb.Presenter.Slides do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-5 slide--statement">
       <div class="sl-eyebrow">The deployment question</div>
-      <div class="sl-statement">If the conflict exists now, why discover it after deployment?</div>
+      <div class="sl-statement">If the conflict exists now, why wait for the alerts to find it?</div>
       <div class="sl-flow">
         <div class="sl-node">submit rule</div>
         <div class="sl-arrow">→</div>
@@ -325,14 +325,14 @@ defmodule GoatmireWeb.Presenter.Slides do
       <div class="sl-two">
         <div class="sl-panel">
           <h2>Conservative edges</h2><p>
-            same Thing<br />same action target<br />writer → trigger property
+            same device<br />same action target<br />writer → trigger property
           </p>
         </div>
         <div class="sl-panel">
           <h2>Measured work</h2><p>rules<br />partitions<br />pairs considered / skipped</p>
         </div>
       </div>
-      <blockquote>Grouping only by Thing can miss cross-Thing cascades.</blockquote>
+      <blockquote>Grouping only by device can miss cross-device cascades.</blockquote>
     </section>
     """
   end
@@ -422,7 +422,7 @@ defmodule GoatmireWeb.Presenter.Slides do
         <div class="sl-arrow">→</div>
         <div class="sl-node">revise or admit</div>
       </div>
-      <blockquote>The author does not grade its own work.</blockquote>
+      <blockquote>The model does not judge its own work.</blockquote>
     </section>
     """
   end
@@ -490,7 +490,7 @@ defmodule GoatmireWeb.Presenter.Slides do
       <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
       <div class="sl-two">
         <div class="sl-panel sl-panel--center">
-          <div class="sl-label">Jev</div>
+          <div class="sl-label">decision model (Jev, or any calibrated classifier)</div>
           <div><strong>typed probability</strong><br /><span class="sl-small">What is likely?</span></div>
         </div>
         <div class="sl-panel sl-panel--center">

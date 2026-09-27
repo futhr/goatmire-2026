@@ -64,11 +64,11 @@ defmodule Goatmire.Talk.ScriptTest do
 
   test "the restored topics retain their narrow claims" do
     assert Enum.join(Script.section(8).paragraphs) =~ "not an unbounded proof"
-    assert Enum.join(Script.section(15).paragraphs) =~ "cross-Thing"
+    assert Enum.join(Script.section(15).paragraphs) =~ "cross-device"
     assert Enum.join(Script.section(20).paragraphs) =~ "exactly seven"
     assert Enum.join(Script.section(23).paragraphs) =~ "TLA+"
     assert Enum.join(Script.section(25).paragraphs) =~ "Jev"
-    assert Enum.join(Script.section(25).paragraphs) =~ "Jev asks what is likely"
+    assert Enum.join(Script.section(25).paragraphs) =~ "The decision model asks what is likely"
     assert Enum.join(Script.section(25).paragraphs) =~ "Maude asks what the model allows"
 
     assert Enum.join(Script.section(24).paragraphs) =~

@@ -87,7 +87,7 @@ Explain Maude in one picture: validated rules, explicit conflict definitions, an
 
 ### Act 3 — Observe, enforce, then ask the system (about 7 minutes)
 
-Run the same staged shift change — same fleet size, tick rate, and shift parameters — once in observe mode and once in enforce mode. Read counters from the screen. Then ask BeamLens why alerts rose, which formal verdict accompanies the run, and what to inspect next. Point to its cited fields, observation/inference split, grounding, and active provider. Use one raw Metrics-pane series only if corroboration helps.
+Run the same staged shift change — same fleet size, tick rate, and shift parameters — once in observe mode and once in enforce mode. Read counters from the screen. Then ask BeamLens why alerts rose, which formal verdict accompanies the run, and what to inspect next. Point to its cited fields and the observation/inference split. Use one raw Metrics-pane series only if corroboration helps.
 
 ### Act 4 — Generalize without widening the proof (about 4 minutes)
 

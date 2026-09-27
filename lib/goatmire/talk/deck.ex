@@ -11,7 +11,7 @@ defmodule Goatmire.Talk.Deck do
     {2, "Both apps were reasonable"},
     {3, "Both rules are reasonable"},
     {4, "The loop nobody designed"},
-    {5, "Why wait until after deployment?"},
+    {5, "Why wait until the rule runs?"},
     {6, "Tests and checks answer different questions"},
     {7, "Four pieces"},
     {8, "Reduce is not search"},
@@ -27,11 +27,11 @@ defmodule Goatmire.Talk.Deck do
     {18, "Ask the running system why"},
     {19, "An LLM may propose policy; it should not judge itself"},
     {20, "Exactly seven categories"},
-    {21, "Put a deterministic gate around a probabilistic author"},
+    {21, "The model suggests. The gate decides."},
     {22, "Approval missing → clean revision → wrong jurisdiction"},
     {23, "Maude is not the only answer"},
     {24, "Keep the claim attached to its evidence"},
-    {25, "Jev + Maude"},
+    {25, "Decision model + Maude"},
     {26, "Formal methods strengthen narrow claims"}
   ]
 

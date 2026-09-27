@@ -108,10 +108,10 @@ shows how repeatedly activating a synthetic conflicting set can amplify alerts.
 
 ---
 
-<!-- slide 5: Why wait until after deployment? -->
+<!-- slide 5: Why wait until the rule runs? -->
 <div class="eyebrow">The deployment question</div>
 
-<div class="statement">If the relationship exists before activation, why wait for telemetry to discover it?</div>
+<div class="statement">If the conflict exists now, why wait for the alerts to find it?</div>
 
 <!--
 This is the turn. We are not replacing runtime monitoring. We are moving one
@@ -364,7 +364,7 @@ the application.
 <div class="two">
   <div class="panel">
     <div class="label">conservative edges</div>
-    <div class="value">same Thing</div>
+    <div class="value">same device</div>
     <div class="value">same action target</div>
     <div class="value">writer → trigger property</div>
   </div>
@@ -376,7 +376,7 @@ the application.
   </div>
 </div>
 
-<p class="lede" style="margin-top:30px">Grouping only by Thing would miss cross-Thing cascades.</p>
+<p class="lede" style="margin-top:30px">Grouping only by device would miss cross-device cascades.</p>
 
 <!--
 Read the actual numbers from the dashboard or notebook. Do not memorize a
@@ -506,10 +506,10 @@ detector results in the current code.
 
 ---
 
-<!-- slide 21: Put a deterministic gate around a probabilistic author -->
+<!-- slide 21: The model suggests. The gate decides. -->
 <div class="eyebrow">Generate · verify · revise</div>
 
-# Put a deterministic gate around a probabilistic author
+# The model suggests. The gate decides.
 
 <div class="flow">
   <div class="node">generate structured rules</div><div class="arrow">→</div>
@@ -605,17 +605,17 @@ an error or unverified. The activation layer owns fail-open/fail-closed policy.
 
 ---
 
-<!-- slide 25: Jev + Maude -->
+<!-- slide 25: Decision model + Maude -->
 <div class="eyebrow">Same architectural slot · different contract</div>
 
-# Jev + Maude
+# Decision model + Maude
 
 <div class="branch-source">machine-readable decision</div>
 <div class="branch-arrow">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
 
 <div class="two">
   <div class="panel center">
-    <div class="label">Jev</div>
+    <div class="label">decision model (Jev, or any calibrated classifier)</div>
     <div><strong>typed probability</strong><br><span class="small">What is likely?</span></div>
   </div>
   <div class="panel center">
