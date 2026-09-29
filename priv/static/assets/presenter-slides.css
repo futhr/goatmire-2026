@@ -441,6 +441,65 @@
   max-width: 64cqw;
 }
 
+/* The index: planned chapter starts in a magenta column, chapter sentences
+   beside them. The same magenta opens each chapter as a divider slide. */
+.sl-index {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  max-width: 76cqw;
+  margin: 0 0 2.6cqw;
+  font-size: clamp(1rem, 2.4cqw, 2.3rem);
+  line-height: 1.25;
+}
+
+.sl-index dt,
+.sl-index dd {
+  margin: 0;
+  padding: 1cqw 1.8cqw;
+}
+
+.sl-index dt {
+  background: var(--sl-verdict-conflict);
+  color: #ffffff;
+  font-family: var(--sl-mono);
+  font-weight: 600;
+  text-align: right;
+}
+
+.sl-index dt:first-of-type {
+  border-top-left-radius: clamp(0.5rem, 1.1cqw, 1rem);
+}
+
+.sl-index dt:last-of-type {
+  border-bottom-left-radius: clamp(0.5rem, 1.1cqw, 1rem);
+}
+
+.sl-index dd {
+  color: var(--sl-heading);
+  font-weight: 600;
+}
+
+/* Chapter dividers: the deck's third background after white and the live
+   purple, so a new chapter and a live demo never look alike. */
+.slide--chapter {
+  display: grid;
+  place-items: center;
+  background: var(--sl-verdict-conflict);
+  color: #ffffff;
+  text-align: center;
+}
+
+.slide--chapter .sl-eyebrow {
+  color: rgb(255 255 255 / 0.8);
+}
+
+.slide--chapter h1 {
+  max-width: 76cqw;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.8rem, 5.3cqw, 5rem);
+}
+
 .slide--demo {
   display: grid;
   place-items: center;

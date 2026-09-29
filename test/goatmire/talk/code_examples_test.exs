@@ -15,7 +15,7 @@ defmodule Goatmire.Talk.CodeExamplesTest do
       refute match?({:error, _}, value), "slide #{slide}: #{inspect(value)}"
       refute output =~ "warning:", "slide #{slide}: #{output}"
 
-      if slide == 8 do
+      if slide == 9 do
         assert {:ok, _} = value.reduction
         assert {:ok, _} = value.witness
 

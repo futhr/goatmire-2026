@@ -82,6 +82,23 @@ html {
   text-transform: uppercase;
 }
 
+/* Which chapter a block belongs to; the divider blocks carry the projector's
+   magenta so the iPad and the screen mark the same boundary. */
+.speaker-note-chapter {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #5b6573;
+  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.speaker-note--chapter {
+  padding-left: 1rem;
+  border-left: 0.35rem solid #d9539b;
+}
+
 .speaker-note-paragraph {
   display: block;
   margin-top: 0.8em;

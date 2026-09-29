@@ -14,6 +14,7 @@
   --red-soft: #fee2e2;
   --amber: #b45309;
   --amber-soft: #fef3c7;
+  --magenta: #d9539b;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -200,3 +201,13 @@ section.closing { display: grid; place-items: center; text-align: center; }
 section.closing blockquote { max-width: 980px; padding: 0; border: 0; font-size: 52px; font-weight: 680; line-height: 1.18; letter-spacing: -0.045em; }
 section.closing .small { margin-top: 44px; }
 .source { position: absolute; left: 72px; bottom: 26px; color: #94a3b8; font-size: 13px; }
+
+/* Chapter dividers and the index: the deck's third background after white and
+   the live purple, in the same magenta the presenter uses for conflicts. */
+section.chapter { display: grid; place-items: center; text-align: center; background: var(--magenta); color: white; }
+section.chapter h1 { max-width: 980px; color: white; font-size: 68px; }
+section.chapter .eyebrow { color: rgba(255, 255, 255, 0.8); }
+.index { display: grid; grid-template-columns: max-content 1fr; max-width: 980px; margin: 0 0 30px; font-size: 30px; line-height: 1.25; }
+.index dt, .index dd { margin: 0; padding: 12px 22px; }
+.index dt { background: var(--magenta); color: white; font-family: var(--mono); font-weight: 600; text-align: right; }
+.index dd { color: var(--ink); font-weight: 600; }

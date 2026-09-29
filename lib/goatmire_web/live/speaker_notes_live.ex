@@ -152,10 +152,15 @@ defmodule GoatmireWeb.SpeakerNotesLive do
           type="button"
           phx-click="goto"
           phx-value-slide={section.number}
-          class={["speaker-note", note_state(section.number, @snap.slide)]}
+          class={[
+            "speaker-note",
+            note_state(section.number, @snap.slide),
+            Deck.divider?(section.number) && "speaker-note--chapter"
+          ]}
           aria-current={section.number == @snap.slide && "step"}
           aria-label={"Go to slide #{section.number}: #{section.title}"}
         >
+          <span class="speaker-note-chapter">{Deck.chapter(section.number).label}</span>
           <span class="speaker-note-label">
             {String.pad_leading(Integer.to_string(section.number), 2, "0")} — {section.title}
           </span>

@@ -73,7 +73,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     first = render(element(notes, "#speaker-note-1"))
     assert first =~ ~s(<kbd>q</kbd><abbr title="QR code for the notes">QR</abbr>)
 
-    demo = render(element(notes, "#speaker-note-16"))
+    demo = render(element(notes, "#speaker-note-18"))
     assert demo =~ ~s(<kbd>c</kbd><abbr title="Reveal the Rules pane">Rules</abbr>)
 
     assert demo =~
@@ -132,21 +132,21 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     {:ok, view, _} = authorized_live(conn)
 
     view
-    |> element("#speaker-note-9")
+    |> element("#speaker-note-10")
     |> render_click()
 
-    assert Clock.snapshot().slide == 9
-    assert render(view) =~ ~r/id="speaker-note-9"[^>]*class="[^"]*current/
+    assert Clock.snapshot().slide == 10
+    assert render(view) =~ ~r/id="speaker-note-10"[^>]*class="[^"]*current/
   end
 
   test "projector navigation moves the current iPad text section", %{conn: conn} do
     {:ok, view, _} = authorized_live(conn)
 
-    Clock.goto(13)
+    Clock.goto(14)
 
     assert_eventually(fn ->
-      render(view) =~ ~r/data-current-slide="13"/ and
-        render(view) =~ ~r/id="speaker-note-13"[^>]*class="[^"]*current/
+      render(view) =~ ~r/data-current-slide="14"/ and
+        render(view) =~ ~r/id="speaker-note-14"[^>]*class="[^"]*current/
     end)
   end
 
@@ -159,14 +159,14 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     assert_eventually(fn -> render(notes) =~ ~r/data-current-slide="2"/ end)
 
     notes
-    |> element("#speaker-note-10")
+    |> element("#speaker-note-11")
     |> render_click()
 
-    assert_eventually(fn -> render(projector) =~ ~s(id="deck-slide-10") end)
+    assert_eventually(fn -> render(projector) =~ ~s(id="deck-slide-11") end)
   end
 
   test "waiting demo steps show their action instead of a bare dot", %{conn: conn} do
-    Clock.goto(16)
+    Clock.goto(18)
     {:ok, notes, _} = authorized_live(conn)
 
     for index <- 0..2 do
@@ -202,7 +202,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     {:ok, notes, _} = authorized_live(conn)
     {:ok, projector, _} = live(build_conn(), "/talk")
 
-    Clock.goto(16)
+    Clock.goto(18)
 
     assert_eventually(fn -> render(notes) =~ ~s(id="speaker-play-step-0") end)
     assert render(notes) =~ ~r/speaker-controls-core.*speaker-controls-dynamic/s
@@ -210,19 +210,19 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     render_keydown(projector, "key", %{"key" => "v"})
 
     assert_eventually(fn ->
-      Clock.snapshot().play_done[16] == 1 and
+      Clock.snapshot().play_done[18] == 1 and
         render(notes) =~ ~r/id="speaker-play-step-0"[^>]*class="done"/
     end)
 
     render_click(element(notes, "#speaker-play-step-1"))
-    assert_eventually(fn -> Clock.snapshot().play_done[16] == 2 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[18] == 2 end)
     assert_eventually(fn -> length(Engine.deployed_rules()) == 1 end)
   end
 
   test "reset confirmation stays inside the icon row", %{conn: conn} do
     {:ok, notes, _} = authorized_live(conn)
 
-    Clock.goto(7)
+    Clock.goto(8)
     render_click(element(notes, "#speaker-ask-reset"))
 
     html = render(notes)
@@ -231,7 +231,7 @@ defmodule GoatmireWeb.SpeakerNotesLiveTest do
     refute html =~ "speaker-controls-dynamic"
 
     render_click(element(notes, "#speaker-cancel-reset"))
-    assert Clock.snapshot().slide == 7
+    assert Clock.snapshot().slide == 8
 
     render_click(element(notes, "#speaker-ask-reset"))
     render_click(element(notes, "#speaker-confirm-reset"))
