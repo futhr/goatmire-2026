@@ -18,10 +18,10 @@ author: Tobias Bohwalli
 
 <dl class="index">
   <dt>00:00</dt><dd>The problem</dd>
-  <dt>03:00</dt><dd>The gate</dd>
-  <dt>12:00</dt><dd>Live: IoT rules</dd>
-  <dt>19:00</dt><dd>Live: AI policy</dd>
-  <dt>24:00</dt><dd>Takeaways</dd>
+  <dt>03:25</dt><dd>The gate</dd>
+  <dt>12:10</dt><dd>Live: IoT rules</dd>
+  <dt>18:45</dt><dd>Live: AI policy</dd>
+  <dt>23:45</dt><dd>Takeaways</dd>
 </dl>
 
 <!--

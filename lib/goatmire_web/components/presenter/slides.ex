@@ -26,8 +26,7 @@ defmodule GoatmireWeb.Presenter.Slides do
   @spec titles() :: [{pos_integer(), String.t()}]
   def titles, do: Deck.titles()
 
-  # Planned start of each chapter from the rehearsal budgets, shown to the
-  # minute: the room reads the shape of the talk, not a stopwatch.
+  # Planned start of each chapter, summed from the rehearsal budgets.
   defp chapter_index do
     timings = Clock.timings()
 
@@ -37,10 +36,11 @@ defmodule GoatmireWeb.Presenter.Slides do
           acc + Map.get(timings, slide, %{seconds: 0}).seconds
         end)
 
-      minutes = Integer.to_string(round(seconds / 60))
-      {String.pad_leading(minutes, 2, "0") <> ":00", chapter}
+      {pad(div(seconds, 60)) <> ":" <> pad(rem(seconds, 60)), chapter}
     end
   end
+
+  defp pad(n), do: String.pad_leading(Integer.to_string(n), 2, "0")
 
   attr :n, :integer, required: true
 
