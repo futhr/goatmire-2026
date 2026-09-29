@@ -5,17 +5,17 @@ defmodule Goatmire.Talk.Deck do
   The clock, projected slides, speaker notes, and tests all take their count
   and titles from this list so a rewrite cannot leave one surface behind.
 
-  The deck is told in five chapters. Each chapter is one declarative sentence:
-  the index slide lists all five, and chapters two to five open with a divider
-  slide that carries the sentence as its title.
+  The deck is told in five chapters. The index slide lists them with their
+  planned start, and chapters two to five open with a divider slide that
+  carries the chapter title.
   """
 
   @chapters [
-    {1, 1, "Reasonable rules make an unreasonable system."},
-    {2, 6, "The gate asks one small question."},
-    {3, 17, "The rules fight, then the gate holds."},
-    {4, 21, "The model writes the rule; the gate still decides."},
-    {5, 26, "Strong claims stay narrow."}
+    {1, 1, "The problem"},
+    {2, 6, "The gate"},
+    {3, 17, "Live: IoT rules"},
+    {4, 21, "Live: AI policy"},
+    {5, 26, "Takeaways"}
   ]
 
   @slides [
@@ -24,7 +24,7 @@ defmodule Goatmire.Talk.Deck do
     {3, "Both rules are reasonable"},
     {4, "The loop nobody designed"},
     {5, "Why wait until the rule runs?"},
-    {6, "The gate asks one small question."},
+    {6, "The gate"},
     {7, "Tests and checks answer different questions"},
     {8, "Four pieces"},
     {9, "Reduce is not search"},
@@ -35,16 +35,16 @@ defmodule Goatmire.Talk.Deck do
     {14, "Never turn “no answer” into “yes”"},
     {15, "Every arrow deserves a test"},
     {16, "Partition on interaction edges"},
-    {17, "The rules fight, then the gate holds."},
+    {17, "Live: IoT rules"},
     {18, "Catch the conflict before the rule exists"},
     {19, "Run the same shift change twice"},
     {20, "Ask the running system why"},
-    {21, "The model writes the rule; the gate still decides."},
+    {21, "Live: AI policy"},
     {22, "An LLM may propose policy; it should not judge itself"},
     {23, "Exactly seven categories"},
     {24, "The model suggests. The gate decides."},
     {25, "Approval missing → clean revision → wrong jurisdiction"},
-    {26, "Strong claims stay narrow."},
+    {26, "Takeaways"},
     {27, "Maude is not the only answer"},
     {28, "Keep the claim attached to its evidence"},
     {29, "Decision model + Maude"},
@@ -73,7 +73,7 @@ defmodule Goatmire.Talk.Deck do
 
   for %{first_slide: first, title: title} <- @chapter_maps, first > 1 do
     if List.keyfind(@slides, first, 0) != {first, title} do
-      raise "slide #{first} must carry its chapter sentence as its title"
+      raise "slide #{first} must carry its chapter title"
     end
   end
 

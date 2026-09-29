@@ -19,11 +19,11 @@ author: Tobias Bohwalli
 # Formal Verification
 
 <dl class="index">
-  <dt>00:00</dt><dd>Reasonable rules make an unreasonable system.</dd>
-  <dt>03:00</dt><dd>The gate asks one small question.</dd>
-  <dt>12:00</dt><dd>The rules fight, then the gate holds.</dd>
-  <dt>19:00</dt><dd>The model writes the rule; the gate still decides.</dd>
-  <dt>24:00</dt><dd>Strong claims stay narrow.</dd>
+  <dt>00:00</dt><dd>The problem</dd>
+  <dt>03:00</dt><dd>The gate</dd>
+  <dt>12:00</dt><dd>Live: IoT rules</dd>
+  <dt>19:00</dt><dd>Live: AI policy</dd>
+  <dt>24:00</dt><dd>Takeaways</dd>
 </dl>
 
 **Tobias Bohwalli**
@@ -130,14 +130,14 @@ class of discovery earlier, into the rule-creation request.
 
 ---
 
-<!-- slide 6: The gate asks one small question. -->
+<!-- slide 6: The gate -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Chapter two</div>
 
-# The gate asks one small question.
+# The gate
 
 <!--
 So that's the problem. Now the question we can actually answer, and how the check lives inside the app.
@@ -415,14 +415,14 @@ uncertain.
 
 ---
 
-<!-- slide 17: The rules fight, then the gate holds. -->
+<!-- slide 17: Live: IoT rules -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Chapter three</div>
 
-# The rules fight, then the gate holds.
+# Live: IoT rules
 
 <!--
 Enough slides. Let's watch it happen.
@@ -503,14 +503,14 @@ and the Codex/Ollama provider badge. Maude decided; the model explained.
 
 ---
 
-<!-- slide 21: The model writes the rule; the gate still decides. -->
+<!-- slide 21: Live: AI policy -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Chapter four</div>
 
-# The model writes the rule; the gate still decides.
+# Live: AI policy
 
 <!--
 So far, people wrote the rules. Now we let a model write them. Same gate, same question.
@@ -615,14 +615,14 @@ offline fallback for the whole talk.
 
 ---
 
-<!-- slide 26: Strong claims stay narrow. -->
+<!-- slide 26: Takeaways -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Chapter five</div>
 
-# Strong claims stay narrow.
+# Takeaways
 
 <!--
 That was the last demo. Let me pull this together.

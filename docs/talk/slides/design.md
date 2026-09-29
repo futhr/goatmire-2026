@@ -70,10 +70,9 @@ recovery or questions.
 4. **Evidence** — three IoT demos and one short policy demo.
 5. **Transfer** — probabilistic judgement (LLM/Jev) and explicit formal checks have different contracts.
 
-The talk is told in five chapters, each one declarative sentence. Slide 1 is
-the index: the planned start of every chapter in a magenta column, its sentence
-beside it. Chapters two to five open with a divider slide that carries the
-sentence as its title. The deck therefore has exactly three backgrounds, each
+The talk is told in five chapters. Slide 1 is the index: the planned start of
+every chapter in a magenta column, its title beside it. Chapters two to five
+open with a divider slide that carries the chapter title. The deck therefore has exactly three backgrounds, each
 with one meaning:
 
 | Background | Means |

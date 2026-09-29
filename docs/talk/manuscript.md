@@ -100,7 +100,7 @@ That's the key idea: **move the check left**, to the moment someone creates the 
 
 ---
 
-## 6 · The gate asks one small question. — 03:10
+## 6 · The gate — 03:10
 
 *(Let the slide sit for a beat.)*
 
@@ -294,7 +294,7 @@ Those are **today's run counts**, not a universal scaling claim.
 
 ---
 
-## 17 · The rules fight, then the gate holds. — 11:55
+## 17 · Live: IoT rules — 11:55
 
 *(Let the slide sit for a beat.)*
 
@@ -394,7 +394,7 @@ That separation is more interesting to me than putting an LLM in front of every 
 
 ---
 
-## 21 · The model writes the rule; the gate still decides. — 18:30
+## 21 · Live: AI policy — 18:30
 
 *(Let the slide sit for a beat.)*
 
@@ -498,7 +498,7 @@ Nothing had to persuade itself that it was correct.
 
 ---
 
-## 26 · Strong claims stay narrow. — 23:30
+## 26 · Takeaways — 23:30
 
 *(Let the slide sit for a beat.)*
 

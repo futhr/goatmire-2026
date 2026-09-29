@@ -441,7 +441,7 @@
   max-width: 64cqw;
 }
 
-/* The index: planned chapter starts in a magenta column, chapter sentences
+/* The index: planned chapter starts in a magenta column, chapter titles
    beside them. The same magenta opens each chapter as a divider slide. */
 .sl-index {
   display: grid;
