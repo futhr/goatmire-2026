@@ -175,11 +175,11 @@ defmodule GoatmireWeb.PresenterLiveTest do
   test "the closing slide carries a scannable code under each repository name" do
     html = render_component(&Slides.slide/1, n: Deck.count())
 
-    for url <- ~w(github.com/futhr/ex_maude github.com/futhr/goatmire-2026 github.com/wotex) do
+    for url <- ~w(github.com/futhr/ex_maude github.com/futhr/goatmire-2026) do
       assert html =~ ~s(alt="QR code for #{url}")
     end
 
-    assert length(Regex.scan(~r/class="qr-code-mark"/, html)) == 3
+    assert length(Regex.scan(~r/class="qr-code-mark"/, html)) == 2
   end
 
   test "keyboard help owns the keyboard while it is open", %{conn: conn} do

@@ -16,8 +16,7 @@ defmodule GoatmireWeb.Presenter.Slides do
   # Encoded once at compile time; the closing slide shows fixed links.
   @repos for {name, path} <- [
                {"ex_maude", "futhr/ex_maude"},
-               {"goatmire-2026", "futhr/goatmire-2026"},
-               {"wotex", "wotex"}
+               {"goatmire-2026", "futhr/goatmire-2026"}
              ],
              do: {name, "github.com/" <> path, QRCode.data_uri("https://github.com/" <> path)}
 

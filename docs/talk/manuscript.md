@@ -526,8 +526,6 @@ That gives you flexible judgement inside explicit boundaries. The decision model
 
 The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
-What I'm working on now is **Wotex**: the W3C Web of Things for Elixir. It's **not finished**, and not on Hex yet. The idea is **one Thing model and one runtime** across many protocols. That's a hard problem, and I'm not the first to try. Maude has a small corner in it, including a rule review that works like the gate you saw today. There are a few early **experimental projects** around it, under the wotex-project org on GitHub, if you want to poke at the pieces.
-
 So, what I'd like you to take with you. You saw **rules fight** when we let them run, and you saw the gate hold them back before they could. When the checker can't answer, treat that as **its own answer, never as a yes**. And check **the rule you actually run**, with tests on every step in between.
 
 *(Point to the quote.)*
@@ -556,4 +554,4 @@ Thank you.
 - Protect real silence while UI actions execute; point at what to watch instead of narrating the wait.
 - Read current counters and results; do not memorize benchmark-looking values.
 - No introduction, CV, or self-promotion anywhere. Problem first.
-- Keep the GitHub and Wotex mentions shallow: somewhere to try or break the ideas, and what I'm working on. Not another technical section.
+- Keep the GitHub mention shallow: somewhere to try or break the ideas. Not another technical section.
