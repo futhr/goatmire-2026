@@ -12,8 +12,8 @@ defmodule GoatmireWeb do
 
   @doc "Keeps embedded presenter panes from replacing the browser tab title."
   @spec page_title(map(), String.t()) :: String.t()
-  def page_title(%{"presenter_embed" => true}, _fallback), do: "Goatmire - 2026"
-  def page_title(_session, fallback), do: fallback
+  def page_title(%{"presenter_embed" => true}, _), do: "Goatmire - 2026"
+  def page_title(_, fallback), do: fallback
 
   @doc "Quoted imports and configuration shared by the router."
   @spec router() :: Macro.t()

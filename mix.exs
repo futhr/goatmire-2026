@@ -14,8 +14,6 @@ defmodule Goatmire.MixProject do
       aliases: aliases(),
       releases: releases(),
       dialyzer: [plt_add_apps: [:mix, :ex_unit]],
-      # Hex 2.5.1 misclassifies the fixed Decimal 3.1.1 for CVE-2026-32686.
-      hex: [ignore_advisories: ["CVE-2026-32686"]],
       test_coverage: [tool: ExCoveralls],
       coveralls: [minimum_coverage: 70]
     ]
@@ -80,7 +78,7 @@ defmodule Goatmire.MixProject do
         ref: "42f6e9b98ad04fc4f89b47d77183505ba21cd8aa"
       ),
       {:mdex, "~> 0.13.5"},
-      {:ex_maude, "~> 0.4.2"},
+      {:ex_maude, "~> 0.4.3"},
 
       # Renders the verifier's rule terms with Livebook editor colours.
       {:makeup_elixir, "~> 1.0"},
@@ -109,6 +107,7 @@ defmodule Goatmire.MixProject do
 
   defp aliases do
     [
+      start: ["cmd make simulators", "phx.server"],
       setup: ["deps.get"],
       test: ["test --warnings-as-errors"],
       "test.unit": ["test --only unit"],

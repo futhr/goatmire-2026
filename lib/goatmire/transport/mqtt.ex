@@ -48,7 +48,7 @@ defmodule Goatmire.Transport.MQTT do
 
   @impl Goatmire.Transport
   def publish(topic, payload) do
-    Tortoise311.publish(config()[:client_id], topic, Jason.encode!(payload), qos: 0)
+    Tortoise311.publish(config()[:client_id], topic, Jason.encode_to_iodata!(payload), qos: 0)
   end
 
   @impl Goatmire.Transport

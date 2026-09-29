@@ -485,13 +485,17 @@ defmodule GoatmireWeb.Presenter.Slides do
   def slide(%{n: 25} = assigns) do
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-25 slide--default">
-      <div class="sl-eyebrow">Same architectural slot · different contract</div><h1>{Deck.title(@n)}</h1>
+      <div class="sl-eyebrow">Same architectural slot · different contract</div><h1>
+        {Deck.title(@n)}
+      </h1>
       <div class="sl-branch-source">machine-readable decision</div>
       <div class="sl-branch-arrow"><span>↙</span><span>↘</span></div>
       <div class="sl-two">
         <div class="sl-panel sl-panel--center">
           <div class="sl-label">decision model (Jev, or any calibrated classifier)</div>
-          <div><strong>typed probability</strong><br /><span class="sl-small">What is likely?</span></div>
+          <div>
+            <strong>typed probability</strong><br /><span class="sl-small">What is likely?</span>
+          </div>
         </div>
         <div class="sl-panel sl-panel--center">
           <div class="sl-label">Maude</div>

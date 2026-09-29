@@ -24,11 +24,27 @@ not a fork. BeamLens itself comes from Hex.
 
 Updates reviewed for this audit:
 
-- [Mint 1.10.0](https://github.com/elixir-mint/mint/blob/main/CHANGELOG.md):
-  bounded HTTP response parsing; fixes CVE-2026-82728 and CVE-2026-82729.
-- [Elixir 1.19.6](https://github.com/elixir-lang/elixir/releases/tag/v1.19.6)
+- [Mint 1.11.0](https://github.com/elixir-mint/mint/blob/main/CHANGELOG.md):
+  fixes the HTTP/1 response-smuggling and HTTP/2 memory-exhaustion advisories
+  EEF-CVE-2026-82672, -91043, -92103 and -94194 reported against 1.10.x. The
+  earlier `ignore_advisories` entry for Decimal is gone: Hex no longer reports
+  CVE-2026-32686 against the locked 3.1.1, so `mix hex.audit` runs unfiltered.
+- [Elixir 1.20.4](https://github.com/elixir-lang/elixir/releases/tag/v1.20.4)
   and [OTP 28.5.0.6](https://github.com/erlang/otp/releases/tag/OTP-28.5.0.6):
-  maintenance and security fixes, pinned consistently in local tooling and CI.
+  pinned consistently in `.tool-versions`, the container build and CI. The
+  1.20 compiler reports unused `require`s and checks more call types; both
+  findings it raised here were real and are fixed in the source, not silenced.
+- [ExMaude 0.4.3](https://github.com/futhr/ex_maude/blob/main/CHANGELOG.md):
+  integer precision in numeric comparisons and rejection of malformed rule
+  collections in the IoT checker this demo runs. Updating it removes the
+  installed interpreter; run `mix maude.install --version 3.5.1` afterwards.
+- [Tortoise311 0.12.3](https://github.com/smartrent/tortoise311/blob/main/CHANGELOG.md):
+  ignores late results instead of crashing the connection. Its publish payload
+  type is now `iolist()`, so the MQTT transport passes JSON as iodata.
+- Phoenix 1.8.15 and LiveView 1.2.12: `priv/static/vendor` was re-copied from
+  the locked packages, which `scripts/check-vendor.sh` verifies.
+- [lazy_html 0.1.13](https://github.com/dashbitco/lazy_html/blob/main/CHANGELOG.md)
+  (test only): fixes the mutation-XSS advisory EEF-CVE-2026-92106.
 - [Dialyxir 1.4.8](https://github.com/jeremyjh/dialyxir/releases/tag/1.4.8):
   OTP 28 warning support and ignore handling.
 - [ExDoc 0.40.4](https://github.com/elixir-lang/ex_doc/blob/main/CHANGELOG.md):
@@ -45,6 +61,12 @@ same patched Elixir/OTP runtime as the demo. `docker/livebook.mix.lock` records
 its production dependency updates, and the build rejects Hex advisories.
 Bun 1.3.10 is confined to that container build and regenerates the assets against
 the locked Phoenix libraries.
+
+Open item: that lock now trips its own audit. The pinned Livebook commit depends
+on `nimble_zta` 0.1.2 (retired, EEF-CVE-2026-91187) and `cowlib` 2.20.0
+(EEF-CVE-2026-43966, -43969), so the optional `livebook` image does not build
+until the pin moves to a Livebook release that resolves them and the patch and
+lock are regenerated. The stage does not use this container.
 
 The small `docker/livebook-security.patch` widens two upstream constraints:
 

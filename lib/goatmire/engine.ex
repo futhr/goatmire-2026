@@ -19,8 +19,6 @@ defmodule Goatmire.Engine do
 
   use GenServer
 
-  require Logger
-
   alias Goatmire.{Engine.RuleEval, Gate, Transport, Transport.Local, Verifier}
 
   @pubsub Goatmire.PubSub
