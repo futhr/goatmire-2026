@@ -206,8 +206,9 @@ section.closing .small { margin-top: 44px; }
    the live purple, in the same magenta the presenter uses for conflicts. */
 section.chapter { display: grid; place-items: center; text-align: center; background: var(--magenta); color: white; }
 section.chapter h1 { max-width: 980px; color: white; font-size: 68px; }
-section.chapter .eyebrow { color: rgba(255, 255, 255, 0.8); }
-.index { display: grid; grid-template-columns: max-content 1fr; max-width: 980px; margin: 0 0 30px; font-size: 30px; line-height: 1.25; }
-.index dt, .index dd { margin: 0; padding: 12px 22px; }
-.index dt { background: var(--magenta); color: white; font-family: var(--mono); font-weight: 600; text-align: right; }
+section.chapter .eyebrow, section.index .eyebrow { color: rgba(255, 255, 255, 0.8); }
+section.index { padding: 0; display: grid; }
+.index { display: grid; grid-template-columns: 38fr 62fr; grid-auto-rows: 1fr; height: 100%; margin: 0; font-size: 34px; line-height: 1.25; }
+.index dt, .index dd { display: flex; align-items: center; margin: 0; padding: 0 48px; }
+.index dt { justify-content: flex-end; background: var(--magenta); color: white; font-family: var(--mono); font-weight: 600; }
 .index dd { color: var(--ink); font-weight: 600; }

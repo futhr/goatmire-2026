@@ -441,42 +441,50 @@
   max-width: 64cqw;
 }
 
-/* The index: planned chapter starts in a magenta column, chapter titles
-   beside them. The same magenta opens each chapter as a divider slide. */
+/* The index: the page split in two. The left half is the magenta that opens
+   every chapter, carrying each chapter's planned start; the right half is the
+   default surface with the chapter title. Rows line up across the split. */
+.slide--index {
+  padding: 13% 0 7%;
+  background: linear-gradient(
+    90deg,
+    var(--sl-verdict-conflict) 38%,
+    transparent 38%
+  );
+}
+
 .sl-index {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  max-width: 76cqw;
-  margin: 0 0 2.6cqw;
-  font-size: clamp(1rem, 2.4cqw, 2.3rem);
-  line-height: 1.25;
+  grid-template-columns: 38fr 62fr;
+  grid-auto-rows: 1fr;
+  height: 100%;
+  margin: 0;
+  font-size: clamp(1.2rem, 3cqw, 2.9rem);
+  line-height: 1.2;
 }
 
 .sl-index dt,
 .sl-index dd {
+  display: flex;
+  align-items: center;
   margin: 0;
-  padding: 1cqw 1.8cqw;
+  padding: 0 5.6cqw;
 }
 
 .sl-index dt {
-  background: var(--sl-verdict-conflict);
+  justify-content: flex-end;
   color: #ffffff;
   font-family: var(--sl-mono);
   font-weight: 600;
-  text-align: right;
-}
-
-.sl-index dt:first-of-type {
-  border-top-left-radius: clamp(0.5rem, 1.1cqw, 1rem);
-}
-
-.sl-index dt:last-of-type {
-  border-bottom-left-radius: clamp(0.5rem, 1.1cqw, 1rem);
 }
 
 .sl-index dd {
   color: var(--sl-heading);
   font-weight: 600;
+}
+
+.slide--index .sl-eyebrow {
+  color: rgb(255 255 255 / 0.8);
 }
 
 /* Chapter dividers: the deck's third background after white and the live

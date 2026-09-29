@@ -18,13 +18,7 @@ author: Tobias Bohwalli
 
 # Formal Verification
 
-<dl class="index">
-  <dt>00:00</dt><dd>The problem</dd>
-  <dt>03:00</dt><dd>The gate</dd>
-  <dt>12:00</dt><dd>Live: IoT rules</dd>
-  <dt>19:00</dt><dd>Live: AI policy</dd>
-  <dt>24:00</dt><dd>Takeaways</dd>
-</dl>
+<p class="lede">Formal verification for IoT automation—at the deployment gate, before reasonable rules become an unreasonable system.</p>
 
 **Tobias Bohwalli**
 
@@ -39,7 +33,32 @@ then stop the same storm before either rule can run.
 
 ---
 
-<!-- slide 2: Both apps were reasonable -->
+<!-- slide 2: Index -->
+<!-- _class: index -->
+<!-- _paginate: false -->
+<!-- _footer: "" -->
+
+<div class="eyebrow">Goatmire 2026 · 30 minutes</div>
+
+<dl class="index">
+  <dt>00:00</dt><dd>The problem</dd>
+  <dt>03:00</dt><dd>The gate</dd>
+  <dt>12:00</dt><dd>Live: IoT rules</dd>
+  <dt>19:00</dt><dd>Live: AI policy</dd>
+  <dt>24:00</dt><dd>Takeaways</dd>
+</dl>
+
+<!--
+Let the room read the index. Two beats.
+
+[Sources]
+- No external claim on this slide.
+[/Sources]
+-->
+
+---
+
+<!-- slide 3: Both apps were reasonable -->
 <div class="eyebrow">A published interaction</div>
 
 # Both apps were reasonable
@@ -59,7 +78,7 @@ reproduces the rule shape; it is not a household incident or prevention claim.
 
 ---
 
-<!-- slide 3: Both rules are reasonable -->
+<!-- slide 4: Both rules are reasonable -->
 <div class="eyebrow">One event · one switch · two values</div>
 
 # Both rules are reasonable
@@ -89,7 +108,7 @@ the installed rule set is composed.
 
 ---
 
-<!-- slide 4: The loop nobody designed -->
+<!-- slide 5: The loop nobody designed -->
 <div class="eyebrow">Composition is the bug</div>
 
 # The loop nobody designed
@@ -114,7 +133,7 @@ shows how repeatedly activating a synthetic conflicting set can amplify alerts.
 
 ---
 
-<!-- slide 5: Why wait until the rule runs? -->
+<!-- slide 6: Why wait until the rule runs? -->
 <div class="eyebrow">The deployment question</div>
 
 <div class="statement">If the conflict exists now, why wait for the alerts to find it?</div>
@@ -130,7 +149,7 @@ class of discovery earlier, into the rule-creation request.
 
 ---
 
-<!-- slide 6: The gate -->
+<!-- slide 7: The gate -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -149,7 +168,7 @@ So that's the problem. Now the question we can actually answer, and how the chec
 
 ---
 
-<!-- slide 7: Tests and checks answer different questions -->
+<!-- slide 8: Tests and checks answer different questions -->
 <div class="eyebrow">Testing and formal checking answer different questions</div>
 
 # Tests and checks answer different questions
@@ -179,7 +198,7 @@ different claims.
 
 ---
 
-<!-- slide 8: Four pieces -->
+<!-- slide 9: Four pieces -->
 <div class="eyebrow">A Maude mental model</div>
 
 # Four pieces
@@ -204,7 +223,7 @@ next command, not a rewriting-logic lecture.
 
 ---
 
-<!-- slide 9: Reduce is not search -->
+<!-- slide 10: Reduce is not search -->
 <div class="eyebrow">Two commands · two claims</div>
 
 # Reduce is not search
@@ -233,7 +252,7 @@ searches as unverified.
 
 ---
 
-<!-- slide 10: Four conflict categories -->
+<!-- slide 11: Four conflict categories -->
 <div class="eyebrow">The bundled IoT model</div>
 
 # Four conflict categories
@@ -256,7 +275,7 @@ an implementation of a complete external system.
 
 ---
 
-<!-- slide 11: A narrow claim can be strong -->
+<!-- slide 12: A narrow claim can be strong -->
 <div class="eyebrow">Formal methods need a border</div>
 
 # A narrow claim can be strong
@@ -283,7 +302,7 @@ system is safe in every respect.
 
 ---
 
-<!-- slide 12: Maude as an ordinary supervised dependency -->
+<!-- slide 13: Maude as an ordinary supervised dependency -->
 <div class="eyebrow">ExMaude</div>
 
 # Maude as an ordinary supervised dependency
@@ -309,7 +328,7 @@ this talk makes no universal latency ranking.
 
 ---
 
-<!-- slide 13: Verify the term the runtime executes -->
+<!-- slide 14: Verify the term the runtime executes -->
 <div class="eyebrow">One representation · two consumers</div>
 
 # Verify the term the runtime executes
@@ -334,7 +353,7 @@ the maps, ExMaude.IoT encodes them, and Goatmire.Engine.RuleEval executes them.
 
 ---
 
-<!-- slide 14: Never turn “no answer” into “yes” -->
+<!-- slide 15: Never turn “no answer” into “yes” -->
 <div class="eyebrow">The gate has three answers</div>
 
 # Never turn “no answer” into “yes”
@@ -356,7 +375,7 @@ three different things. Goatmire fails closed on unverified.
 
 ---
 
-<!-- slide 15: Every arrow deserves a test -->
+<!-- slide 16: Every arrow deserves a test -->
 <div class="eyebrow">The real trust boundary</div>
 
 # Every arrow deserves a test
@@ -381,7 +400,7 @@ the application.
 
 ---
 
-<!-- slide 16: Partition on interaction edges -->
+<!-- slide 17: Partition on interaction edges -->
 <div class="eyebrow">Scale the comparison, not the claim</div>
 
 # Partition on interaction edges
@@ -415,7 +434,7 @@ uncertain.
 
 ---
 
-<!-- slide 17: Live: IoT rules -->
+<!-- slide 18: Live: IoT rules -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -434,7 +453,7 @@ Enough slides. Let's watch it happen.
 
 ---
 
-<!-- slide 18: Catch the conflict before the rule exists -->
+<!-- slide 19: Catch the conflict before the rule exists -->
 <!-- _class: demo -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -456,7 +475,7 @@ rule ids. Do not deploy. If the page fails, run `mix goatmire.scenario 1`.
 
 ---
 
-<!-- slide 19: Run the same shift change twice -->
+<!-- slide 20: Run the same shift change twice -->
 <!-- _class: demo -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -479,7 +498,7 @@ a customer incident or a portable benchmark.
 
 ---
 
-<!-- slide 20: Ask the running system why -->
+<!-- slide 21: Ask the running system why -->
 <!-- _class: demo -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -503,7 +522,7 @@ and the Codex/Ollama provider badge. Maude decided; the model explained.
 
 ---
 
-<!-- slide 21: Live: AI policy -->
+<!-- slide 22: Live: AI policy -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -522,7 +541,7 @@ So far, people wrote the rules. Now we let a model write them. Same gate, same q
 
 ---
 
-<!-- slide 22: An LLM may propose policy; it should not judge itself -->
+<!-- slide 23: An LLM may propose policy; it should not judge itself -->
 <div class="eyebrow">The pattern transfers</div>
 
 # An LLM may propose policy; it should not judge itself
@@ -546,7 +565,7 @@ one. Different model, identical trust boundary.
 
 ---
 
-<!-- slide 23: Exactly seven categories -->
+<!-- slide 24: Exactly seven categories -->
 <div class="eyebrow">The bundled AI policy model</div>
 
 # Exactly seven categories
@@ -569,7 +588,7 @@ detector results in the current code.
 
 ---
 
-<!-- slide 24: The model suggests. The gate decides. -->
+<!-- slide 25: The model suggests. The gate decides. -->
 <div class="eyebrow">Generate · verify · revise</div>
 
 # The model suggests. The gate decides.
@@ -592,7 +611,7 @@ deterministic policy check.
 
 ---
 
-<!-- slide 25: Approval missing → clean revision → wrong jurisdiction -->
+<!-- slide 26: Approval missing → clean revision → wrong jurisdiction -->
 <!-- _class: demo -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -615,7 +634,7 @@ offline fallback for the whole talk.
 
 ---
 
-<!-- slide 26: Takeaways -->
+<!-- slide 27: Takeaways -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -634,7 +653,7 @@ That was the last demo. Let me pull this together.
 
 ---
 
-<!-- slide 27: Maude is not the only answer -->
+<!-- slide 28: Maude is not the only answer -->
 <div class="eyebrow">Choose by property shape</div>
 
 # Maude is not the only answer
@@ -660,7 +679,7 @@ verification strategy.
 
 ---
 
-<!-- slide 28: Keep the claim attached to its evidence -->
+<!-- slide 29: Keep the claim attached to its evidence -->
 <div class="eyebrow">Before production</div>
 
 # Keep the claim attached to its evidence
@@ -687,7 +706,7 @@ an error or unverified. The activation layer owns fail-open/fail-closed policy.
 
 ---
 
-<!-- slide 29: Decision model + Maude -->
+<!-- slide 30: Decision model + Maude -->
 <div class="eyebrow">Same architectural slot · different contract</div>
 
 # Decision model + Maude
@@ -733,7 +752,7 @@ Jev must not turn a formal conflict or unverified result into clean.
 
 ---
 
-<!-- slide 30: Formal methods strengthen narrow claims -->
+<!-- slide 31: Formal methods strengthen narrow claims -->
 <!-- _class: closing -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->

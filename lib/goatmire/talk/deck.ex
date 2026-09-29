@@ -5,50 +5,51 @@ defmodule Goatmire.Talk.Deck do
   The clock, projected slides, speaker notes, and tests all take their count
   and titles from this list so a rewrite cannot leave one surface behind.
 
-  The deck is told in five chapters. The index slide lists them with their
-  planned start, and chapters two to five open with a divider slide that
+  The deck is told in five chapters. Slide 1 is the holding card and slide 2 the
+  index, which lists them with their planned start, and chapters two to five open with a divider slide that
   carries the chapter title.
   """
 
   @chapters [
     {1, 1, "The problem"},
-    {2, 6, "The gate"},
-    {3, 17, "Live: IoT rules"},
-    {4, 21, "Live: AI policy"},
-    {5, 26, "Takeaways"}
+    {2, 7, "The gate"},
+    {3, 18, "Live: IoT rules"},
+    {4, 22, "Live: AI policy"},
+    {5, 27, "Takeaways"}
   ]
 
   @slides [
     {1, "Formal Verification"},
-    {2, "Both apps were reasonable"},
-    {3, "Both rules are reasonable"},
-    {4, "The loop nobody designed"},
-    {5, "Why wait until the rule runs?"},
-    {6, "The gate"},
-    {7, "Tests and checks answer different questions"},
-    {8, "Four pieces"},
-    {9, "Reduce is not search"},
-    {10, "Four conflict categories"},
-    {11, "A narrow claim can be strong"},
-    {12, "Maude as an ordinary supervised dependency"},
-    {13, "Verify the term the runtime executes"},
-    {14, "Never turn “no answer” into “yes”"},
-    {15, "Every arrow deserves a test"},
-    {16, "Partition on interaction edges"},
-    {17, "Live: IoT rules"},
-    {18, "Catch the conflict before the rule exists"},
-    {19, "Run the same shift change twice"},
-    {20, "Ask the running system why"},
-    {21, "Live: AI policy"},
-    {22, "An LLM may propose policy; it should not judge itself"},
-    {23, "Exactly seven categories"},
-    {24, "The model suggests. The gate decides."},
-    {25, "Approval missing → clean revision → wrong jurisdiction"},
-    {26, "Takeaways"},
-    {27, "Maude is not the only answer"},
-    {28, "Keep the claim attached to its evidence"},
-    {29, "Decision model + Maude"},
-    {30, "Formal methods strengthen narrow claims"}
+    {2, "Index"},
+    {3, "Both apps were reasonable"},
+    {4, "Both rules are reasonable"},
+    {5, "The loop nobody designed"},
+    {6, "Why wait until the rule runs?"},
+    {7, "The gate"},
+    {8, "Tests and checks answer different questions"},
+    {9, "Four pieces"},
+    {10, "Reduce is not search"},
+    {11, "Four conflict categories"},
+    {12, "A narrow claim can be strong"},
+    {13, "Maude as an ordinary supervised dependency"},
+    {14, "Verify the term the runtime executes"},
+    {15, "Never turn “no answer” into “yes”"},
+    {16, "Every arrow deserves a test"},
+    {17, "Partition on interaction edges"},
+    {18, "Live: IoT rules"},
+    {19, "Catch the conflict before the rule exists"},
+    {20, "Run the same shift change twice"},
+    {21, "Ask the running system why"},
+    {22, "Live: AI policy"},
+    {23, "An LLM may propose policy; it should not judge itself"},
+    {24, "Exactly seven categories"},
+    {25, "The model suggests. The gate decides."},
+    {26, "Approval missing → clean revision → wrong jurisdiction"},
+    {27, "Takeaways"},
+    {28, "Maude is not the only answer"},
+    {29, "Keep the claim attached to its evidence"},
+    {30, "Decision model + Maude"},
+    {31, "Formal methods strengthen narrow claims"}
   ]
 
   @words %{1 => "one", 2 => "two", 3 => "three", 4 => "four", 5 => "five"}

@@ -1,6 +1,6 @@
 defmodule GoatmireWeb.Presenter.Slides do
   @moduledoc """
-  The 30-slide conference sequence as Phoenix function components.
+  The 31-slide conference sequence as Phoenix function components.
 
   Slide order agrees with the manuscript and Markdown source. Claims remain
   scoped to the demonstrated model, simulation, and measured run.
@@ -48,19 +48,30 @@ defmodule GoatmireWeb.Presenter.Slides do
   @spec slide(map()) :: Phoenix.LiveView.Rendered.t()
 
   def slide(%{n: 1} = assigns) do
-    assigns = assign(assigns, :index, chapter_index())
-
     ~H"""
     <section aria-label={Deck.title(@n)} class="slide slide-1 slide--title">
       <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
       <h1>{Deck.title(@n)}</h1>
+      <p class="sl-lede">
+        Check rules together—before reasonable rules become an unreasonable system.
+      </p>
+      <p class="sl-author">Tobias Bohwalli</p>
+    </section>
+    """
+  end
+
+  def slide(%{n: 2} = assigns) do
+    assigns = assign(assigns, :index, chapter_index())
+
+    ~H"""
+    <section aria-label={Deck.title(@n)} class="slide slide-2 slide--index">
+      <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
       <dl class="sl-index">
         <%= for {start, chapter} <- @index do %>
           <dt>{start}</dt>
           <dd>{chapter.title}</dd>
         <% end %>
       </dl>
-      <p class="sl-author">Tobias Bohwalli</p>
     </section>
     """
   end
@@ -76,9 +87,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 2} = assigns) do
+  def slide(%{n: 3} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-2 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-3 slide--default">
       <div class="sl-eyebrow">SOTERIA · multi-app evaluation</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-branch-source">contact: open</div>
@@ -102,9 +113,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 3} = assigns) do
+  def slide(%{n: 4} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-3 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-4 slide--default">
       <div class="sl-eyebrow">A published SOTERIA interaction</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
@@ -126,9 +137,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 4} = assigns) do
+  def slide(%{n: 5} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-4 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-5 slide--default">
       <div class="sl-eyebrow">Composition is the bug</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
@@ -143,9 +154,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 5} = assigns) do
+  def slide(%{n: 6} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-5 slide--statement">
+    <section aria-label={Deck.title(@n)} class="slide slide-6 slide--statement">
       <div class="sl-eyebrow">The deployment question</div>
       <div class="sl-statement">If the conflict exists now, why wait for the alerts to find it?</div>
       <div class="sl-flow">
@@ -166,9 +177,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 7} = assigns) do
+  def slide(%{n: 8} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-7 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-8 slide--default">
       <div class="sl-eyebrow">Different tools · different questions</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
@@ -186,9 +197,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 8} = assigns) do
+  def slide(%{n: 9} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-8 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-9 slide--default">
       <div class="sl-eyebrow">A Maude mental model</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-four">
         <div class="sl-panel">
@@ -208,9 +219,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 9} = assigns) do
+  def slide(%{n: 10} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-9 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-10 slide--default">
       <div class="sl-eyebrow">Two commands · two claims</div><h1>{Deck.title(@n)}</h1>
       <.maude_block code={maude_commands()} />
       <div class="sl-two sl-mt">
@@ -226,9 +237,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 10} = assigns) do
+  def slide(%{n: 11} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-10 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-11 slide--default">
       <div class="sl-eyebrow">What this demo checks</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-four">
@@ -250,9 +261,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 11} = assigns) do
+  def slide(%{n: 12} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-11 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-12 slide--default">
       <div class="sl-eyebrow">Draw the border around the answer</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
@@ -269,9 +280,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 12} = assigns) do
+  def slide(%{n: 13} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-12 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-13 slide--default">
       <div class="sl-eyebrow">An ordinary BEAM dependency</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
@@ -288,9 +299,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 13} = assigns) do
+  def slide(%{n: 14} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-13 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-14 slide--default">
       <div class="sl-eyebrow">One rule representation · two uses</div>
       <h1>{Deck.title(@n)}</h1>
       <div
@@ -310,9 +321,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 14} = assigns) do
+  def slide(%{n: 15} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-14 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-15 slide--default">
       <div class="sl-eyebrow">The gate has three answers</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-three">
@@ -333,9 +344,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 15} = assigns) do
+  def slide(%{n: 16} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-15 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-16 slide--default">
       <div class="sl-eyebrow">The real trust boundary</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
@@ -351,9 +362,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 16} = assigns) do
+  def slide(%{n: 17} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-16 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-17 slide--default">
       <div class="sl-eyebrow">Scale the comparisons, keep the scope</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -370,9 +381,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 18} = assigns) do
+  def slide(%{n: 19} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-18 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-19 slide--demo">
       <div class="sl-eyebrow">Live demo · rule gate</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 01</p>
@@ -383,9 +394,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 19} = assigns) do
+  def slide(%{n: 20} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-19 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-20 slide--demo">
       <div class="sl-eyebrow">Live demo · warehouse floor</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 02</p>
@@ -396,9 +407,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 20} = assigns) do
+  def slide(%{n: 21} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-20 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-21 slide--demo">
       <div class="sl-eyebrow">Live demo · diagnostics</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 03</p>
@@ -409,9 +420,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 22} = assigns) do
+  def slide(%{n: 23} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-22 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-23 slide--default">
       <div class="sl-eyebrow">The pattern transfers</div><h1>{Deck.title(@n)}</h1>
       <.code_block code={~s|invocations: [\n  {:invoke_tool, "dose", %{}, "high_impact", :eu}\n]|} />
       <ol class="sl-points">
@@ -422,9 +433,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 23} = assigns) do
+  def slide(%{n: 24} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-23 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-24 slide--default">
       <div class="sl-eyebrow">The bundled AI policy model</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -441,9 +452,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 24} = assigns) do
+  def slide(%{n: 25} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-24 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--default">
       <div class="sl-eyebrow">The same boundary works for generated policy</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
@@ -460,9 +471,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 25} = assigns) do
+  def slide(%{n: 26} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-26 slide--demo">
       <div class="sl-eyebrow">Live demo · policy by hand</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 04</p>
@@ -473,9 +484,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 27} = assigns) do
+  def slide(%{n: 28} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-27 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-28 slide--default">
       <div class="sl-eyebrow">Choose by property shape</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -492,9 +503,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 28} = assigns) do
+  def slide(%{n: 29} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-28 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-29 slide--default">
       <div class="sl-eyebrow">Before production</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -515,9 +526,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 29} = assigns) do
+  def slide(%{n: 30} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-29 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-30 slide--default">
       <div class="sl-eyebrow">Same architectural slot · different contract</div><h1>
         {Deck.title(@n)}
       </h1>
@@ -542,9 +553,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 30} = assigns) do
+  def slide(%{n: 31} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-30 slide--closing">
+    <section aria-label={Deck.title(@n)} class="slide slide-31 slide--closing">
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>

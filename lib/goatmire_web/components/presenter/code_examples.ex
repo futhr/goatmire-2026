@@ -16,7 +16,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
 
   @doc "The runnable card for slide `n`, or `nil` when the slide has none."
   @spec example(pos_integer()) :: example() | nil
-  def example(7) do
+  def example(8) do
     %{
       title: "No answer admits nothing",
       description: "When the checker cannot answer, the gate withholds the rule set.",
@@ -33,7 +33,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(8) do
+  def example(9) do
     %{
       title: "Rules in, concrete conflicts out",
       description:
@@ -50,7 +50,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(10) do
+  def example(11) do
     %{
       title: "A finding names the problem",
       description: "The answer includes the conflict type, both rule ids, and a readable reason.",
@@ -66,7 +66,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(11) do
+  def example(12) do
     %{
       title: "The scope travels with the answer",
       description: "A new verdict begins unverified. Clean must be earned by a completed check.",
@@ -77,7 +77,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(12) do
+  def example(13) do
     %{
       title: "The live worker pool",
       description: "Maude runs in supervised operating-system processes behind a named pool.",
@@ -88,7 +88,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(13) do
+  def example(14) do
     %{
       title: "The runtime executes the checked rules",
       description: "The same rule maps feed the checker and the runtime evaluator.",
@@ -105,7 +105,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(14) do
+  def example(15) do
     %{
       title: "Three answers, never two",
       description: "The gate keeps clean, conflicts, and unverified separate.",
@@ -124,7 +124,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(15) do
+  def example(16) do
     %{
       title: "Translation behavior is tested",
       description: "The runtime and model agree on what a threshold trigger means.",
@@ -143,7 +143,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(22) do
+  def example(23) do
     %{
       title: "The checker remains deterministic",
       description:
@@ -155,7 +155,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(9) do
+  def example(10) do
     %{
       title: "Equations and transitions",
       description: "Reduce a toggle term, then find one reachable state in a tiny model.",
@@ -180,7 +180,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(16) do
+  def example(17) do
     %{
       title: "Measure the comparisons",
       description: "Show the actual partition count and verdict for this corpus.",

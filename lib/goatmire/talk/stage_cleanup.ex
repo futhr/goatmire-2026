@@ -15,7 +15,7 @@ defmodule Goatmire.Talk.StageCleanup do
   alias Goatmire.Scenario.{Coordinator, Storm}
   alias Goatmire.Talk.Clock
 
-  @storm_slides 19..20
+  @storm_slides 20..21
   @retry_ms 1_000
 
   @doc "Starts the watcher; pass `name: nil` for an unregistered instance."

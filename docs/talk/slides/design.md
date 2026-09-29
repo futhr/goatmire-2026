@@ -59,7 +59,7 @@ alone.
 
 ## Narrative rhythm
 
-Thirty main slides fit the 30-minute slot. The deck carries roughly 14–16
+Thirty-one main slides fit the 30-minute slot. The deck carries roughly 14–16
 minutes of prepared speech, about 9 minutes budgeted to the live panel in
 `priv/talk/timings.exs`, deliberate reading silence, and roughly 3 minutes of
 recovery or questions.
@@ -70,8 +70,9 @@ recovery or questions.
 4. **Evidence** — three IoT demos and one short policy demo.
 5. **Transfer** — probabilistic judgement (LLM/Jev) and explicit formal checks have different contracts.
 
-The talk is told in five chapters. Slide 1 is the index: the planned start of
-every chapter in a magenta column, its title beside it. Chapters two to five
+The talk is told in five chapters. Slide 1 is the holding card while the room
+settles. Slide 2 is the index, split in two: the planned start of every chapter
+in a magenta half, its title in the other. Chapters two to five
 open with a divider slide that carries the chapter title. The deck therefore has exactly three backgrounds, each
 with one meaning:
 

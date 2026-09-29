@@ -22,9 +22,9 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "late acknowledgements cannot complete a step after reset" do
-    generation = :sys.get_state(Clock).play_generation[25]
+    generation = :sys.get_state(Clock).play_generation[26]
     Clock.reset()
-    send(Clock, {:play_completed, 25, {generation, 0}})
+    send(Clock, {:play_completed, 26, {generation, 0}})
     refute Map.has_key?(Clock.snapshot().play_done, 22)
   end
 
@@ -32,7 +32,7 @@ defmodule Goatmire.Talk.ClockTest do
     snap = Clock.snapshot()
 
     assert snap.warnings == []
-    assert snap.slide_count == 30
+    assert snap.slide_count == 31
     assert snap.budget_total_s <= snap.slot_s
   end
 
@@ -50,37 +50,37 @@ defmodule Goatmire.Talk.ClockTest do
     assert snap.started?
     assert snap.slide == 2
 
-    snap = Clock.goto(18)
+    snap = Clock.goto(19)
     assert snap.panel == :deck_full
     assert snap.reveal_panel == :live_full
     assert snap.tab == :rules
 
-    snap = Clock.goto(14)
+    snap = Clock.goto(15)
     assert snap.panel == :deck_full
     assert snap.reveal_panel == :split
     assert snap.tab == :code
   end
 
   test "every tab a slide can configure is accepted by the clock" do
-    for {_, tab} <- [{18, :rules}, {19, :warehouse}, {20, :diagnostics}, {25, :notebook}] do
+    for {_, tab} <- [{19, :rules}, {20, :warehouse}, {21, :diagnostics}, {26, :notebook}] do
       assert %{tab: ^tab} = Clock.set_tab(tab)
     end
   end
 
-  test "slide 25 binds the notebook pane" do
-    assert %{tab: :notebook, panel: :deck_full, reveal_panel: :live_full} = Clock.goto(25)
+  test "slide 26 binds the notebook pane" do
+    assert %{tab: :notebook, panel: :deck_full, reveal_panel: :live_full} = Clock.goto(26)
   end
 
   test "a slide enters deck-only and reveal opens its configured layout" do
-    assert %{panel: :deck_full} = Clock.goto(19)
+    assert %{panel: :deck_full} = Clock.goto(20)
     assert %{panel: :live_full} = Clock.reveal()
 
-    assert %{panel: :deck_full} = Clock.goto(14)
+    assert %{panel: :deck_full} = Clock.goto(15)
     assert %{panel: :split} = Clock.reveal()
   end
 
   test "manual panel and tab overrides hold only until the next slide change" do
-    Clock.goto(8)
+    Clock.goto(9)
 
     assert %{panel: :live_full} = Clock.set_panel(:live_full)
     assert %{tab: :metrics} = Clock.set_tab(:metrics)
@@ -91,13 +91,13 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "reset returns to slide 1 unstarted" do
-    Clock.goto(13)
+    Clock.goto(14)
 
     assert %{slide: 1, started?: false, talk_elapsed_s: 0} = Clock.reset()
   end
 
   test "position survives a clock restart" do
-    Clock.goto(12)
+    Clock.goto(13)
     pid = Process.whereis(Clock)
     ref = Process.monitor(pid)
     Process.exit(pid, :kill)
@@ -110,29 +110,29 @@ defmodule Goatmire.Talk.ClockTest do
       end
     end)
 
-    assert %{slide: 12, started?: true} = Clock.snapshot()
+    assert %{slide: 13, started?: true} = Clock.snapshot()
   end
 
   test "broadcasts a snapshot on every mutation" do
     Phoenix.PubSub.subscribe(Goatmire.PubSub, Clock.topic())
-    Clock.goto(3)
+    Clock.goto(4)
 
-    assert_receive {:talk_clock, %{slide: 3}}, 1_000
+    assert_receive {:talk_clock, %{slide: 4}}, 1_000
   end
 
   test "scripted actions advance once across every control surface" do
     Phoenix.PubSub.subscribe(Goatmire.PubSub, Talk.play_topic())
-    Clock.goto(18)
+    Clock.goto(19)
 
     assert %{play_done: %{}} = Clock.snapshot()
     assert %{panel: :live_full, tab: :rules} = Clock.play_next()
     assert_receive {:talk_state, :rules, _}, 5_000
-    assert_eventually(fn -> Clock.snapshot().play_done[18] == 1 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[19] == 1 end)
 
     Clock.play_to(2)
     assert_receive {:talk_state, :rules, _}, 5_000
     assert_receive {:talk_state, :rules, _}, 5_000
-    assert_eventually(fn -> Clock.snapshot().play_done[18] == 3 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[19] == 3 end)
 
     Clock.play_to(2)
     refute_receive {:talk_state, :rules, _}, 50
@@ -151,14 +151,14 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "reset_clock restarts the timer but keeps slide, layout, and zoom" do
-    Clock.goto(18)
+    Clock.goto(19)
     Clock.reveal()
     Clock.zoom(:in)
     Process.sleep(1_100)
 
     snap = Clock.reset_clock()
 
-    assert snap.slide == 18
+    assert snap.slide == 19
     assert snap.panel == :live_full
     assert snap.zoom == 1.1
     assert snap.started?
@@ -183,20 +183,20 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "mid-talk, a restart keeps the presenter's manual layout" do
-    Clock.goto(4)
+    Clock.goto(5)
     Clock.set_panel(:live_full)
 
     kill_and_await_restart()
 
-    assert %{slide: 4, panel: :live_full, started?: true} = Clock.snapshot()
+    assert %{slide: 5, panel: :live_full, started?: true} = Clock.snapshot()
   end
 
   test "completed steps survive a clock restart" do
-    Clock.goto(18)
+    Clock.goto(19)
     Clock.play_next()
-    assert_eventually(fn -> Clock.snapshot().play_done[18] == 1 end)
+    assert_eventually(fn -> Clock.snapshot().play_done[19] == 1 end)
     kill_and_await_restart()
-    assert Clock.snapshot().play_done[18] == 1
+    assert Clock.snapshot().play_done[19] == 1
   end
 
   test "malformed checkpoints do not crash clock recovery" do
@@ -207,16 +207,16 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "checkpoints from another deck do not restore positions or scripted progress" do
-    Clock.goto(18)
+    Clock.goto(19)
     saved = Store.get()
     assert saved.deck_id == Deck.identity()
-    Store.put(%{saved | deck_id: "another deck", play_done: %{18 => 1}})
+    Store.put(%{saved | deck_id: "another deck", play_done: %{19 => 1}})
     kill_and_await_restart()
     assert %{slide: 1, play_done: %{}} = Clock.snapshot()
   end
 
   test "the previous checkpoint schema starts at the holding slide" do
-    Clock.goto(18)
+    Clock.goto(19)
 
     Store.get()
     |> Map.put(:version, 2)

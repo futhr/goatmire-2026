@@ -56,17 +56,17 @@ defmodule GoatmireWeb.PresenterE2ETest do
   test "typing in an embedded form does not advance the deck", %{conn: conn} do
     conn = visit(conn, "/talk")
 
-    # Slide 20 is the diagnostics beat; revealing opens its pane.
-    Clock.goto(20)
+    # Slide 21 is the diagnostics beat; revealing opens its pane.
+    Clock.goto(21)
     Clock.reveal()
 
     conn
     |> assert_has("#diagnostic-prompt")
     |> type("#diagnostic-prompt", "why")
     |> press("#diagnostic-prompt", " ")
-    |> assert_has("#deck-slide-20")
+    |> assert_has("#deck-slide-21")
 
-    assert %{slide: 20} = Clock.snapshot()
+    assert %{slide: 21} = Clock.snapshot()
   end
 
   defp reset_presenter(_) do
@@ -113,7 +113,7 @@ defmodule GoatmireWeb.PresenterControlsE2ETest do
 
     assert %{slide: 2, panel: :live_full} = Clock.snapshot()
 
-    Clock.goto(25)
+    Clock.goto(26)
 
     conn
     |> assert_has(".speaker-controls-dynamic button", count: 7)

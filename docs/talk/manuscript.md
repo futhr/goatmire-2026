@@ -1,6 +1,6 @@
 # Talk manuscript — natural 30-minute cut
 
-This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 30-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
+This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 31-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
 
 This manuscript is a safety net, not a text to memorize word for word. Learn the seven-beat spine and each slide's first sentence in [`memorize.md`](./memorize.md); keep the complete text available for recovery. Bold marks the cue words; the iPad shows them in bold. Stage directions are in italics and are not spoken.
 
@@ -12,7 +12,7 @@ Protect these lines:
 
 > Formal methods strengthen narrow claims. They cannot prove broad ones.
 
-The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter. Start times below are the cumulative budgets from `priv/talk/timings.exs`, which also drive the presenter clock's drift warning. This cut speaks longer than the budgets assumed: if a timed run lands behind, trim the optional asides (the jokes on slides 4, 9, 11, 12 and 18) before touching a protected line, or rebalance the budgets. The presenter timer starts automatically on leaving the holding slide; for a full-talk rehearsal timer, call `Goatmire.Talk.Clock.start_talk/0` with the opening line.
+The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter. Start times below are the cumulative budgets from `priv/talk/timings.exs`, which also drive the presenter clock's drift warning. This cut speaks longer than the budgets assumed: if a timed run lands behind, trim the optional asides (the jokes on slides 5, 10, 12, 13 and 19) before touching a protected line, or rebalance the budgets. The presenter timer starts automatically on leaving the holding slide; for a full-talk rehearsal timer, call `Goatmire.Talk.Clock.start_talk/0` with the opening line.
 
 ---
 
@@ -32,7 +32,17 @@ Formal verification can answer that, if we **keep the question small**.
 
 ---
 
-## 2 · Both apps were reasonable — 00:40
+## 2 · Index — 00:40
+
+*(Let the room read the index. Two beats.)*
+
+Five chapters, about thirty minutes.
+
+*(Change slide.)*
+
+---
+
+## 3 · Both apps were reasonable — 00:55
 
 This example comes from a smart-home research paper called **SOTERIA**. They looked at what happens when you compose several apps. Two of them, O3 and O4, react to the same event: a contact sensor opens. And they set the same switch to **different values**.
 
@@ -48,7 +58,7 @@ The paper gives us the conflict. The simulator gives us a safe place to let it g
 
 ---
 
-## 3 · Both rules are reasonable — 01:30
+## 4 · Both rules are reasonable — 01:45
 
 This is what makes these bugs annoying.
 
@@ -64,7 +74,7 @@ That gap between **local correctness and composed behaviour** is where today's t
 
 ---
 
-## 4 · The loop nobody designed — 02:05
+## 5 · The loop nobody designed — 02:20
 
 **Nobody designed** the combined behaviour on this slide.
 
@@ -82,7 +92,7 @@ The important point is the irony. Nobody has to write a function called `create_
 
 ---
 
-## 5 · Why wait until the rule runs? — 02:40
+## 6 · Why wait until the rule runs? — 02:55
 
 These two rules already disagree before a device moves, before an alert fires, and before either rule is **active**.
 
@@ -100,7 +110,7 @@ That's the key idea: **move the check left**, to the moment someone creates the 
 
 ---
 
-## 6 · The gate — 03:10
+## 7 · The gate — 03:25
 
 *(Let the slide sit for a beat.)*
 
@@ -110,7 +120,7 @@ So that's the problem. Now the question we can actually answer, and how the chec
 
 ---
 
-## 7 · Tests and checks answer different questions — 03:20
+## 8 · Tests and checks answer different questions — 03:35
 
 Why not just write more tests?
 
@@ -130,7 +140,7 @@ We are not asking Maude to understand the universe. We just ask it **one specifi
 
 ---
 
-## 8 · Four pieces — 04:10
+## 9 · Four pieces — 04:25
 
 Maude looks unfamiliar at first. But from here on, you only need **four words**.
 
@@ -144,7 +154,7 @@ That distinction matters because different Maude commands answer different quest
 
 ---
 
-## 9 · Reduce is not search — 04:55
+## 10 · Reduce is not search — 05:10
 
 `reduce` is not `search`.
 
@@ -168,7 +178,7 @@ We ask **the narrow question** we actually modeled.
 
 ---
 
-## 10 · Four conflict categories — 06:00
+## 11 · Four conflict categories — 06:15
 
 This checker knows **four categories** of conflict. A category is one kind of conflict it can spot between two rules, and these four are the only things it looks for.
 
@@ -192,7 +202,7 @@ That sounds obvious. It is also easy to forget once the word formal appears on a
 
 ---
 
-## 11 · A narrow claim can be strong — 06:50
+## 12 · A narrow claim can be strong — 07:05
 
 **What does a clean result mean?**
 
@@ -210,7 +220,7 @@ It is also **one I can defend**.
 
 ---
 
-## 12 · Maude as an ordinary supervised dependency — 07:35
+## 13 · Maude as an ordinary supervised dependency — 07:50
 
 Inside this Elixir application, Maude is not a separate service running as a **sidecar**.
 
@@ -226,7 +236,7 @@ The maths can be unusual. The process lifecycle does not have to be.
 
 ---
 
-## 13 · Verify the term the runtime executes — 08:20
+## 14 · Verify the term the runtime executes — 08:35
 
 If you remember one design decision from this talk, **make it this one**.
 
@@ -242,7 +252,7 @@ One shared map does not remove every risk. There is still a small piece of code 
 
 ---
 
-## 14 · Never turn “no answer” into “yes” — 09:10
+## 15 · Never turn “no answer” into “yes” — 09:25
 
 The gate has **three answers**. Not two.
 
@@ -260,7 +270,7 @@ That fail-closed behaviour is not a theorem from Maude. It is **application poli
 
 ---
 
-## 15 · Every arrow deserves a test — 10:15
+## 16 · Every arrow deserves a test — 10:30
 
 Formal checking does not make the plumbing **trustworthy by association**.
 
@@ -276,7 +286,7 @@ Otherwise the formal core can be perfectly correct while **the glue quietly lies
 
 ---
 
-## 16 · Partition on interaction edges — 10:55
+## 17 · Partition on interaction edges — 11:10
 
 Comparing every rule with every other rule is not particularly clever.
 
@@ -294,7 +304,7 @@ Those are **today's run counts**, not a universal scaling claim.
 
 ---
 
-## 17 · Live: IoT rules — 11:55
+## 18 · Live: IoT rules — 12:10
 
 *(Let the slide sit for a beat.)*
 
@@ -304,7 +314,7 @@ Enough slides. Let's watch it happen.
 
 ---
 
-## 18 · Catch the conflict before the rule exists — 12:05
+## 19 · Catch the conflict before the rule exists — 12:20
 
 *(Reveal Rules pane. Pause while switching windows.)*
 
@@ -334,7 +344,7 @@ The conflicting pair **never exists in the active rule set**.
 
 ---
 
-## 19 · Run the same shift change twice — 13:35
+## 20 · Run the same shift change twice — 13:50
 
 Now I want to **make the difference visible**.
 
@@ -370,7 +380,7 @@ That is the whole point. **Move the decision left**, before the rules ever run.
 
 ---
 
-## 20 · Ask the running system why — 16:50
+## 21 · Ask the running system why — 17:05
 
 We have counters. Somebody still has to interpret them.
 
@@ -394,7 +404,7 @@ That separation is more interesting to me than putting an LLM in front of every 
 
 ---
 
-## 21 · Live: AI policy — 18:30
+## 22 · Live: AI policy — 18:45
 
 *(Let the slide sit for a beat.)*
 
@@ -404,7 +414,7 @@ So far, people wrote the rules. Now we let a model write them. **Same gate, same
 
 ---
 
-## 22 · An LLM may propose policy; it should not judge itself — 18:40
+## 23 · An LLM may propose policy; it should not judge itself — 18:55
 
 The same boundary applies when **the language model is the author**.
 
@@ -422,7 +432,7 @@ We check the policy the model wrote. We are **not verifying the model itself**.
 
 ---
 
-## 23 · Exactly seven categories — 19:25
+## 24 · Exactly seven categories — 19:40
 
 The AI-policy detector has **exactly seven categories** of conflict. They are on the slide, so I will not read them all.
 
@@ -440,7 +450,7 @@ The next demo uses two of them: **approval-gate bypass and sovereignty violation
 
 ---
 
-## 24 · The model suggests. The gate decides. — 20:10
+## 25 · The model suggests. The gate decides. — 20:25
 
 When the check finds a conflict, it comes back with a **type**. Approval gate bypass, for example. That gives the model **something concrete to fix**.
 
@@ -462,7 +472,7 @@ If the model is unavailable, show that failure and continue to the deterministic
 
 ---
 
-## 25 · Approval missing → clean revision → wrong jurisdiction — 20:50
+## 26 · Approval missing → clean revision → wrong jurisdiction — 21:05
 
 *(Reveal Notebook pane. Run Initialize, Check interpreter and Define policy while speaking. They are setup cells.)*
 
@@ -498,7 +508,7 @@ Nothing had to persuade itself that it was correct.
 
 ---
 
-## 26 · Takeaways — 23:30
+## 27 · Takeaways — 23:45
 
 *(Let the slide sit for a beat.)*
 
@@ -508,7 +518,7 @@ That was the last demo. Let me pull this together.
 
 ---
 
-## 27 · Maude is not the only answer — 23:40
+## 28 · Maude is not the only answer — 23:55
 
 Maude is **not the answer to every formal-methods problem**.
 
@@ -526,7 +536,7 @@ Tool choice should **follow the property**, not loyalty to the tool I happened t
 
 ---
 
-## 28 · Keep the claim attached to its evidence — 24:25
+## 29 · Keep the claim attached to its evidence — 24:40
 
 Before taking this toward production, **keep the claim attached to its evidence**.
 
@@ -542,7 +552,7 @@ An audit artifact helps review what happened. It does not automatically satisfy 
 
 ---
 
-## 29 · Decision model + Maude — 25:15
+## 30 · Decision model + Maude — 25:30
 
 *(If time permits.)*
 
@@ -560,7 +570,7 @@ That gives you flexible judgement inside explicit boundaries. The decision model
 
 ---
 
-## 30 · Formal methods strengthen narrow claims — 25:55
+## 31 · Formal methods strengthen narrow claims — 26:10
 
 The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
@@ -580,13 +590,13 @@ Thank you.
 
 ## Hard-cut map
 
-- On slides 8–10, keep the four-word vocabulary, the reduce/search distinction, and the model boundary; omit elaboration.
-- On slide 16, name the three interaction edges and read only the current partition count.
-- On slide 20, protect the observation/inference sentence and the Maude/LLM boundary.
-- If LIVE 04 (slide 25) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
-- Slide 29 is the first clean cut when late. If used, keep it to: the decision model asks what is likely; Maude asks what the model allows; they can coexist.
-- The chapter dividers (6, 17, 21, 26) are ten seconds each: say the bridge and move on.
-- Begin the close (30) no later than 26:00. Keep the takeaways and the final quote.
+- On slides 9–11, keep the four-word vocabulary, the reduce/search distinction, and the model boundary; omit elaboration.
+- On slide 17, name the three interaction edges and read only the current partition count.
+- On slide 21, protect the observation/inference sentence and the Maude/LLM boundary.
+- If LIVE 04 (slide 26) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
+- Slide 30 is the first clean cut when late. If used, keep it to: the decision model asks what is likely; Maude asks what the model allows; they can coexist.
+- The chapter dividers (7, 18, 22, 27) are ten seconds each: say the bridge and move on.
+- Begin the close (31) no later than 26:00. Keep the takeaways and the final quote.
 
 ## Delivery
 
