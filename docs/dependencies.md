@@ -17,9 +17,12 @@ run in an isolated checkout without that sibling. The pinned revision must
 already be available remotely for a fresh checkout to resolve it.
 
 `beamlens_web` is the only forked dependency. Its `theme-config` revision
-`42f6e9b98ad04fc4f89b47d77183505ba21cd8aa` adds consumer theming in one commit
-on upstream `efe1b7f139cf256173beef85636b13e310bb3f79`. The fork is consumed
-through Git; upstream owns its Hex releases. `ex_maude` is an original project,
+`6497405c34cc1e05405919a631665ff280d9a9dd` is two commits on upstream
+`efe1b7f139cf256173beef85636b13e310bb3f79`: consumer theming, and a one-line
+fix so the library compiles without warnings on Elixir 1.20 (its own lockfile
+moved to LiveView 1.2.12 for the same reason). Upstream `main` has not moved
+since that base, so the branch needed no rebase. The fork is consumed through
+Git; upstream owns its Hex releases. `ex_maude` is an original project,
 not a fork. BeamLens itself comes from Hex.
 
 Updates reviewed for this audit:

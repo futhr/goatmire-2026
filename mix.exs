@@ -75,7 +75,7 @@ defmodule Goatmire.MixProject do
         :beamlens_web,
         "https://github.com/futhr/beamlens_web.git",
         "../beamlens_web",
-        ref: "42f6e9b98ad04fc4f89b47d77183505ba21cd8aa"
+        ref: "6497405c34cc1e05405919a631665ff280d9a9dd"
       ),
       {:mdex, "~> 0.13.5"},
       {:ex_maude, "~> 0.4.3"},
