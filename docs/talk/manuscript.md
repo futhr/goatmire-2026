@@ -16,7 +16,17 @@ The order matches [`slides/deck.md`](./slides/deck.md) and the live presenter. S
 
 ---
 
-## 1 · Formal Verification — 00:00
+## 1 · Index — 00:00
+
+*(Holding slide while the room settles. Let them read the index.)*
+
+Five chapters, about thirty minutes.
+
+*(Change slide when you start.)*
+
+---
+
+## 2 · Formal Verification — 00:15
 
 *(Let the room read. Look up. Two beats.)*
 
@@ -29,16 +39,6 @@ Tests only check the cases you thought of. So before we run anything, I want to 
 Formal verification can answer that, if we **keep the question small**.
 
 *(Change slide. Pause 2–3 seconds.)*
-
----
-
-## 2 · Index — 00:40
-
-*(Let the room read the index. Two beats.)*
-
-Five chapters, about thirty minutes.
-
-*(Change slide.)*
 
 ---
 

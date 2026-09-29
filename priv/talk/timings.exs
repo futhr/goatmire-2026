@@ -1,13 +1,13 @@
 # Rehearsal budgets for the 31-slide stage sequence. Not a stage key: restart
 # the server, or call Goatmire.Talk.Clock.reload_timings/0 from IEx.
 # Slides enter deck-only. Configured panes open when deliberately revealed.
-# Slide 2 is the index; slides 7, 18, 22 and 27 are chapter dividers: one spoken bridge each.
+# Slide 1 is the index and holding slide; slides 7, 18, 22 and 27 are chapter dividers: one spoken bridge each.
 # Slide 31 includes the close and recovery/question reserve.
 %{
   slot_seconds: 1_800,
   slides: [
-    {1, 40},
-    {2, 15},
+    {1, 15},
+    {2, 40},
     {3, 50},
     {4, 35},
     {5, 35},

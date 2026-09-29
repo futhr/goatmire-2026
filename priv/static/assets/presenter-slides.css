@@ -194,12 +194,6 @@
   line-height: 1.35;
 }
 
-.sl-author {
-  margin-top: 1.9cqw;
-  color: var(--sl-heading);
-  font-weight: 600;
-}
-
 .sl-small {
   color: var(--sl-subtext);
   font-size: clamp(0.7rem, 1.4cqw, 1.3rem);

@@ -39,7 +39,8 @@ defmodule Goatmire.Talk.ClockTest do
   test "deck metadata is consecutive and owns the clock count" do
     assert Enum.map(Deck.titles(), &elem(&1, 0)) == Enum.to_list(1..Deck.count())
     assert Deck.count() == Clock.snapshot().slide_count
-    assert Deck.title(1) == "Formal Verification"
+    assert Deck.title(1) == "Index"
+    assert Deck.title(2) == "Formal Verification"
     assert Deck.title(Deck.count() + 1) == nil
   end
 

@@ -47,24 +47,23 @@ defmodule GoatmireWeb.Presenter.Slides do
   @doc "Renders slide `n` of the deck."
   @spec slide(map()) :: Phoenix.LiveView.Rendered.t()
 
-  def slide(%{n: 1} = assigns) do
+  def slide(%{n: 2} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-1 slide--title">
+    <section aria-label={Deck.title(@n)} class="slide slide-2 slide--title">
       <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
       <h1>{Deck.title(@n)}</h1>
       <p class="sl-lede">
         Check rules together—before reasonable rules become an unreasonable system.
       </p>
-      <p class="sl-author">Tobias Bohwalli</p>
     </section>
     """
   end
 
-  def slide(%{n: 2} = assigns) do
+  def slide(%{n: 1} = assigns) do
     assigns = assign(assigns, :index, chapter_index())
 
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-2 slide--index">
+    <section aria-label={Deck.title(@n)} class="slide slide-1 slide--index">
       <div class="sl-eyebrow">Goatmire 2026 · 30 minutes</div>
       <dl class="sl-index">
         <%= for {start, chapter} <- @index do %>

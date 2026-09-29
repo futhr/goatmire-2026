@@ -9,31 +9,7 @@ description: Formal Verification for IoT Automation — Goatmire 2026
 author: Tobias Bohwalli
 ---
 
-<!-- slide 1: Formal Verification -->
-<!-- _class: title -->
-<!-- _paginate: false -->
-<!-- _footer: "" -->
-
-<div class="eyebrow">Goatmire 2026 · 30 minutes</div>
-
-# Formal Verification
-
-<p class="lede">Formal verification for IoT automation—at the deployment gate, before reasonable rules become an unreasonable system.</p>
-
-**Tobias Bohwalli**
-
-<!--
-Pause. Let the room read the title. Promise one thing: we will create a storm,
-then stop the same storm before either rule can run.
-
-[Sources]
-- No external claim on this slide.
-[/Sources]
--->
-
----
-
-<!-- slide 2: Index -->
+<!-- slide 1: Index -->
 <!-- _class: index -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -50,6 +26,29 @@ then stop the same storm before either rule can run.
 
 <!--
 Let the room read the index. Two beats.
+
+[Sources]
+- No external claim on this slide.
+[/Sources]
+-->
+
+---
+
+<!-- slide 2: Formal Verification -->
+<!-- _class: title -->
+<!-- _paginate: false -->
+<!-- _footer: "" -->
+
+<div class="eyebrow">Goatmire 2026 · 30 minutes</div>
+
+# Formal Verification
+
+<p class="lede">Formal verification for IoT automation—at the deployment gate, before reasonable rules become an unreasonable system.</p>
+
+
+<!--
+Pause. Let the room read the title. Promise one thing: we will create a storm,
+then stop the same storm before either rule can run.
 
 [Sources]
 - No external claim on this slide.

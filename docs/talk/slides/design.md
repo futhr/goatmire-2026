@@ -70,9 +70,9 @@ recovery or questions.
 4. **Evidence** — three IoT demos and one short policy demo.
 5. **Transfer** — probabilistic judgement (LLM/Jev) and explicit formal checks have different contracts.
 
-The talk is told in five chapters. Slide 1 is the holding card while the room
-settles. Slide 2 is the index, split in two: the planned start of every chapter
-in a magenta half, its title in the other. Chapters two to five
+The talk is told in five chapters. Slide 1 is the index, the holding card while
+the room settles, split in two: the planned start of every chapter
+in a magenta half, its title in the other. Slide 2 is the title card, where the talk starts. Chapters two to five
 open with a divider slide that carries the chapter title. The deck therefore has exactly three backgrounds, each
 with one meaning:
 

@@ -24,8 +24,8 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 
 | Slide | Anchor | Exit |
 |---:|---|---|
-| 1 | This talk is about one kind of bug, where every part works but the system still does the wrong thing. | Formal verification can answer that, if we keep the question small. |
-| 2 | Five chapters, about thirty minutes. | Five chapters, about thirty minutes. |
+| 1 | Five chapters, about thirty minutes. | Five chapters, about thirty minutes. |
+| 2 | This talk is about one kind of bug, where every part works but the system still does the wrong thing. | Formal verification can answer that, if we keep the question small. |
 | 3 | This example comes from a smart-home research paper called SOTERIA. They looked at what happens when you compose several apps. Two of them, O3 and O4, react to the same event: a contact sensor opens. And they set the same switch to different values. | The simulator gives us a safe place to let it get noisy. |
 | 4 | This is what makes these bugs annoying. | That gap between local correctness and composed behaviour is where today's talk lives. |
 | 5 | Nobody designed the combined behaviour on this slide. | We are perfectly capable of getting there by composing reasonable things. |

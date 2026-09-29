@@ -5,8 +5,8 @@ defmodule Goatmire.Talk.Deck do
   The clock, projected slides, speaker notes, and tests all take their count
   and titles from this list so a rewrite cannot leave one surface behind.
 
-  The deck is told in five chapters. Slide 1 is the holding card and slide 2 the
-  index, which lists them with their planned start, and chapters two to five open with a divider slide that
+  The deck is told in five chapters. Slide 1 is the index, shown while the room
+  settles, and lists them with their planned start; slide 2 is the title card, and chapters two to five open with a divider slide that
   carries the chapter title.
   """
 
@@ -19,8 +19,8 @@ defmodule Goatmire.Talk.Deck do
   ]
 
   @slides [
-    {1, "Formal Verification"},
-    {2, "Index"},
+    {1, "Index"},
+    {2, "Formal Verification"},
     {3, "Both apps were reasonable"},
     {4, "Both rules are reasonable"},
     {5, "The loop nobody designed"},
