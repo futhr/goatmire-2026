@@ -65,11 +65,10 @@ its production dependency updates, and the build rejects Hex advisories.
 Bun 1.3.10 is confined to that container build and regenerates the assets against
 the locked Phoenix libraries.
 
-Open item: that lock now trips its own audit. The pinned Livebook commit depends
-on `nimble_zta` 0.1.2 (retired, EEF-CVE-2026-91187) and `cowlib` 2.20.0
-(EEF-CVE-2026-43966, -43969), so the optional `livebook` image does not build
-until the pin moves to a Livebook release that resolves them and the patch and
-lock are regenerated. The stage does not use this container.
+That lock moves `nimble_zta` to 0.1.3, which fixes the retired 0.1.2 and its
+Cloudflare signature check (EEF-CVE-2026-91187), and Mint to 1.11.0 with the
+hpax it requires. Upstream Livebook still locks older versions of both, so
+repeat this when moving the pin. The image audits without any ignore list.
 
 The small `docker/livebook-security.patch` widens two upstream constraints:
 
