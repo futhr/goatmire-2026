@@ -66,7 +66,7 @@ diagnostics-down:
 
 # make simulators N=8 — container simulator replicas over the real broker.
 simulators:
-	@docker compose -f docker/docker-compose.diagnostics.yml up -d --scale simulator=$(or $(N),2)
+	@docker compose -f docker/docker-compose.diagnostics.yml up -d --wait --scale simulator=$(or $(N),2)
 
 rehearse-solo:
 	@echo "==> Solo rehearsal — seven beats and anchors first; manuscript only as recovery."
