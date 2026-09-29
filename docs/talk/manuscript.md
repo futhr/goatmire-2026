@@ -596,7 +596,7 @@ Thank you.
 - If LIVE 04 (slide 26) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
 - Slide 30 is the first clean cut when late. If used, keep it to: the decision model asks what is likely; Maude asks what the model allows; they can coexist.
 - The chapter dividers (7, 18, 22, 27) are ten seconds each: say the bridge and move on.
-- Begin the close (31) no later than 26:00. Keep the takeaways and the final quote.
+- Begin the close (31) no later than 26:30. Keep the takeaways and the final quote.
 
 ## Delivery
 
