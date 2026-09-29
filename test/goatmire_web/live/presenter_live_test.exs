@@ -156,13 +156,13 @@ defmodule GoatmireWeb.PresenterLiveTest do
     assert maude =~ ~s(<span class="nc">SWITCH</span>)
     assert maude =~ ~s(<span class="o">=&gt;*</span>)
 
-    assert render_component(&Slides.slide/1, n: 21) =~ ~s(<span class="ss">:invoke_tool</span>)
+    assert render_component(&Slides.slide/1, n: 22) =~ ~s(<span class="ss">:invoke_tool</span>)
 
     refute render_component(&CoreComponents.maude_block/1, code: "<script>") =~ "<script>"
   end
 
   test "the Jev comparison slide shows the combined decision path" do
-    html = render_component(&Slides.slide/1, n: 28)
+    html = render_component(&Slides.slide/1, n: 29)
 
     assert html =~ "Same architectural slot"
     assert html =~ "machine-readable decision"

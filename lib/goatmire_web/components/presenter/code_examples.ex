@@ -143,7 +143,7 @@ defmodule GoatmireWeb.Presenter.CodeExamples do
     }
   end
 
-  def example(21) do
+  def example(22) do
     %{
       title: "The checker remains deterministic",
       description:

@@ -5,16 +5,17 @@ defmodule Goatmire.Talk.Deck do
   The clock, projected slides, speaker notes, and tests all take their count
   and titles from this list so a rewrite cannot leave one surface behind.
 
-  The deck is told in four chapters. Each chapter is one declarative sentence:
-  the index slide lists all four, and chapters two to four open with a divider
+  The deck is told in five chapters. Each chapter is one declarative sentence:
+  the index slide lists all five, and chapters two to five open with a divider
   slide that carries the sentence as its title.
   """
 
   @chapters [
     {1, 1, "Reasonable rules make an unreasonable system."},
     {2, 6, "The gate asks one small question."},
-    {3, 17, "The gate holds, whoever wrote the rule."},
-    {4, 25, "Strong claims stay narrow."}
+    {3, 17, "The rules fight, then the gate holds."},
+    {4, 21, "The model writes the rule; the gate still decides."},
+    {5, 26, "Strong claims stay narrow."}
   ]
 
   @slides [
@@ -34,22 +35,23 @@ defmodule Goatmire.Talk.Deck do
     {14, "Never turn “no answer” into “yes”"},
     {15, "Every arrow deserves a test"},
     {16, "Partition on interaction edges"},
-    {17, "The gate holds, whoever wrote the rule."},
+    {17, "The rules fight, then the gate holds."},
     {18, "Catch the conflict before the rule exists"},
     {19, "Run the same shift change twice"},
     {20, "Ask the running system why"},
-    {21, "An LLM may propose policy; it should not judge itself"},
-    {22, "Exactly seven categories"},
-    {23, "The model suggests. The gate decides."},
-    {24, "Approval missing → clean revision → wrong jurisdiction"},
-    {25, "Strong claims stay narrow."},
-    {26, "Maude is not the only answer"},
-    {27, "Keep the claim attached to its evidence"},
-    {28, "Decision model + Maude"},
-    {29, "Formal methods strengthen narrow claims"}
+    {21, "The model writes the rule; the gate still decides."},
+    {22, "An LLM may propose policy; it should not judge itself"},
+    {23, "Exactly seven categories"},
+    {24, "The model suggests. The gate decides."},
+    {25, "Approval missing → clean revision → wrong jurisdiction"},
+    {26, "Strong claims stay narrow."},
+    {27, "Maude is not the only answer"},
+    {28, "Keep the claim attached to its evidence"},
+    {29, "Decision model + Maude"},
+    {30, "Formal methods strengthen narrow claims"}
   ]
 
-  @words %{1 => "one", 2 => "two", 3 => "three", 4 => "four"}
+  @words %{1 => "one", 2 => "two", 3 => "three", 4 => "four", 5 => "five"}
 
   @chapter_maps @chapters
                 |> Enum.with_index()
@@ -108,7 +110,7 @@ defmodule Goatmire.Talk.Deck do
           last_slide: pos_integer()
         }
 
-  @doc "The four chapters in order, each with the slide range it spans."
+  @doc "The five chapters in order, each with the slide range it spans."
   @spec chapters() :: [chapter()]
   def chapters, do: @chapter_maps
 

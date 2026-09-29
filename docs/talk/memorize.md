@@ -1,4 +1,4 @@
-# Learn the talk — seven beats and twenty-nine anchors
+# Learn the talk — seven beats and thirty anchors
 
 The full wording lives in [`manuscript.md`](./manuscript.md) and on the private iPad notes view. It is a recovery aid, not a memorization assignment.
 
@@ -44,15 +44,16 @@ Everything between an anchor and an exit can be said naturally from the slide. I
 | 18 | I deploy the switch-on rule first. | The conflicting pair never exists in the active rule set. |
 | 19 | Now I want to make the difference visible. | That is the whole point. Move the decision left, before the rules ever run. |
 | 20 | We have counters. Somebody still has to interpret them. | That separation is more interesting to me than putting an LLM in front of every button. |
-| 21 | The same boundary applies when the language model is the author. | We are not verifying the model itself. |
-| 22 | The AI-policy detector has exactly seven categories of conflict. They are on the slide, so I will not read them all. | Nothing more heroic than that. |
-| 23 | When the check finds a conflict, it comes back with a type. Approval gate bypass, for example. That gives the model something concrete to fix. | The model does not judge its own work. |
-| 24 | This final demo is deliberately boring. | Nothing had to persuade itself that it was correct. |
-| 25 | That was the last demo. Let me pull this together. | That was the last demo. Let me pull this together. |
-| 26 | Maude is not the answer to every formal-methods problem. | Tool choice should follow the property, not loyalty to the tool I happened to put in a conference talk. |
-| 27 | Before taking this toward production, keep the claim attached to its evidence. | It does not automatically satisfy a regulation, and it definitely does not prove a property we never modeled. |
-| 28 | A fair question, especially now that Jev is out: why not a decision model instead of Maude? | The decision model asks what is likely. Maude asks what the model allows. |
-| 29 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
+| 21 | So far, people wrote the rules. Now we let a model write them. Same gate, same question. | So far, people wrote the rules. Now we let a model write them. Same gate, same question. |
+| 22 | The same boundary applies when the language model is the author. | We are not verifying the model itself. |
+| 23 | The AI-policy detector has exactly seven categories of conflict. They are on the slide, so I will not read them all. | Nothing more heroic than that. |
+| 24 | When the check finds a conflict, it comes back with a type. Approval gate bypass, for example. That gives the model something concrete to fix. | The model does not judge its own work. |
+| 25 | This final demo is deliberately boring. | Nothing had to persuade itself that it was correct. |
+| 26 | That was the last demo. Let me pull this together. | That was the last demo. Let me pull this together. |
+| 27 | Maude is not the answer to every formal-methods problem. | Tool choice should follow the property, not loyalty to the tool I happened to put in a conference talk. |
+| 28 | Before taking this toward production, keep the claim attached to its evidence. | It does not automatically satisfy a regulation, and it definitely does not prove a property we never modeled. |
+| 29 | A fair question, especially now that Jev is out: why not a decision model instead of Maude? | The decision model asks what is likely. Maude asks what the model allows. |
+| 30 | The code and notebooks from today are on GitHub if you want to try this, or break it. | Thank you. |
 
 ## Protected lines
 

@@ -22,9 +22,9 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "late acknowledgements cannot complete a step after reset" do
-    generation = :sys.get_state(Clock).play_generation[24]
+    generation = :sys.get_state(Clock).play_generation[25]
     Clock.reset()
-    send(Clock, {:play_completed, 24, {generation, 0}})
+    send(Clock, {:play_completed, 25, {generation, 0}})
     refute Map.has_key?(Clock.snapshot().play_done, 22)
   end
 
@@ -32,7 +32,7 @@ defmodule Goatmire.Talk.ClockTest do
     snap = Clock.snapshot()
 
     assert snap.warnings == []
-    assert snap.slide_count == 29
+    assert snap.slide_count == 30
     assert snap.budget_total_s <= snap.slot_s
   end
 
@@ -62,13 +62,13 @@ defmodule Goatmire.Talk.ClockTest do
   end
 
   test "every tab a slide can configure is accepted by the clock" do
-    for {_, tab} <- [{18, :rules}, {19, :warehouse}, {20, :diagnostics}, {24, :notebook}] do
+    for {_, tab} <- [{18, :rules}, {19, :warehouse}, {20, :diagnostics}, {25, :notebook}] do
       assert %{tab: ^tab} = Clock.set_tab(tab)
     end
   end
 
-  test "slide 24 binds the notebook pane" do
-    assert %{tab: :notebook, panel: :deck_full, reveal_panel: :live_full} = Clock.goto(24)
+  test "slide 25 binds the notebook pane" do
+    assert %{tab: :notebook, panel: :deck_full, reveal_panel: :live_full} = Clock.goto(25)
   end
 
   test "a slide enters deck-only and reveal opens its configured layout" do

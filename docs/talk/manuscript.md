@@ -1,6 +1,6 @@
 # Talk manuscript — natural 30-minute cut
 
-This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 29-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
+This is the spoken reference for the Goatmire 2026 talk that opens as **“Formal Verification”** (programme title: “Zero Alert Storms: Formal Verification for IoT Automation”). It follows the 30-slide stage deck at `/talk`, and the private iPad notes view shows it slide by slide.
 
 This manuscript is a safety net, not a text to memorize word for word. Learn the seven-beat spine and each slide's first sentence in [`memorize.md`](./memorize.md); keep the complete text available for recovery. Bold marks the cue words; the iPad shows them in bold. Stage directions are in italics and are not spoken.
 
@@ -294,7 +294,7 @@ Those are **today's run counts**, not a universal scaling claim.
 
 ---
 
-## 17 · The gate holds, whoever wrote the rule. — 11:55
+## 17 · The rules fight, then the gate holds. — 11:55
 
 *(Let the slide sit for a beat.)*
 
@@ -394,7 +394,17 @@ That separation is more interesting to me than putting an LLM in front of every 
 
 ---
 
-## 21 · An LLM may propose policy; it should not judge itself — 18:30
+## 21 · The model writes the rule; the gate still decides. — 18:30
+
+*(Let the slide sit for a beat.)*
+
+So far, people wrote the rules. Now we let a model write them. **Same gate, same question.**
+
+*(Change slide.)*
+
+---
+
+## 22 · An LLM may propose policy; it should not judge itself — 18:40
 
 The same boundary applies when **the language model is the author**.
 
@@ -412,7 +422,7 @@ We check the policy the model wrote. We are **not verifying the model itself**.
 
 ---
 
-## 22 · Exactly seven categories — 19:15
+## 23 · Exactly seven categories — 19:25
 
 The AI-policy detector has **exactly seven categories** of conflict. They are on the slide, so I will not read them all.
 
@@ -430,7 +440,7 @@ The next demo uses two of them: **approval-gate bypass and sovereignty violation
 
 ---
 
-## 23 · The model suggests. The gate decides. — 20:00
+## 24 · The model suggests. The gate decides. — 20:10
 
 When the check finds a conflict, it comes back with a **type**. Approval gate bypass, for example. That gives the model **something concrete to fix**.
 
@@ -452,7 +462,7 @@ If the model is unavailable, show that failure and continue to the deterministic
 
 ---
 
-## 24 · Approval missing → clean revision → wrong jurisdiction — 20:40
+## 25 · Approval missing → clean revision → wrong jurisdiction — 20:50
 
 *(Reveal Notebook pane. Run Initialize, Check interpreter and Define policy while speaking. They are setup cells.)*
 
@@ -488,7 +498,7 @@ Nothing had to persuade itself that it was correct.
 
 ---
 
-## 25 · Strong claims stay narrow. — 23:20
+## 26 · Strong claims stay narrow. — 23:30
 
 *(Let the slide sit for a beat.)*
 
@@ -498,7 +508,7 @@ That was the last demo. Let me pull this together.
 
 ---
 
-## 26 · Maude is not the only answer — 23:30
+## 27 · Maude is not the only answer — 23:40
 
 Maude is **not the answer to every formal-methods problem**.
 
@@ -516,7 +526,7 @@ Tool choice should **follow the property**, not loyalty to the tool I happened t
 
 ---
 
-## 27 · Keep the claim attached to its evidence — 24:15
+## 28 · Keep the claim attached to its evidence — 24:25
 
 Before taking this toward production, **keep the claim attached to its evidence**.
 
@@ -532,7 +542,7 @@ An audit artifact helps review what happened. It does not automatically satisfy 
 
 ---
 
-## 28 · Decision model + Maude — 25:05
+## 29 · Decision model + Maude — 25:15
 
 *(If time permits.)*
 
@@ -550,7 +560,7 @@ That gives you flexible judgement inside explicit boundaries. The decision model
 
 ---
 
-## 29 · Formal methods strengthen narrow claims — 25:45
+## 30 · Formal methods strengthen narrow claims — 25:55
 
 The code and notebooks from today are on GitHub if you want to **try this, or break it**.
 
@@ -573,10 +583,10 @@ Thank you.
 - On slides 8–10, keep the four-word vocabulary, the reduce/search distinction, and the model boundary; omit elaboration.
 - On slide 16, name the three interaction edges and read only the current partition count.
 - On slide 20, protect the observation/inference sentence and the Maude/LLM boundary.
-- If LIVE 04 (slide 24) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
-- Slide 28 is the first clean cut when late. If used, keep it to: the decision model asks what is likely; Maude asks what the model allows; they can coexist.
-- The chapter dividers (6, 17, 25) are ten seconds each: say the bridge and move on.
-- Begin the close (29) no later than 26:00. Keep the takeaways and the final quote.
+- If LIVE 04 (slide 25) would start after 23:30, skip the live notebook and say its three outcomes in one sentence each.
+- Slide 29 is the first clean cut when late. If used, keep it to: the decision model asks what is likely; Maude asks what the model allows; they can coexist.
+- The chapter dividers (6, 17, 21, 26) are ten seconds each: say the bridge and move on.
+- Begin the close (30) no later than 26:00. Keep the takeaways and the final quote.
 
 ## Delivery
 

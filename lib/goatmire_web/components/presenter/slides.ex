@@ -1,6 +1,6 @@
 defmodule GoatmireWeb.Presenter.Slides do
   @moduledoc """
-  The 29-slide conference sequence as Phoenix function components.
+  The 30-slide conference sequence as Phoenix function components.
 
   Slide order agrees with the manuscript and Markdown source. Claims remain
   scoped to the demonstrated model, simulation, and measured run.
@@ -409,9 +409,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 21} = assigns) do
+  def slide(%{n: 22} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-21 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-22 slide--default">
       <div class="sl-eyebrow">The pattern transfers</div><h1>{Deck.title(@n)}</h1>
       <.code_block code={~s|invocations: [\n  {:invoke_tool, "dose", %{}, "high_impact", :eu}\n]|} />
       <ol class="sl-points">
@@ -422,9 +422,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 22} = assigns) do
+  def slide(%{n: 23} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-22 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-23 slide--default">
       <div class="sl-eyebrow">The bundled AI policy model</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -441,9 +441,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 23} = assigns) do
+  def slide(%{n: 24} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-23 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-24 slide--default">
       <div class="sl-eyebrow">The same boundary works for generated policy</div>
       <h1>{Deck.title(@n)}</h1>
       <div class="sl-flow">
@@ -460,9 +460,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 24} = assigns) do
+  def slide(%{n: 25} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-24 slide--demo">
+    <section aria-label={Deck.title(@n)} class="slide slide-25 slide--demo">
       <div class="sl-eyebrow">Live demo · policy by hand</div>
       <div class="sl-live">
         <p class="sl-live-label">LIVE · 04</p>
@@ -473,9 +473,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 26} = assigns) do
+  def slide(%{n: 27} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-26 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-27 slide--default">
       <div class="sl-eyebrow">Choose by property shape</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -492,9 +492,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 27} = assigns) do
+  def slide(%{n: 28} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-27 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-28 slide--default">
       <div class="sl-eyebrow">Before production</div><h1>{Deck.title(@n)}</h1>
       <div class="sl-two">
         <div class="sl-panel">
@@ -515,9 +515,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 28} = assigns) do
+  def slide(%{n: 29} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-28 slide--default">
+    <section aria-label={Deck.title(@n)} class="slide slide-29 slide--default">
       <div class="sl-eyebrow">Same architectural slot · different contract</div><h1>
         {Deck.title(@n)}
       </h1>
@@ -542,9 +542,9 @@ defmodule GoatmireWeb.Presenter.Slides do
     """
   end
 
-  def slide(%{n: 29} = assigns) do
+  def slide(%{n: 30} = assigns) do
     ~H"""
-    <section aria-label={Deck.title(@n)} class="slide slide-29 slide--closing">
+    <section aria-label={Deck.title(@n)} class="slide slide-30 slide--closing">
       <div class="sl-eyebrow">Thank you</div>
       <div>
         <blockquote>

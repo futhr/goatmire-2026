@@ -16,7 +16,7 @@ defmodule Goatmire.Talk.Controls do
        ]},
     19 => {:warehouse, [{:observe, "Observe"}, {:enforce, "Enforce"}]},
     20 => {:diagnostics, [{:diagnose, "Ask"}]},
-    24 =>
+    25 =>
       {:notebook,
        [
          {:initialize_policy, "Initialize"},

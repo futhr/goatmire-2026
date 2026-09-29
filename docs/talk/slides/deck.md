@@ -21,8 +21,9 @@ author: Tobias Bohwalli
 <dl class="index">
   <dt>00:00</dt><dd>Reasonable rules make an unreasonable system.</dd>
   <dt>03:00</dt><dd>The gate asks one small question.</dd>
-  <dt>12:00</dt><dd>The gate holds, whoever wrote the rule.</dd>
-  <dt>23:00</dt><dd>Strong claims stay narrow.</dd>
+  <dt>12:00</dt><dd>The rules fight, then the gate holds.</dd>
+  <dt>19:00</dt><dd>The model writes the rule; the gate still decides.</dd>
+  <dt>24:00</dt><dd>Strong claims stay narrow.</dd>
 </dl>
 
 **Tobias Bohwalli**
@@ -414,14 +415,14 @@ uncertain.
 
 ---
 
-<!-- slide 17: The gate holds, whoever wrote the rule. -->
+<!-- slide 17: The rules fight, then the gate holds. -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
 <div class="eyebrow">Chapter three</div>
 
-# The gate holds, whoever wrote the rule.
+# The rules fight, then the gate holds.
 
 <!--
 Enough slides. Let's watch it happen.
@@ -502,7 +503,26 @@ and the Codex/Ollama provider badge. Maude decided; the model explained.
 
 ---
 
-<!-- slide 21: An LLM may propose policy; it should not judge itself -->
+<!-- slide 21: The model writes the rule; the gate still decides. -->
+<!-- _class: chapter -->
+<!-- _paginate: false -->
+<!-- _footer: "" -->
+
+<div class="eyebrow">Chapter four</div>
+
+# The model writes the rule; the gate still decides.
+
+<!--
+So far, people wrote the rules. Now we let a model write them. Same gate, same question.
+
+[Sources]
+- No external claim on this slide.
+[/Sources]
+-->
+
+---
+
+<!-- slide 22: An LLM may propose policy; it should not judge itself -->
 <div class="eyebrow">The pattern transfers</div>
 
 # An LLM may propose policy; it should not judge itself
@@ -526,7 +546,7 @@ one. Different model, identical trust boundary.
 
 ---
 
-<!-- slide 22: Exactly seven categories -->
+<!-- slide 23: Exactly seven categories -->
 <div class="eyebrow">The bundled AI policy model</div>
 
 # Exactly seven categories
@@ -549,7 +569,7 @@ detector results in the current code.
 
 ---
 
-<!-- slide 23: The model suggests. The gate decides. -->
+<!-- slide 24: The model suggests. The gate decides. -->
 <div class="eyebrow">Generate · verify · revise</div>
 
 # The model suggests. The gate decides.
@@ -572,7 +592,7 @@ deterministic policy check.
 
 ---
 
-<!-- slide 24: Approval missing → clean revision → wrong jurisdiction -->
+<!-- slide 25: Approval missing → clean revision → wrong jurisdiction -->
 <!-- _class: demo -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
@@ -595,12 +615,12 @@ offline fallback for the whole talk.
 
 ---
 
-<!-- slide 25: Strong claims stay narrow. -->
+<!-- slide 26: Strong claims stay narrow. -->
 <!-- _class: chapter -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->
 
-<div class="eyebrow">Chapter four</div>
+<div class="eyebrow">Chapter five</div>
 
 # Strong claims stay narrow.
 
@@ -614,7 +634,7 @@ That was the last demo. Let me pull this together.
 
 ---
 
-<!-- slide 26: Maude is not the only answer -->
+<!-- slide 27: Maude is not the only answer -->
 <div class="eyebrow">Choose by property shape</div>
 
 # Maude is not the only answer
@@ -640,7 +660,7 @@ verification strategy.
 
 ---
 
-<!-- slide 27: Keep the claim attached to its evidence -->
+<!-- slide 28: Keep the claim attached to its evidence -->
 <div class="eyebrow">Before production</div>
 
 # Keep the claim attached to its evidence
@@ -667,7 +687,7 @@ an error or unverified. The activation layer owns fail-open/fail-closed policy.
 
 ---
 
-<!-- slide 28: Decision model + Maude -->
+<!-- slide 29: Decision model + Maude -->
 <div class="eyebrow">Same architectural slot · different contract</div>
 
 # Decision model + Maude
@@ -713,7 +733,7 @@ Jev must not turn a formal conflict or unverified result into clean.
 
 ---
 
-<!-- slide 29: Formal methods strengthen narrow claims -->
+<!-- slide 30: Formal methods strengthen narrow claims -->
 <!-- _class: closing -->
 <!-- _paginate: false -->
 <!-- _footer: "" -->

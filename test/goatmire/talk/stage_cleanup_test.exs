@@ -16,7 +16,7 @@ defmodule Goatmire.Talk.StageCleanupTest do
   test "only a move out of the storm slides counts as leaving" do
     assert StageCleanup.leaving?(20, 21)
     assert StageCleanup.leaving?(19, 18)
-    assert StageCleanup.leaving?(19, 29)
+    assert StageCleanup.leaving?(19, 30)
     refute StageCleanup.leaving?(19, 20)
     refute StageCleanup.leaving?(18, 19)
     refute StageCleanup.leaving?(nil, 22)
